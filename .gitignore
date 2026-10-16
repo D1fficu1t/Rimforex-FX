@@ -3,6 +3,14 @@
 Source/bin/
 Source/obj/
 
+# ── 本机配置 ──
+# Source/Local.props 里存的是**这台机器**的 RimWorld 安装路径。
+# 每台机器都不同，所以不进版本控制。
+#
+# 克隆后要编译的话，把 Local.props.example 复制成 Local.props 并填上自己的路径。
+# 不建也行 —— csproj 会改用 NuGet 引用程序集（Krafs.Rimworld.Ref），一样能编过。
+Source/Local.props
+
 # ── 关于 Assemblies/RimForex.dll ──
 # 它【被纳入版本控制】了，是刻意的。
 #

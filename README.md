@@ -43,7 +43,27 @@ dotnet build RimForex.csproj
 ```
 
 构建后 DLL 会自动复制到 `RimForex\Assemblies\RimForex.dll`。
-`csproj` 顶部的 `RimWorldDir` 是游戏安装路径，换机器需要改。
+
+### 先配一下游戏路径（可选）
+
+编译需要 RimWorld 的程序集。**本机装了游戏的话**，把游戏路径写进配置：
+
+```powershell
+cd RimForex\Source
+copy Local.props.example Local.props
+# 然后编辑 Local.props，把 RimWorldDir 填成你的游戏安装目录
+```
+
+填的是**目录本身**，例如：
+
+```xml
+<RimWorldDir>D:\SteamLibrary\steamapps\common\RimWorld</RimWorldDir>
+```
+
+判断填对没有：那个目录下应当能看到 `RimWorldWin64_Data` 文件夹。
+
+> `Local.props` 已被 `.gitignore` 排除 —— 它每台机器都不同，不该进仓库。
+> 不配也能编译，见下。
 
 ### 引用来源会自动切换
 
@@ -51,8 +71,8 @@ dotnet build RimForex.csproj
 
 | 环境 | 条件 | 引用来源 |
 |---|---|---|
-| **本机开发** | `RimWorldDir` 指向的目录里能找到 `Assembly-CSharp.dll` | 游戏目录里的**真程序集** |
-| **CI / 没装游戏的人** | 找不到上面那个文件 | NuGet 包 [`Krafs.Rimworld.Ref`](https://github.com/krafs/RimRef) |
+| **本机开发** | `Local.props` 里的 `RimWorldDir` 能找到 `Assembly-CSharp.dll` | 游戏目录里的**真程序集** |
+| **CI / 没装游戏的人** | 没配，或路径不对 | NuGet 包 [`Krafs.Rimworld.Ref`](https://github.com/krafs/RimRef) |
 
 构建时会在输出里打印实际用了哪条路：
 

@@ -21,8 +21,21 @@
            · 可以用哈希核对"游戏里装的是不是这一版" -->
     <Deterministic>true</Deterministic>
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  </PropertyGroup>
 
-    <RimWorldDir>G:\SteamLibrary\steamapps\common\RimWorld</RimWorldDir>
+  <!-- ══════════════════════════════════════════════════════════════════════
+       游戏安装路径：不进版本控制，按机器自己配
+
+       `RimWorldDir` 是**每台机器都不同**的绝对路径，所以不能写死在这里 ——
+       写死了别人 clone 下来就编不过（他那条路径不存在）。
+
+       改从 Local.props 读。该文件已被 .gitignore 排除，每人一份：
+         · 本机：把 Local.props.example 复制成 Local.props，填上自己的游戏路径
+         · CI ：没有这个文件，于是走下面的 NuGet 引用程序集那条路
+       ══════════════════════════════════════════════════════════════════════ -->
+  <Import Project="Local.props" Condition="Exists('Local.props')" />
+
+  <PropertyGroup>
     <ModRoot>$(MSBuildProjectDirectory)\..</ModRoot>
     <ModAssemblies>$(ModRoot)\Assemblies</ModAssemblies>
   </PropertyGroup>

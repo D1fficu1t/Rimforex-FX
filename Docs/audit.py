@@ -6,7 +6,12 @@ import re
 import sys
 import xml.etree.ElementTree as ET
 
-ROOT = r"C:\Users\12435\Desktop\test\RimForex"
+# 模组根目录 = 本脚本所在目录（Docs/）的上一级。
+#
+# 不能写死绝对路径：这些脚本要在两台完全不同的机器上跑 ——
+# 本地开发机，以及 GitHub Actions 的构建机（那里根本不存在本地那个路径）。
+# 用 __file__ 推导，两边都成立。
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, "Source")
 EN = os.path.join(ROOT, r"Languages\English\Keyed\RimForex.xml")
 ZH = os.path.join(ROOT, r"Languages\ChineseSimplified (简体中文)\Keyed\RimForex.xml")

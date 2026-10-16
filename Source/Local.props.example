@@ -1,0 +1,22 @@
+<Project>
+  <!-- 复制本文件为 Local.props，改成你自己的 RimWorld 安装路径。
+
+       Windows 默认位置通常是：
+         C:\Program Files (x86)\Steam\steamapps\common\RimWorld
+       Steam 库在别的盘时，右键游戏 → 管理 → 浏览本地文件，取上一级。
+
+       填目录本身，不要带末尾反斜杠，也不要带到 RimWorldWin64_Data。
+       判断填对没有：这个目录下应当能看到 RimWorldWin64_Data 文件夹。
+
+       也可以只填 Steam 库根目录，csproj 会在下面几个常见位置里找：
+         <该目录>\steamapps\common\RimWorld
+         <该目录>\RimWorld
+
+       ── 也可以完全不配 ──
+       不建这个文件的话，csproj 会改用 NuGet 包 Krafs.Rimworld.Ref
+       （经 Ludeon 许可发布的引用程序集）。编译一样能过，
+       只是引用的是"签名"而不是游戏里那份真实程序集。 -->
+  <PropertyGroup>
+    <RimWorldDir></RimWorldDir>
+  </PropertyGroup>
+</Project>
