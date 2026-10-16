@@ -1,0 +1,28 @@
+# ── 构建产物 ──
+# 每次构建都会重新生成，且内容随编译器版本变化，没有版本控制价值
+Source/bin/
+Source/obj/
+
+# ── 关于 Assemblies/RimForex.dll ──
+# 它【被纳入版本控制】了，是刻意的。
+#
+# 它是编译产物，本该像 bin/obj 一样忽略 —— 但那样别人 clone 下来就跑不起来，
+# 必须先自己装 .NET SDK 并编译。对一个"给别人玩"的 mod，这个门槛太高。
+# 权衡结果：接受每次构建产生一个约 100KB 的二进制提交，换取"克隆即可用"。
+#
+# 若哪天想改成不跟踪：在下面加一行 `Assemblies/*.dll`，
+# 然后 `git rm --cached Assemblies/RimForex.dll`，并改用 Releases 分发。
+
+# ── .NET / Visual Studio ──
+.vs/
+*.user
+*.suo
+*.userprefs
+
+# ── Rider / VS Code ──
+.idea/
+.vscode/
+
+# ── Windows ──
+Thumbs.db
+desktop.ini

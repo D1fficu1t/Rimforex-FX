@@ -15,6 +15,24 @@ RimWorld 1.6 外汇交易模组。纯增量设计：**不修改原版任何交�
 目标路径应形如：
 `G:\SteamLibrary\steamapps\common\RimWorld\Mods\RimForex\About\About.xml`
 
+### 从 GitHub 获取
+
+本仓库**包含编译好的 `Assemblies/RimForex.dll`**，所以克隆下来即可直接使用：
+
+```powershell
+cd G:\SteamLibrary\steamapps\common\RimWorld\Mods
+git clone https://github.com/D1fficu1t/Rimforex-FX.git RimForex
+```
+
+以后更新只要在这个目录里 `git pull`。
+
+> **为什么把编译产物也提交了**：它是二进制，本该像 `bin/obj` 一样忽略 ——
+> 那样仓库会更干净，但别人克隆后必须先装 .NET SDK 自己编译。
+> 对一个"给人玩"的 mod，这个门槛太高。权衡后选择接受每次构建产生一个约 100 KB 的二进制提交。
+>
+> 想改回不跟踪：在 `.gitignore` 里加 `Assemblies/*.dll`，
+> 再 `git rm --cached Assemblies/RimForex.dll`。
+
 ## 编译
 
 ```powershell
