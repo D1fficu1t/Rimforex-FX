@@ -21,6 +21,18 @@
            · 可以用哈希核对"游戏里装的是不是这一版" -->
     <Deterministic>true</Deterministic>
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+
+    <!-- ── 版本号 ──
+         这里必须与 About/About.xml 的 <modVersion> 保持一致，改一处就要改两处。
+
+         为什么要在这里重复一遍：GenerateAssemblyInfo 默认产出的是 1.0.0，
+         而加载时那条日志（RimForexBootstrap）是从程序集元数据读版本的 ——
+         不设这里的话，日志会打印 1.0.0，与 mod 列表里显示的 0.2.0 对不上。
+
+         ContinuousIntegrationBuild 会在 InformationalVersion 后面追加
+         `+<40 位提交哈希>`，所以日志实际形如 0.2.0+1483697... ——
+         既能看出是哪一版，也能看出由哪份源码编出来。 -->
+    <Version>0.2.0</Version>
   </PropertyGroup>
 
   <!-- ══════════════════════════════════════════════════════════════════════
