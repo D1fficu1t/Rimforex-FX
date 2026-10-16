@@ -1,0 +1,52 @@
+这个文件夹是什么？
+==================
+
+这是 RimForex 模组的**源码**，供开发与维护使用。
+
+RimWorld 不会读取这个文件夹
+---------------------------
+游戏加载模组时只认这几个目录：
+
+    About/  Assemblies/  Defs/  Patches/  Languages/  Textures/
+
+`Source/` 不在其中，所以它**不影响游戏运行**，也不影响加载速度。
+它留在这里纯粹是为了方便以后改代码 —— 删掉它模组照样能跑。
+
+里面的东西
+----------
+    RimForex.csproj          .NET 项目文件（net48）
+    Core.cs                  行情模型、账户、持仓、交易记录、每日结算
+    FxMood.cs                平仓心情系统（十档 / 叠加 / 时长）
+    Window_FxTerminal.cs     交易终端界面（K 线、下单、持仓）
+    Window_TradeHistory.cs   交易历史窗口
+    Window_MarginCall.cs     强平/穿仓弹窗
+    RimForexSettings.cs      模组设置页
+    Building_FXTradingTerminal.cs   终端建筑
+    RimForexBootstrap.cs     加载标记
+    FxUiUtil.cs              界面共用小工具
+
+怎么编译
+--------
+见上一级 README.md 的「编译」一节。要点：
+
+  * 目标框架必须是 net48（游戏用 Mono，ImageRuntimeVersion = v4.0.30319）
+  * 直接引用游戏本体的 DLL，**不用 NuGet**（本机也没有 NuGet 源）
+  * `csproj` 顶部的 `RimWorldDir` 是游戏安装路径，换机器要改
+  * 构建后会自动把 RimForex.dll 拷到 `../Assemblies/`
+
+本项目**不使用 Harmony**，也没有第三方程序集依赖。
+编译产物只引用 Assembly-CSharp 与三个 UnityEngine 模块 —— 这是刻意的，
+依赖面越小，将来游戏换引擎时越安全。
+
+改代码前请先读
+--------------
+上一级 README.md 的两节：
+
+  * 「踩过的坑（改这个 Mod 时请注意）」—— 每一条都是真实踩出来的
+  * 「已清理的死代码」—— 避免"重新发明"已经删掉的东西
+
+改完务必跑：
+
+    python ../Docs/audit.py           必须「全部通过」
+    python ../Docs/verify_spread.py   必须 0 失败
+    python ../Docs/verify_texture.py  必须 0 失败
