@@ -45,6 +45,62 @@ dotnet build RimForex.csproj
 构建后 DLL 会自动复制到 `RimForex\Assemblies\RimForex.dll`。
 `csproj` 顶部的 `RimWorldDir` 是游戏安装路径，换机器需要改。
 
+### 引用来源会自动切换
+
+编译需要 RimWorld 的程序集。但有两种环境，`csproj` 会自动选：
+
+| 环境 | 条件 | 引用来源 |
+|---|---|---|
+| **本机开发** | `RimWorldDir` 指向的目录里能找到 `Assembly-CSharp.dll` | 游戏目录里的**真程序集** |
+| **CI / 没装游戏的人** | 找不到上面那个文件 | NuGet 包 [`Krafs.Rimworld.Ref`](https://github.com/krafs/RimRef) |
+
+构建时会在输出里打印实际用了哪条路：
+
+```
+引用来源: true   (true=本机游戏, false=NuGet 引用程序集)
+```
+
+**为什么能这么切换**：`Krafs.Rimworld.Ref` 是**经 Ludeon 许可发布**的**引用程序集** ——
+把方法体剥掉、只留下签名。编译器需要的类型信息一样不少，
+但它既不能用来运行游戏，也不涉及版权内容的再分发。
+
+选用的版本号（当前 `1.6.4871`）与 `About/About.xml` 里的目标游戏版本对齐。
+
+### 关于「DLL 变了 ≠ 代码变了」
+
+本项目开启了**可重现构建**（`Deterministic` + `ContinuousIntegrationBuild`）。
+含义：
+
+> **同一个 git 提交 + 同一套引用程序集 → 逐字节相同的 DLL。**
+
+这条不变量有用，因为它把"二进制变了"和"真的改了代码"绑定在一起。
+但有两个细节必须知道，否则会被误导：
+
+1. **DLL 里嵌着源码的提交哈希。**
+   `ContinuousIntegrationBuild` 会把 `AssemblyInformationalVersion` 写成
+   `1.0.0+<40 位提交哈希>` 的形式。所以**你在哪个提交上构建，DLL 里就记着哪个提交**。
+   构建之后又提交了别的东西，这个哈希就对不上了 —— 这会让
+   `git status` 显示 DLL 已修改，其实代码一个字没动。
+
+2. **本地与 CI 的引用不同**，但这是刻意的。
+   CI 走 NuGet 引用程序集，本机走游戏真程序集。
+   两者产出的 DLL 应当一致 —— `release` 工作流里有一[步](.github/workflows/release.yml)
+   专门比对并打印，不一致时告警（不直接失败，因为跨提交的差异是正常的）。
+
+**实践建议**：改完代码 → 构建 → 跑门禁 → `git add -A && git commit`。
+让 DLL 与源码在同一个提交里，规则最简单。
+
+### 自动发布
+
+打一个 tag 就会自动构建、跑全部门禁、打包并发布 Release：
+
+```powershell
+git tag v0.2.0
+git push --tags
+```
+
+产物是一个 zip，解压后即为 `Mods\RimForex\` 的内容（不含 `Source/` 与 `Docs/`）。
+
 ---
 
 ## 玩法

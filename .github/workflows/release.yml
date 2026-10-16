@@ -1,0 +1,124 @@
+name: Build and Release
+
+# ── 触发方式：只在推 tag 时 ──
+# 为什么不做"每次 push 都构建"：本仓库把编译好的 DLL 纳入版本控制
+# （理由见 .gitignore）。若每次 push 都构建，DLL 反而会频繁变动，
+# 每次都要额外提交一次，很吵。
+#
+# 打 tag 才是"要发布一版"的信号，那时才需要重新构建、校验、打包。
+on:
+  push:
+    tags:
+      - "v*"
+  # 允许在网页上手动触发一次，用于验证流程本身
+  workflow_dispatch:
+
+permissions:
+  contents: write          # 创建 Release 需要
+
+jobs:
+  build:
+    # 用 windows-latest 而不是 ubuntu：本项目目标框架是 net48。
+    # ubuntu 也能编，但要额外装 mono；windows 上开箱可用，少一层不确定性。
+    runs-on: windows-latest
+
+    steps:
+      - name: 检出源码
+        uses: actions/checkout@v4
+        with:
+          # 取完整历史：ContinuousIntegrationBuild 会把源码提交哈希嵌进 DLL，
+          # 浅克隆会让那些元数据不正确。
+          fetch-depth: 0
+
+      - name: 安装 .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      # ── 这里是最关键的一步 ──
+      # 本机开发时 csproj 直接引用游戏目录里的程序集；
+      # 但 CI 机器上没装 RimWorld，那个目录不存在。
+      # csproj 检测到这一点后会自动改用 Krafs.Rimworld.Ref 这个 NuGet 包
+      # （经 Ludeon 许可发布的引用程序集：剥掉方法体只留签名，
+      #  编译器需要的都在，但既不能运行游戏、也不涉及版权分发）。
+      #
+      # 所以这里不需要任何额外操作 —— 但下面的校验会确认它真的走了那条路。
+      - name: 构建
+        run: dotnet build Source/RimForex.csproj -c Release
+
+      - name: 确认确实用了 NuGet 引用（而不是误以为有游戏目录）
+        shell: pwsh
+        run: |
+          $log = dotnet build Source/RimForex.csproj -c Release -v normal 2>&1 | Out-String
+          if ($log -match "引用来源:\s*false") {
+            Write-Host "OK：使用 Krafs.Rimworld.Ref 引用程序集"
+          } else {
+            Write-Error "引用来源不是 NuGet —— CI 上不该出现这种情况"
+            exit 1
+          }
+
+      - name: 交付门禁（翻译键 / 常量 / 回归防线）
+        run: python Docs/audit.py
+
+      - name: 经济验收（点差 / churn / 杠杆 / 盈亏方向）
+        run: python Docs/verify_spread.py
+
+      - name: 纹理度验收
+        run: python Docs/verify_texture.py
+
+      # ── 二进制一致性 ──
+      # 本仓库的约定是「DLL 变了 ⇔ 代码真的变了」，所以有一个不变量：
+      # 在同一个提交上，本地构建与 CI 构建应当产出**逐字节相同**的 DLL。
+      # 这一条如果不成立，"本地测过就放心发布"这个前提就崩了。
+      #
+      # 注意：不匹配不一定是错误 —— 若 tag 指向的提交里 DLL 是更早构建的，
+      # 哈希自然会不同。所以这里只比对、不失败，把结果打出来供人工判断。
+      - name: 比对「仓库里的 DLL」与「CI 刚构建的 DLL」
+        shell: pwsh
+        run: |
+          $repoDll = "Assemblies/RimForex.dll"
+          $builtDll = Get-ChildItem -Recurse -Filter RimForex.dll -Path Source/bin | Select-Object -First 1
+          if (-not $builtDll) { Write-Error "CI 没有产出 DLL"; exit 1 }
+
+          $a = (Get-FileHash $repoDll).Hash
+          $b = (Get-FileHash $builtDll.FullName).Hash
+          Write-Host "仓库里的 : $($a.Substring(0,16))  $((Get-Item $repoDll).Length) B"
+          Write-Host "CI 构建的: $($b.Substring(0,16))  $($builtDll.Length) B"
+
+          if ($a -eq $b) {
+            Write-Host "::notice::完全一致 —— 引用的两套程序集产出了相同的二进制"
+          } else {
+            Write-Warning "不一致。常见原因：tag 指向的提交里 DLL 是更早构建的。"
+            Write-Warning "可重现构建保证的是「同一提交 + 同一引用」产出相同结果，"
+            Write-Warning "跨提交的差异主要来自嵌进 DLL 的 git 提交哈希。"
+          }
+
+      - name: 按 RimWorld 的目录约定打包
+        shell: pwsh
+        run: |
+          # 只打包游戏真正会读的目录 —— 这样解压出来就是一个可直接放进
+          # Mods\ 的文件夹，不需要玩家自己挑文件。
+          # Source/ 与 Docs/ 不打进去（游戏不读它们，只会让包变大）。
+          $stage = "stage/RimForex"
+          New-Item -ItemType Directory -Force -Path $stage | Out-Null
+          foreach ($d in @("About", "Assemblies", "Defs", "Languages", "Textures")) {
+            if (Test-Path $d) { Copy-Item $d -Destination $stage -Recurse -Force }
+          }
+          Copy-Item README.md -Destination $stage -Force
+          Copy-Item LICENSE   -Destination $stage -Force
+
+          Compress-Archive -Path $stage -DestinationPath "RimForex-${{ github.ref_name }}.zip" -Force
+          Write-Host "已打包（解压后即为 Mods\RimForex\ 的完整内容）"
+          Get-ChildItem "RimForex-${{ github.ref_name }}.zip" | Format-List Name, Length
+
+      - name: 发布 Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: RimForex-*.zip
+          generate_release_notes: true
+          body: |
+            下载下面的 zip，解压到 RimWorld 的 `Mods\` 目录即可
+            （解压后应得到 `Mods\RimForex\About\About.xml`）。
+
+            本包不含 `Source\` 与 `Docs\`（游戏不读它们）。
+            需要源码或开发文档请看仓库首页。
