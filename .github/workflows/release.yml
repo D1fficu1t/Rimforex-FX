@@ -22,6 +22,18 @@ jobs:
     # ubuntu 也能编，但要额外装 mono；windows 上开箱可用，少一层不确定性。
     runs-on: windows-latest
 
+    # ── 这一行是必须的，别删 ──
+    # Docs/ 下的五个脚本（audit / verify_spread / verify_texture / deadcode /
+    # pacing_analysis）**输出全是中文**。而 Windows 上 Python 的 stdout 默认编码
+    # 取自系统代码页，GitHub 的 windows-latest 是 cp1252（西欧），
+    # 编不出中文 —— 脚本会在打印第一行时就 UnicodeEncodeError 崩掉。
+    #
+    # 实测：audit.py 崩在 `print("翻译键: ...")` 这一行，整个工作流随之失败。
+    #
+    # 设成 utf-8 后五个脚本一次性全修好，不必去改脚本本身。
+    env:
+      PYTHONIOENCODING: utf-8
+
     steps:
       - name: 检出源码
         uses: actions/checkout@v4
@@ -68,29 +80,48 @@ jobs:
 
       # ── 二进制一致性 ──
       # 本仓库的约定是「DLL 变了 ⇔ 代码真的变了」，所以有一个不变量：
-      # 在同一个提交上，本地构建与 CI 构建应当产出**逐字节相同**的 DLL。
-      # 这一条如果不成立，"本地测过就放心发布"这个前提就崩了。
+      # 本地用【游戏里的真程序集】编译，与 CI 用【NuGet 引用程序集】编译，
+      # 应当产出**同样**的 DLL。这一条不成立的话，"本地测过就放心发布"的前提就崩了。
       #
-      # 注意：不匹配不一定是错误 —— 若 tag 指向的提交里 DLL 是更早构建的，
-      # 哈希自然会不同。所以这里只比对、不失败，把结果打出来供人工判断。
+      # ⚠️ 但不能直接比文件哈希 —— DLL 里嵌着**构建时的提交哈希**
+      #    （AssemblyInformationalVersion 形如 `1.0.0+<40位十六进制>`）。
+      #    仓库里那份是在某个提交上构建的，CI 是在 tag 指向的提交上构建的，
+      #    两者只要不是同一个提交，哈希就必然不同 —— 那样比出来永远是"不一致"，
+      #    等于没比。
+      #
+      #    所以先把那 40 位十六进制统一替换成占位符，再比。
+      #    这样剩下的差异就只可能来自「引用程序集不同」这一件事。
+      #
+      # 失败不阻断发布：跨提交的差异是正常的，人工看一眼即可。
       - name: 比对「仓库里的 DLL」与「CI 刚构建的 DLL」
         shell: pwsh
         run: |
           $repoDll = "Assemblies/RimForex.dll"
-          $builtDll = Get-ChildItem -Recurse -Filter RimForex.dll -Path Source/bin | Select-Object -First 1
+          $builtDll = Get-ChildItem -Recurse -Filter RimForex.dll -Path Source/bin |
+                      Select-Object -First 1
           if (-not $builtDll) { Write-Error "CI 没有产出 DLL"; exit 1 }
 
-          $a = (Get-FileHash $repoDll).Hash
-          $b = (Get-FileHash $builtDll.FullName).Hash
-          Write-Host "仓库里的 : $($a.Substring(0,16))  $((Get-Item $repoDll).Length) B"
-          Write-Host "CI 构建的: $($b.Substring(0,16))  $($builtDll.Length) B"
+          function Get-Normalized([string]$path) {
+            $b = [System.IO.File]::ReadAllBytes($path)
+            $s = [System.Text.Encoding]::ASCII.GetString($b)
+            # 抹掉构建根源：InformationalVersion 里的 40 位提交哈希
+            $s2 = [regex]::Replace($s, '1\.0\.0\+[0-9a-f]{40}', '1.0.0+COMMIT')
+            $sha = [System.Security.Cryptography.SHA256]::Create()
+            $h = $sha.ComputeHash([System.Text.Encoding]::ASCII.GetBytes($s2))
+            return ($h | ForEach-Object { $_.ToString("x2") }) -join ""
+          }
+
+          $a = Get-Normalized $repoDll
+          $b = Get-Normalized $builtDll.FullName
+          Write-Host "仓库里的 : $($a.Substring(0,24))  $((Get-Item $repoDll).Length) B"
+          Write-Host "CI 构建的: $($b.Substring(0,24))  $($builtDll.Length) B"
+          Write-Host "（已抹掉 DLL 内嵌的提交哈希，只比对引用程序集造成的差异）"
 
           if ($a -eq $b) {
-            Write-Host "::notice::完全一致 —— 引用的两套程序集产出了相同的二进制"
+            Write-Host "::notice::一致 —— 游戏真程序集与 NuGet 引用程序集产出相同的二进制"
           } else {
-            Write-Warning "不一致。常见原因：tag 指向的提交里 DLL 是更早构建的。"
-            Write-Warning "可重现构建保证的是「同一提交 + 同一引用」产出相同结果，"
-            Write-Warning "跨提交的差异主要来自嵌进 DLL 的 git 提交哈希。"
+            Write-Warning "不一致：两种引用程序集产出的 DLL 有实质差异。"
+            Write-Warning "这意味着 CI 构建的 DLL 不能直接当作本机构建的结果使用。"
           }
 
       - name: 按 RimWorld 的目录约定打包
