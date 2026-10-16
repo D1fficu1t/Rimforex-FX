@@ -3,6 +3,8 @@
 RimWorld 1.6 外汇交易模组。纯增量设计：**不修改原版任何交易逻辑**，因此与 Vanilla Trading Expanded
 等经济模组不存在价格系统层面的冲突。
 
+以 **MIT 协议**开源，见 [LICENSE](LICENSE)。
+
 ---
 
 ## 安装
