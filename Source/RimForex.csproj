@@ -9,6 +9,19 @@
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
     <DebugType>portable</DebugType>
     <NoWarn>$(NoWarn);CS0649</NoWarn>
+
+    <!-- ── 可重现构建 ──
+         不设这个的话，PE 头里的 TimeDateStamp 会是"编译时刻"，
+         于是**一个字都没改、重新编译一次，DLL 的字节也会不同**（实测差 645 字节 / 0.63%）。
+         后果：DLL 被纳入版本控制（见 .gitignore 的说明）后，
+         每次构建都会显示成一个"已修改"的二进制提交，无法分辨是真的改了代码还是只是重新编译。
+
+         开启后同一份源码产出逐字节相同的 DLL，于是：
+           · DLL 变了 ⇔ 代码真的变了
+           · 可以用哈希核对"游戏里装的是不是这一版" -->
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+
     <RimWorldDir>G:\SteamLibrary\steamapps\common\RimWorld</RimWorldDir>
     <ModRoot>$(MSBuildProjectDirectory)\..</ModRoot>
     <ModAssemblies>$(ModRoot)\Assemblies</ModAssemblies>
