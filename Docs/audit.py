@@ -705,6 +705,40 @@ def main():
         fail += 1
         print("  !! ChartHasData 缺少成对赋值 —— 提前 return 时会残留过期坐标")
 
+    # ---- 4a17. 预警队列的两处一致性 -----------------------------------------
+    # ── (1) 平仓必须把该仓位从预警队列里摘掉 ──
+    # 预警窗的失效判据是 `warn.position == null`，而 `positions.Remove` 只是
+    # 从列表移除、对象引用仍被 MarginWarning 持有，所以判据不成立、窗口不会自动关。
+    # 那个窗口是 forcePause = true —— 游戏被暂停，玩家必须点掉一个
+    # "关于已经平掉的仓位"的预警才能继续玩。
+    if "DropWarningFor(pos);" in win:
+        n_drop = win.count("DropWarningFor(pos);")
+        if n_drop >= 2:
+            print("  OK 平仓的两条路径都会摘掉预警（%d 处调用）" % n_drop)
+        else:
+            fail += 1
+            print("  !! 只有 %d 处调用 DropWarningFor —— 有一条平仓路径没清理" % n_drop)
+    else:
+        fail += 1
+        print("  !! 平仓不清理 pendingWarnings —— 会为已平仓位弹出必须手动关闭的暂停窗")
+
+    # ── (2) criticalWarned 不能持久化 ──
+    # 它与 pendingWarnings 是一对：标志为 true 意味着"已塞进队列"，
+    # 而队列是纯运行时对象、不进存档。若只存标志，读档后队列空了但标志还是 true，
+    # MaybeWarn 会直接 return —— 该仓位再也不会被提醒，玩家会被意外爆仓。
+    if re.search(r"Scribe_Values\.Look\(ref criticalWarned", core):
+        fail += 1
+        print("  !! criticalWarned 被持久化了 —— 读档后会静默漏报预警")
+    else:
+        print("  OK criticalWarned 不持久化（与 pendingWarnings 同步）")
+
+    # 那个"已经提醒过就不再弹"的判断必须还在（否则会每 tick 刷屏）
+    if re.search(r"if \(pos\.criticalWarned\) return;", core):
+        print("  OK MaybeWarn 仍保留防重复提醒")
+    else:
+        fail += 1
+        print("  !! MaybeWarn 缺少防重复提醒 —— 会每 tick 弹窗")
+
     # ---- 4b. 已移除的常量不应复活（防止旧机制被无意恢复）----
     for gone in ("WarnThreshold", "RearmFraction"):
         if re.search(r"public const \w+ %s = " % gone, core):

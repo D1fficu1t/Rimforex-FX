@@ -1716,6 +1716,29 @@ namespace RimForex
                 fee.ToString("F2")), MessageTypeDefOf.NeutralEvent, false);
         }
 
+        /// <summary>
+        /// 平仓后把这个仓位的预警从队列里摘掉。
+        ///
+        /// ── 为什么必须有这一句 ──
+        /// 预警队列 `pendingWarnings` 以 `pos.openTick` 为键，由 `MaybeWarn` 塞入。
+        /// 手动平仓只是把仓位从 `account.positions` 移除，**队列里那条还在**。
+        /// 而预警窗的失效判据是 `warn.position == null`（见 Window_MarginCall.cs）——
+        /// `positions.Remove` 只是从列表移除，对象引用仍被 MarginWarning 自己持有，
+        /// 所以判据不成立，**窗口不会自动关闭**。
+        ///
+        /// 更糟的是那个窗口是 `forcePause = true`：游戏被暂停，
+        /// 玩家必须点掉一个"关于已经平掉的仓位"的预警才能继续玩。
+        ///
+        /// 队列本身是运行时对象、不进存档，所以这里只是内存清理，不影响任何账目。
+        /// </summary>
+        private void DropWarningFor(FxPosition pos)
+        {
+            if (pos == null) return;
+            FxGameComponent fx = Fx;
+            if (fx == null) return;
+            fx.pendingWarnings.Remove(pos.openTick);
+        }
+
         private void ClosePosition(FxPosition pos)
         {
             if (pos == null) return;
@@ -1731,6 +1754,7 @@ namespace RimForex
                 account.balance += pos.margin + pos.openFee;
                 account.lifetimeFees -= pos.openFee;
                 account.positions.Remove(pos);
+                DropWarningFor(pos);
 
                 Messages.Message("RimForex_MsgTooSoon".Translate(pos.currencyName),
                     MessageTypeDefOf.RejectInput, false);
@@ -1752,6 +1776,7 @@ namespace RimForex
             account.lifetimeFees += fee;
             // 不钳到 0：主动平仓也可能在跳空后产生负余额（穿仓），需要玩家补银填平。
             account.positions.Remove(pos);
+            DropWarningFor(pos);
 
             account.RecordTrade(new FxTradeRecord
             {

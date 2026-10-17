@@ -519,7 +519,18 @@ namespace RimForex
             Scribe_Values.Look(ref openTick, "openTick");
             Scribe_Values.Look(ref closableAtTick, "closableAtTick", 0);
             Scribe_Values.Look(ref warnedHealth, "warnedHealth", -1f);
-            Scribe_Values.Look(ref criticalWarned, "criticalWarned", false);
+            // ⚠️ `criticalWarned` 刻意【不】持久化 —— 它与 `pendingWarnings` 必须同进退。
+            //
+            // 这两个字段是一对：`criticalWarned = true` 表示"已经塞进预警队列了"，
+            // 而队列 `pendingWarnings` 是纯运行时对象、不进存档。
+            // 曾经这里也存了 `criticalWarned`，于是：
+            //     存档时正弹着预警 → 读档 → 队列空了，但标志还是 true
+            //     → MaybeWarn 第 3168 行直接 return
+            //     → **这个仓位再也不会被提醒**，直到行情反弹回安全区又跌破。
+            //   玩家会毫无预告地被爆仓。
+            //
+            // 现在两者都只活在运行时：读档后标志为 false，若仓位仍然危险，
+            // 下一个 tick 会重新提醒一次 —— 这本来就是更对的行为。
             Scribe_Values.Look(ref openFee, "openFee", 0f);
             Scribe_Values.Look(ref spreadAtOpen, "spreadAtOpen", 0f);
             Scribe_Values.Look(ref entrySpreadRate, "entrySpreadRate", 0f);
