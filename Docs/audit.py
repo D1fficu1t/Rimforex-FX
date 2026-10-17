@@ -4,6 +4,7 @@
 import os
 import re
 import sys
+import struct
 import xml.etree.ElementTree as ET
 
 # 模组根目录 = 本脚本所在目录（Docs/）的上一级。
@@ -738,6 +739,59 @@ def main():
     else:
         fail += 1
         print("  !! MaybeWarn 缺少防重复提醒 —— 会每 tick 弹窗")
+
+    # ---- 4a18. About 目录的图像文件 -----------------------------------------
+    # RimWorld 的路径是**写死**的（见 Verse.ModMetaData）：
+    #     ModIconImagePath => <mod>/About/ModIcon.png     模组列表小图标
+    #     PreviewImagePath => <mod>/About/Preview.png     仅 Workshop 上传用
+    # 而 GetWorkshopPreviewImagePath() 直接返回 PreviewImagePath ——
+    # 也就是说**没有 Preview.png 就无法上传创意工坊**。
+    about_dir = os.path.join(ROOT, "About")
+
+    def png_size(path):
+        """读 PNG 的 IHDR 宽高。不是 PNG 或读不出就返回 None。"""
+        try:
+            d = open(path, "rb").read(24)
+            if d[:8] != b"\x89PNG\r\n\x1a\n":
+                return None
+            w, h = struct.unpack(">II", d[16:24])
+            return w, h
+        except Exception:
+            return None
+
+    # ModIcon：游戏里只显示 32~64px。尺寸过大没有收益，只浪费显存 ——
+    # 它会被 LoadImage 以**完整尺寸**读成 Texture2D。
+    icon = os.path.join(about_dir, "ModIcon.png")
+    if not os.path.isfile(icon):
+        fail += 1
+        print("  !! 缺少 About/ModIcon.png")
+    else:
+        sz = png_size(icon)
+        if sz is None:
+            fail += 1
+            print("  !! About/ModIcon.png 不是有效 PNG")
+        elif max(sz) > 512:
+            fail += 1
+            print("  .. About/ModIcon.png 是 %dx%d —— 会被全尺寸读进显存，"
+                  "而它只显示 32~64px。建议 128x128" % sz)
+        else:
+            print("  OK About/ModIcon.png (%dx%d，尺寸合理)" % sz)
+
+    # Preview：Steam 要求 >= 512x512，小于这个上传时会模糊
+    prev = os.path.join(about_dir, "Preview.png")
+    if not os.path.isfile(prev):
+        fail += 1
+        print("  !! 缺少 About/Preview.png —— 无法上传 Steam 创意工坊")
+    else:
+        sz = png_size(prev)
+        if sz is None:
+            fail += 1
+            print("  !! About/Preview.png 不是有效 PNG")
+        elif min(sz) < 512:
+            fail += 1
+            print("  .. About/Preview.png 只有 %dx%d，Steam 要求至少 512x512" % sz)
+        else:
+            print("  OK About/Preview.png (%dx%d，满足 Workshop 要求)" % sz)
 
     # ---- 4b. 已移除的常量不应复活（防止旧机制被无意恢复）----
     for gone in ("WarnThreshold", "RearmFraction"):
