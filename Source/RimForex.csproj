@@ -36,6 +36,51 @@
   </PropertyGroup>
 
   <!-- ══════════════════════════════════════════════════════════════════════
+       把源码提交哈希嵌进程序集（可选，失败不影响编译）
+
+       `ContinuousIntegrationBuild` 正常情况下会让 MSBuild 自己从 `.git`
+       里读出提交哈希、写进 AssemblyInformationalVersion。但它只会**从项目
+       目录向上**找 `.git`。
+
+       ── 为什么要额外处理 ──
+       本项目的 git 仓库不在 mod 文件夹里，而在同级目录：
+
+           test\RimForex\        mod 文件夹（干净的，没有 .git）
+           test\RimForex.git\    仓库本体
+
+       原因是游戏上传创意工坊时把 mod 根目录整个交给 Steam、不排除任何文件，
+       若 .git 留在里面，完整版本历史会被分发给每个订阅者。
+       副作用：MSBuild 向上找不到仓库，于是不再嵌入哈希，日志退回只有 "0.2.0"。
+
+       这里补一个 target 直接问 git 要哈希。
+
+       ── 三种情况都不会让编译失败 ──
+         · 仓库在 mod 文件夹里（普通 clone / CI）：MSBuild 自己就能拿到，
+           本 target 因为 `$(SourceRevisionId)` 已有值而跳过
+         · 仓库在外面的 RimForex.git：本 target 生效，显式传入
+         · 完全没有仓库（解压的源码包）：git 命令失败，IgnoreExitCode 兜住，
+           日志就只显示版本号
+       ══════════════════════════════════════════════════════════════════════ -->
+  <PropertyGroup>
+    <ExternalGitDir>$(MSBuildProjectDirectory)\..\..\RimForex.git</ExternalGitDir>
+  </PropertyGroup>
+
+  <Target Name="InjectGitRevision"
+          BeforeTargets="GetAssemblyVersion"
+          Condition="'$(SourceRevisionId)' == '' AND Exists('$(ExternalGitDir)')">
+    <Exec Command="git --git-dir=&quot;$(ExternalGitDir)&quot; rev-parse HEAD"
+          ConsoleToMSBuild="true"
+          IgnoreExitCode="true"
+          StandardOutputImportance="low"
+          StandardErrorImportance="low">
+      <Output TaskParameter="ConsoleOutput" PropertyName="_FxGitSha" />
+    </Exec>
+    <PropertyGroup>
+      <SourceRevisionId Condition="'$(_FxGitSha)' != ''">$(_FxGitSha)</SourceRevisionId>
+    </PropertyGroup>
+  </Target>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
        游戏安装路径：不进版本控制，按机器自己配
 
        `RimWorldDir` 是**每台机器都不同**的绝对路径，所以不能写死在这里 ——
