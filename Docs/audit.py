@@ -687,6 +687,24 @@ def main():
         fail += 1
         print("  !! 没有实测内容高度")
 
+    # ---- 4a16. 图表静态状态必须在每次绘制前重置 ---------------------------
+    # DrawCandles 会写下 ChartArea / ChartMin / ChartMax / ChartHasData，
+    # 供持仓线、回本线、爆仓线、悬停提示使用 —— 它们要知道 K 线的 y 轴范围。
+    #
+    # 曾经只在这些字段"画成功"时置 true，**没有任何地方置 false**。
+    # 于是函数从三个提前 return 之一离开时，标志停在上一帧的 true，
+    # 那几个绘图函数就会拿着过期坐标画线，表现为线闪到错误位置。
+    #
+    # 正确写法：函数开头统一置 false，真正画完再置 true。
+    # 这里检查两个赋值都存在，且 false 出现在 true 之前。
+    i_false = win.find("ChartHasData = false;")
+    i_true = win.find("ChartHasData = true;")
+    if i_false >= 0 and i_true >= 0 and i_false < i_true:
+        print("  OK 图表静态状态在绘制前重置（ChartHasData 先 false 后 true）")
+    else:
+        fail += 1
+        print("  !! ChartHasData 缺少成对赋值 —— 提前 return 时会残留过期坐标")
+
     # ---- 4b. 已移除的常量不应复活（防止旧机制被无意恢复）----
     for gone in ("WarnThreshold", "RearmFraction"):
         if re.search(r"public const \w+ %s = " % gone, core):

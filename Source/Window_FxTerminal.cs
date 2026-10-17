@@ -1052,6 +1052,23 @@ namespace RimForex
 
         private static void DrawCandles(Rect plot, List<FxCandle> candles)
         {
+            // ── 先把"本帧有没有成功画出 K 线"置为否 ──
+            //
+            // 这四个静态字段（ChartArea / ChartMin / ChartMax / ChartHasData）
+            // 在画完之后供 DrawPositionLines、DrawBreakevenLine、DrawStopOutLine、
+            // DrawCandleHover 使用 —— 它们需要知道 K 线的 y 轴范围。
+            //
+            // 之前这里只在真正画出 K 线时置 true，**没有任何地方置 false**。
+            // 于是本函数从下面三个提前 return 之一离开时，标志会停留在上一帧的 true，
+            // 而那三个绘图函数就拿着一份**过期的坐标**去画线 ——
+            // 表现为持仓线/回本线/爆仓线闪到错误位置。
+            //
+            // 触发场景：窗口刚打开时尺寸尚未稳定、或某一刻数据为空。
+            // 有持仓且恰好碰上才看得见，所以一直没被发现。
+            //
+            // 统一在开头置 false、末处置 true，就不会漏掉任何退出路径。
+            ChartHasData = false;
+
             if (plot.width < 40f || plot.height < 40f) return;
 
             Widgets.DrawBoxSolid(plot, new Color(0.10f, 0.11f, 0.13f, 1f));
