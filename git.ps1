@@ -31,13 +31,17 @@
 
     这样在这个会话里 `git status` 就等于 `.\git.ps1 status`。
     （但会影响所有目录下的 git 命令，所以没替你写进去。）
-#>
 
-[CmdletBinding()]
-param(
-    [Parameter(ValueFromRemainingArguments = $true)]
-    [string[]] $GitArgs
-)
+    ── 为什么用 $args 而不是 param 块 ──
+    最初这里写的是 [CmdletBinding()] +
+    param([Parameter(ValueFromRemainingArguments = $true)][string[]] $GitArgs)。
+    那会引入 PowerShell 的**通用参数**：-Verbose、-Debug、-ErrorAction 等。
+    于是 `.\git.ps1 remote -v` 里的 -v 被当成 -Verbose 的缩写吃掉，
+    传给 git 的只剩 `remote` —— 输出少了一半，而且**不报错**，极难发现。
+    同类受影响的还有 -d / -e / -w / -o 等短选项。
+
+    改用 $args 之后，PowerShell 不再解析任何参数名，全部原样转发。
+#>
 
 $ErrorActionPreference = "Stop"
 
@@ -54,15 +58,18 @@ if (-not (Test-Path $workDir)) {
 }
 
 # git 用这两个环境变量定位仓库与工作区，等价于 --git-dir / --work-tree
-$env:GIT_DIR      = $repoDir
+$env:GIT_DIR       = $repoDir
 $env:GIT_WORK_TREE = $workDir
 
+$code = 0
 try {
-    & git @GitArgs
-    exit $LASTEXITCODE
+    & git @args
+    $code = $LASTEXITCODE
 }
 finally {
     # 清掉，免得污染同一会话里其他仓库的 git 操作
     Remove-Item Env:\GIT_DIR       -ErrorAction SilentlyContinue
     Remove-Item Env:\GIT_WORK_TREE -ErrorAction SilentlyContinue
 }
+
+exit $code
