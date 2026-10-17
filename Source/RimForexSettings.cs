@@ -17,8 +17,6 @@ namespace RimForex
 
         /// <summary>K 线区：报价节奏说明。</summary>
         public bool showQuotePacingHint = true;
-        /// <summary>K 线区：鼠标操作说明。</summary>
-        public bool showChartNavHint = true;
         /// <summary>K 线区：持仓线图例（说明虚线是开仓成交价、为什么与中间价差半个点差）。</summary>
         public bool showChartEntryLegend = true;
         /// <summary>K 线区：盈亏平衡线（"回本 xxx"）。仓位多、线杂时可以关掉。</summary>
@@ -102,7 +100,6 @@ namespace RimForex
         public override void ExposeData()
         {
             Scribe_Values.Look(ref showQuotePacingHint, "showQuotePacingHint", true);
-            Scribe_Values.Look(ref showChartNavHint, "showChartNavHint", true);
             Scribe_Values.Look(ref showChartEntryLegend, "showChartEntryLegend", true);
             Scribe_Values.Look(ref showBreakevenLine, "showBreakevenLine", true);
             Scribe_Values.Look(ref showStopOutLine, "showStopOutLine", true);
@@ -172,7 +169,6 @@ namespace RimForex
         public void ResetToDefaults()
         {
             showQuotePacingHint = true;
-            showChartNavHint = true;
             showChartEntryLegend = true;
             showBreakevenLine = true;
             showStopOutLine = true;
@@ -479,8 +475,6 @@ namespace RimForex
 
             l.CheckboxLabeled("RimForex_Set_QuotePacing".Translate(), ref Settings.showQuotePacingHint,
                 "RimForex_Set_QuotePacingTip".Translate());
-            l.CheckboxLabeled("RimForex_Set_ChartNav".Translate(), ref Settings.showChartNavHint,
-                "RimForex_Set_ChartNavTip".Translate());
             l.CheckboxLabeled("RimForex_Set_ChartLegend".Translate(), ref Settings.showChartEntryLegend,
                 "RimForex_Set_ChartLegendTip".Translate());
             l.CheckboxLabeled("RimForex_Set_BreakevenLine".Translate(), ref Settings.showBreakevenLine,

@@ -472,15 +472,34 @@ def main():
     #   午夜还挂着浮亏 2000  -> 结算只报"今天亏 2000"
     #   午夜恰好空仓        -> 无论白天赚亏多少，一律报 0
     # 现在改为【权益的日变化】，一次涵盖已实现 + 浮动两个口径。
-    if "equityAtLastSettle" in core and "AccountEquity" in core:
-        print("  OK 每日结算用权益差（equityAtLastSettle + AccountEquity）")
+    #
+    # ── 2026-10-17：口径里的"保证金"漏过一次 ──
+    # 当时结算用的属性定义为 balance + FloatingPnl，可是开仓是
+    # `balance -= margin + fee`，所以 balance 是【可用】资金、不含锁住的保证金。
+    # 于是开仓那一天的当日盈亏会凭空多出一笔 -margin 的巨亏（平仓则相反）。
+    # 正确的权益是 balance + MarginUsed + FloatingPnl（FxAccount.Equity）。
+    # 下面同时卡住三件事，防止再退回错误口径：
+    #   1) 基线字段还在
+    #   2) 结算用的是 acc.Equity
+    #   3) 那个漏算保证金的 AccountEquity 属性没有被重新加回来
+    core_nc = re.sub(r"//[^\n]*", "", core)
+    ok_baseline = "equityAtLastSettle" in core_nc
+    ok_equity = re.search(r"equityNow\s*=\s*acc\.Equity\b", core_nc) is not None
+    reintroduced = re.search(r"AccountEquity\s*=>", core_nc) is not None
+
+    if ok_baseline and ok_equity and not reintroduced:
+        print("  OK 每日结算用权益差，且口径含保证金（acc.Equity）")
     else:
         fail += 1
-        print("  !! 每日结算缺少权益基线 —— 已实现盈亏会漏计")
+        if not ok_baseline:
+            print("  !! 每日结算缺少权益基线 —— 已实现盈亏会漏计")
+        if not ok_equity:
+            print("  !! 每日结算没有用 acc.Equity —— 口径可能漏掉锁住的保证金")
+        if reintroduced:
+            print("  !! AccountEquity（balance + FloatingPnl）又出现了 —— 它会漏算保证金")
 
     # 必须先剥掉注释再匹配：修复说明里就写着 `dayPnl = acc.FloatingPnl`，
     # 直接搜会把注释当成代码，误报失败（踩过一次）。
-    core_nc = re.sub(r"//[^\n]*", "", core)
     if re.search(r"dayPnl\s*=\s*acc\.FloatingPnl", core_nc):
         fail += 1
         print("  !! 结算又退回了 FloatingPnl —— 白天已平仓的盈亏会丢失")
@@ -792,6 +811,40 @@ def main():
             print("  .. About/Preview.png 只有 %dx%d，Steam 要求至少 512x512" % sz)
         else:
             print("  OK About/Preview.png (%dx%d，满足 Workshop 要求)" % sz)
+
+    # ---- 4a19. 下单量估算不得退化成逐次递减（2026-10-17）-------------------
+    # 原来 EstimateUnits 从 floor(margin/perUnitMargin) 开始每次减 1 直到负担得起。
+    # 收敛步数 ≈ 手续费 / 每单位保证金：输入上限 1 亿、价格 113、杠杆 100 时
+    # 实测 1,728,014 次，而它在 DoWindowContents 里每帧调用 —— 会把终端卡死。
+    # 现在改成二分（log2(u)，最多 30 次）。这里卡住"不许再出现无界递减循环"。
+    win_nc_local = re.sub(r"//[^\n]*", "", win)
+    if re.search(r"while\s*\(\s*u\s*>\s*0\s*\)", win_nc_local):
+        fail += 1
+        print("  !! EstimateUnits 又出现了 while (u > 0) 递减循环 —— 大额输入会卡死")
+    elif "Affordable" in win_nc_local and re.search(r"while\s*\(\s*lo\s*<\s*hi\s*\)", win_nc_local):
+        print("  OK 下单量估算用二分（迭代次数与输入规模无关）")
+    else:
+        fail += 1
+        print("  !! 找不到 EstimateUnits 的二分实现")
+
+    # ---- 4a20. 已删除的死控件 / 死字段不得复活 -----------------------------
+    # showChartNavHint：勾选框还在，但全工程没有消费者（它控制的"图表操作说明"
+    # 随平移功能一起删掉了）。留着只会让玩家以为开关有效。
+    if re.search(r"showChartNavHint", core + win + st):
+        fail += 1
+        print("  !! showChartNavHint 又出现了 —— 这个开关没有任何消费者")
+    else:
+        print("  OK 死控件 showChartNavHint 未复活")
+
+    # MarginWarning.map：由 EnqueueWarning 扫 Find.Maps 填进来，但从不被读取。
+    # 必须先剥注释：类定义上方那段说明里就写着 "public Map map;"，
+    # 直接搜会把说明文字当成代码（这个坑又踩了一次）。
+    core_nc2 = re.sub(r"//[^\n]*", "", core)
+    if re.search(r"class MarginWarning\s*\{[^}]*public Map map;", core_nc2, re.S):
+        fail += 1
+        print("  !! MarginWarning.map 又出现了 —— 它是只写不读的死字段")
+    else:
+        print("  OK 死字段 MarginWarning.map 未复活")
 
     # ---- 4b. 已移除的常量不应复活（防止旧机制被无意恢复）----
     for gone in ("WarnThreshold", "RearmFraction"):

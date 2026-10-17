@@ -149,8 +149,6 @@ Floating P/L {2} silver</RimForex_PosLineTip>
   <RimForex_SettingsHintsDesc>These toggles only show or hide on-screen explanatory text. They do not change any numbers or game rules.</RimForex_SettingsHintsDesc>
   <RimForex_Set_QuotePacing>Quote pacing hint &amp; countdown</RimForex_Set_QuotePacing>
   <RimForex_Set_QuotePacingTip>Shows "one candle every N quotes" and the next-quote countdown above the chart.</RimForex_Set_QuotePacingTip>
-  <RimForex_Set_ChartNav>Chart navigation tooltip</RimForex_Set_ChartNav>
-  <RimForex_Set_ChartNavTip>Scroll zoom and candle hover stay usable either way; this only controls the tooltip.</RimForex_Set_ChartNavTip>
   <RimForex_Set_ChartLegend>Chart legend note</RimForex_Set_ChartLegend>
   <RimForex_Set_ChartLegendTip>Show a small line under the chart explaining why the entry line is not on the last-price line (the fill price includes half a spread). Turn off once you know it.</RimForex_Set_ChartLegendTip>
   <RimForex_ChartStopOutOff>stop-out {0} ({1}% off-chart)</RimForex_ChartStopOutOff>

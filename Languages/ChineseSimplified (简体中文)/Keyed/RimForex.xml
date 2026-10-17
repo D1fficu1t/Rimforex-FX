@@ -160,8 +160,6 @@
   <RimForex_SettingsHintsDesc>这些开关只控制屏幕上那些说明文字的显示与隐藏，不影响任何数值或规则。</RimForex_SettingsHintsDesc>
   <RimForex_Set_QuotePacing>报价节奏提示与倒计时</RimForex_Set_QuotePacing>
   <RimForex_Set_QuotePacingTip>K 线上方那行"每 N 次报价一根K线"，以及右侧的距下次报价倒计时。</RimForex_Set_QuotePacingTip>
-  <RimForex_Set_ChartNav>K 线操作提示</RimForex_Set_ChartNav>
-  <RimForex_Set_ChartNavTip>滚轮缩放与悬停查看始终可用，这个开关只控制 tooltip 里的说明文字。</RimForex_Set_ChartNavTip>
   <RimForex_Set_ChartLegend>K线图例说明</RimForex_Set_ChartLegend>
   <RimForex_Set_ChartLegendTip>在图表底部显示一行小字，解释虚线与最新价线为什么不在同一位置（开仓成交价含半个点差）。熟悉后可以关掉。</RimForex_Set_ChartLegendTip>
   <RimForex_ChartStopOutOff>爆仓 {0}（在框外 {1}%）</RimForex_ChartStopOutOff>

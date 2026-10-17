@@ -719,12 +719,6 @@ namespace RimForex
         /// </summary>
         public float equityAtLastSettle;
 
-        /// <summary>账户权益：可用余额 + 所有持仓的浮动盈亏。</summary>
-        public float AccountEquity
-        {
-            get { return balance + FloatingPnl; }
-        }
-
         /// <summary>已平仓交易记录，最新的在末尾。用于"交易历史"页面。</summary>
         public List<FxTradeRecord> history = new List<FxTradeRecord>();
         /// <summary>连续平淡日计数，用于决定何时补发一封摘要信。</summary>
@@ -2386,7 +2380,8 @@ namespace RimForex
     {
         public FxAccount account;
         public FxPosition position;
-        public Map map;
+        // 曾经还有一个 `public Map map;` —— 由 EnqueueWarning 扫 Find.Maps 填进来，
+        // 但从来没有消费者（预警窗只用 position / account）。已删除。
     }
 
     /// <summary>
@@ -3048,7 +3043,7 @@ namespace RimForex
                     // 还没触及强平线：只有确实处于亏损状态才考虑预警
                     if (eq > stopOutLevel)
                     {
-                        MaybeWarn(pos, acc, accKey);
+                        MaybeWarn(pos, acc);
                         continue;
                     }
 
@@ -3154,7 +3149,7 @@ namespace RimForex
         /// 掉到 75 又弹一次"。这属于**用连续机制表达离散意图**的错误 ——
         /// 玩家真正需要的信息只有一条："快被强平了"。所以现在就是一个阈值、一次弹窗。
         /// </summary>
-        private void MaybeWarn(FxPosition pos, FxAccount acc, int accKey)
+        private void MaybeWarn(FxPosition pos, FxAccount acc)
         {
             float health = pos.MarginHealth;
 
@@ -3180,27 +3175,19 @@ namespace RimForex
 
             pos.criticalWarned = true;
             pos.warnedHealth = health;
-            EnqueueWarning(pos, acc, accKey);
+            EnqueueWarning(pos, acc);
         }
 
-        private void EnqueueWarning(FxPosition pos, FxAccount acc, int accKey)
+        private void EnqueueWarning(FxPosition pos, FxAccount acc)
         {
-            Map map = null;
-            var maps = Find.Maps;
-            for (int m = 0; m < maps.Count; m++)
-            {
-                if (maps[m] != null && maps[m].Parent != null && maps[m].Parent.ID == accKey)
-                {
-                    map = maps[m];
-                    break;
-                }
-            }
-
+            // 这里曾经先用一个循环在 Find.Maps 里找出 accKey 对应的地图、
+            // 存进 MarginWarning.map —— 但那个字段**从来没有人读过**：
+            // 预警窗只用到 position 与 account，弹窗位置由 WindowStack 决定。
+            // 于是每次预警都白跑一遍全地图扫描。字段与循环一并删除。
             pendingWarnings[pos.openTick] = new MarginWarning
             {
                 account = acc,
-                position = pos,
-                map = map
+                position = pos
             };
         }
 
@@ -3250,7 +3237,6 @@ namespace RimForex
         private void ReportDaily(FxAccount acc)
         {
             int openCount = acc.positions.Count;
-            float equityNow = acc.AccountEquity;
 
             // ── 当日盈亏 = 权益的日变化 ──
             //
@@ -3266,6 +3252,23 @@ namespace RimForex
             //   两者相加即 AccountEquity，其日变化就是"今天到底赚亏多少"。
             // 而且不需要分别累加两个累加器 —— 那种做法容易在爆仓/追加保证金等
             // 路径上漏加或重复加，权益差是天然自洽的。
+            //
+            // ── 2026-10-17 修正：口径漏了"锁住的保证金" ──
+            //
+            // 原来这里用的是一个叫 AccountEquity 的属性，定义为 balance + FloatingPnl。
+            // 但开仓时是 `account.balance -= margin + fee`（见 OpenPosition），
+            // 也就是说 balance 是【可用】资金，**不含已锁定的保证金**。
+            // 于是 AccountEquity 少算了整笔占用保证金：
+            //     空仓时 balance 6400 → AccountEquity 6400
+            //     开仓占用 5831、浮盈 472 后 → AccountEquity = 453 + 472 = 925
+            //     结算算出的当日盈亏 = 925 − 6400 = −5475，而真实是 +356
+            // 100 倍杠杆下这个误差等于整笔保证金，结算信会报出一个完全不存在的巨亏。
+            //
+            // `Equity`（balance + MarginUsed + FloatingPnl）才是真正的总权益，
+            // 与 UI 顶部"净值"、交易历史导出用的都是同一个口径。
+            // 那个错误的 AccountEquity 已删除，避免再被误用。
+            float equityNow = acc.Equity;
+
             if (acc.equityAtLastSettle == 0f)
             {
                 // 旧存档或首次结算：没有基线，只能把今天记为 0 并从这里开始计。

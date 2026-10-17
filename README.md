@@ -784,11 +784,16 @@ if (acc.positions.Count == 0) { lastDayPnl = 0f; return; }
 **修法：当日盈亏 = 本次权益 − 上次权益**（`equityAtLastSettle` 存基线）。
 
 ```csharp
-float dayPnl = acc.AccountEquity - acc.equityAtLastSettle;   // 权益 = 余额 + 浮动盈亏
+float dayPnl = acc.Equity - acc.equityAtLastSettle;   // 权益 = 可用余额 + 占用保证金 + 浮动盈亏
 ```
 
 **为什么不用两个累加器**（一个记已实现、一个记浮动）：爆仓、追加保证金、穿仓这些路径
 容易漏加或重复加；而**权益差天然自洽**，不会漂移。
+
+**权益的口径里必须含"占用保证金"** —— 这里错过一次：曾经用一个
+`AccountEquity`（= 可用余额 + 浮动盈亏）来算，但开仓时余额已经扣掉了保证金，
+所以它少算了整笔占用保证金。结果是**开仓那天结算会报出一笔等于保证金的假巨亏**，
+平仓那天则相反。正确口径与 UI 顶部"净值"、交易历史导出一致：`FxAccount.Equity`。
 
 **旧存档兼容**：`equityAtLastSettle` 是新字段，首次结算若为 0 就补记基线（那天记为 0），
 不会凭空报一个巨大数字。

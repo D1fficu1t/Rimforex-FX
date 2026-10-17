@@ -1184,24 +1184,63 @@ namespace RimForex
         }
 
         /// <summary>
-        /// 由保证金金额估算能开多少单位。只是估算（用于取整前的上界），
-        /// 真实结果必须再过一遍 <see cref="ComputeEntry"/> 做回代校验。
+        /// 由保证金金额算出最多能开多少单位。
+        ///
+        /// ── 为什么不能写"逐次减一"（2026-10-17 修）──
+        /// 原来的写法是从 floor(margin / perUnitMargin) 开始，每次减 1 直到负担得起。
+        /// 看起来很安全，实际收敛步数是「手续费 ÷ 每单位保证金」：
+        ///     输入上限 1 亿（见 DrawOrderZone 的 TextFieldNumeric）、价格 113、杠杆 100
+        ///     → 初值约 8849 万单位、手续费约 200 万
+        ///     → 实测需要递减 1,728,014 次
+        /// 而本函数在 DoWindowContents 里**每帧**都会调用一次，
+        /// 于是玩家在保证金框里输入一个大数字就会把终端卡死（百万级浮点运算/帧）。
+        ///
+        /// ── 为什么用二分而不是开根号式的闭式解 ──
+        /// 手续费是 max(MinFee, 名义 × FeeRate)，是u的分段线性函数，
+        /// 闭式解要分两个区间各解一次、还要判断解是否落在自己的区间里 —— 容易写错。
+        /// 而"给定u是否负担得起"是单调的（u 买得起，则 u−1 必然也买得起），
+        /// 所以直接二分即可：
+        ///     · 迭代次数 = log2(u)，u 最大 1e9 时也只有 **30 次**
+        ///     · 与输入规模无关，且不依赖任何舍入假设
+        ///     · 不低估也不高估：二分端点就是精确答案
+        ///
+        /// 上界取无手续费的 floor(margin / perUnitMargin)：手续费只会让结果更小，
+        /// 所以它一定是个安全的上界。
         /// </summary>
         private static int EstimateUnits(int margin, float ask, float leverage)
         {
             if (ask <= 0.01f || leverage <= 0f || margin <= 0) return 0;
-            // 预留手续费：手续费相对名义仓位很小，先用无手续费的近似，再回代收紧
+
             float perUnitMargin = ask / leverage;
-            int u = Mathf.FloorToInt(margin / perUnitMargin);
-            while (u > 0)
+            if (perUnitMargin <= 0f) return 0;
+
+            // 单位数是 int，而 margin 上限 1 亿、ask 最低 1、杠杆最高 100 时
+            // 理论上能算出 1e10 单位 —— 直接转 int 会溢出成负数。
+            // 这个量级本来也没有意义（余额根本不够），封个顶防止溢出。
+            const double MaxUnits = 1e9;
+
+            int hi = (int)System.Math.Min(margin / (double)perUnitMargin, MaxUnits);
+            if (hi <= 0) return 0;
+
+            // 二分开区间 [0, hi]，找最大的"负担得起"的 u
+            int lo = 0;
+            while (lo < hi)
             {
-                float m, n, f;
-                int real;
-                ComputeEntry(u, ask, leverage, out real, out m, out n, out f);
-                if (m + f <= margin + 0.0001f) break;
-                u--;
+                int mid = lo + (hi - lo + 1) / 2;
+                if (Affordable(mid, ask, leverage, margin)) lo = mid;
+                else hi = mid - 1;
             }
-            return u;
+            return lo;
+        }
+
+        /// <summary>给定单位数，保证金 + 手续费是否仍在预算内。</summary>
+        private static bool Affordable(int units, float ask, float leverage, float margin)
+        {
+            if (units <= 0) return true;
+            float m, n, f;
+            int real;
+            ComputeEntry(units, ask, leverage, out real, out m, out n, out f);
+            return m + f <= margin + 0.0001f;
         }
 
         /// <summary>
