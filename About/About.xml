@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ModMetaData>
-  <name>RimForex (Alpha)</name>
-  <author>you</author>
-  <packageId>local.rimforex.alpha</packageId>
+  <name>Rimforex</name>
+  <author>KIWI🐀</author>
+  <packageId>rimforex</packageId>
   <modVersion>0.2.0</modVersion>
   <supportedVersions>
     <li>1.6</li>

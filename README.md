@@ -1,4 +1,4 @@
-# RimForex — Alpha 0.2.0
+# Rimforex — 0.2.0
 
 RimWorld 1.6 外汇交易模组。纯增量设计：**不修改原版任何交易逻辑**，因此与 Vanilla Trading Expanded
 等经济模组不存在价格系统层面的冲突。
@@ -11,7 +11,7 @@ RimWorld 1.6 外汇交易模组。纯增量设计：**不修改原版任何交�
 
 1. 把整个 `RimForex` 文件夹复制到：
    `G:\SteamLibrary\steamapps\common\RimWorld\Mods\`
-2. 启动游戏，在模组列表中启用 **RimForex (Alpha)**。
+2. 启动游戏，在模组列表中启用 **Rimforex**。
 3. 无需 Harmony / HugsLib 作为前置（本模组未使用 Harmony 补丁）。
 
 目标路径应形如：
