@@ -864,12 +864,31 @@ namespace RimForex
         /// </summary>
         public float cashFlowSinceSettle;
 
+        /// <summary>
+        /// 自上次结算以来的手续费累计（开仓 + 平仓 + 强平，退款会回冲）。
+        ///
+        /// 用途只有一个：让结算信能<b>摊开口径</b>。
+        ///
+        /// ── 为什么需要它 ──
+        /// 结算信报的是"净额"（权益变化，已扣手续费），而交易历史里那列"盈亏"
+        /// 是<b>毛利</b>（不含手续费）。玩家看到历史写着 +830、+42，
+        /// 结算信却写 −11，第一反应必然是"结算算错了"——作者本人就误判过三次。
+        ///
+        /// 实测：毛利 +872、手续费 882.88，净额 −10.88 → 信里显示 −11。
+        /// 数字完全正确，但只写一个 −11 无法自证。
+        ///
+        /// 有了这个字段，信里可以补一行"手续费 883，扣除前 +872"，
+        /// 玩家自己就能对上账，不需要去翻手续费列。
+        /// </summary>
+        public float feesSinceSettle;
+
         public void ExposeData()
         {
             Scribe_Values.Look(ref balance, "balance", 0f);
             Scribe_Collections.Look(ref positions, "positions", LookMode.Deep);
             Scribe_Values.Look(ref equityAtLastSettle, "equityAtLastSettle", 0f);
             Scribe_Values.Look(ref cashFlowSinceSettle, "cashFlowSinceSettle", 0f);
+            Scribe_Values.Look(ref feesSinceSettle, "feesSinceSettle", 0f);
             // 旧存档没有这个字段：用"基线是不是 0"推断。
             // 非 0 → 说明存过基线，视为已建立；恰好 0 → 按"无基线"处理，
             // 第一晚结算会记为 0 并把基线建起来（一次性，之后正常）。
@@ -3118,6 +3137,7 @@ namespace RimForex
                     float refund = eq - closeFee;
                     acc.balance += refund;
                     acc.lifetimeFees += closeFee;
+                    acc.feesSinceSettle += closeFee;
                     // 注意：穿仓判据用【扣费后的余额】，因为那才是账户的真实状态
                     bool blewUp = acc.balance < 0f;
                     acc.positions.RemoveAt(i);
@@ -3371,6 +3391,10 @@ namespace RimForex
                     acc.quietDays = 0;
                 }
             }
+
+            // 手续费按结算周期归零。必须放在所有 PostSettlementLetter 调用之后 ——
+            // 信里那一行"扣除手续费前 +xxx"要读这个字段。
+            acc.feesSinceSettle = 0f;
         }
 
 
@@ -3394,19 +3418,34 @@ namespace RimForex
             string pnlStr = System.Math.Abs(pnl).ToString("F0");
             string balStr = acc.balance.ToString("F0");
 
+            // ── 把口径摊开（2026-10-18）──
+            // 信里的"今日盈亏"是净额（已扣手续费），而交易历史那列"盈亏"是毛利。
+            // 只写一个净额时，玩家会拿它去和 +830 / +42 对照，然后认为算错了。
+            // 这里补一行"手续费 + 扣除前金额"，让两个口径当场能对上。
+            // 手续费为 0 的日子不印这一行，免得噪音。
+            string feeLine = "";
+            if (acc.feesSinceSettle >= 0.5f)
+            {
+                feeLine = "\n\n" + "RimForex_LetterFeeBreakdown".Translate(
+                    acc.feesSinceSettle.ToString("F0"),
+                    (pnl + acc.feesSinceSettle).ToString("+0;-0;0"));
+            }
+
             if (pnl >= 0f)
             {
                 label = "RimForex_LetterProfit".Translate();
                 text = (flat
                     ? "RimForex_LetterProfitTextFlat".Translate(pnlStr, balStr)
-                    : "RimForex_LetterProfitText".Translate(pnlStr, openCount, balStr)) + stamp;
+                    : "RimForex_LetterProfitText".Translate(pnlStr, openCount, balStr))
+                    + feeLine + stamp;
             }
             else
             {
                 label = "RimForex_LetterLoss".Translate();
                 text = (flat
                     ? "RimForex_LetterLossTextFlat".Translate(pnlStr, balStr)
-                    : "RimForex_LetterLossText".Translate(pnlStr, openCount, balStr)) + stamp;
+                    : "RimForex_LetterLossText".Translate(pnlStr, openCount, balStr))
+                    + feeLine + stamp;
             }
 
             LetterDef def = pnl >= 0f ? LetterDefOf.PositiveEvent : LetterDefOf.NeutralEvent;

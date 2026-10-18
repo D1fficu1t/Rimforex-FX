@@ -1707,6 +1707,7 @@ namespace RimForex
 
             account.balance -= margin + fee;
             account.lifetimeFees += fee;
+            account.feesSinceSettle += fee;   // 结算信要把手续费摊开给玩家看
 
             // 开仓也算"当天动过仓"。结算信件靠这个计数决定要不要吭声，
             // 否则"当天只开不平"的日子会被判成没动静，玩家收不到任何结算反馈。
@@ -1792,6 +1793,7 @@ namespace RimForex
             {
                 account.balance += pos.margin + pos.openFee;
                 account.lifetimeFees -= pos.openFee;
+                account.feesSinceSettle -= pos.openFee;   // 全额退款，手续费要回冲
                 account.positions.Remove(pos);
                 DropWarningFor(pos);
 
@@ -1813,6 +1815,7 @@ namespace RimForex
 
             account.balance += equity - fee;
             account.lifetimeFees += fee;
+            account.feesSinceSettle += fee;   // 结算信要把手续费摊开给玩家看
             // 不钳到 0：主动平仓也可能在跳空后产生负余额（穿仓），需要玩家补银填平。
             account.positions.Remove(pos);
             DropWarningFor(pos);

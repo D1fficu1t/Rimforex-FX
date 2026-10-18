@@ -233,6 +233,7 @@
 当前可用保证金 {2} 白银。</RimForex_LetterLossText>
   <RimForex_LetterProfitTextFlat>外汇平台每日结算：今日盈亏 +{0} 白银（已全部平仓）。\n\n当前可用保证金 {1} 白银。</RimForex_LetterProfitTextFlat>
   <RimForex_LetterLossTextFlat>外汇平台每日结算：今日亏损 -{0} 白银（已全部平仓）。\n\n当前可用保证金 {1} 白银。</RimForex_LetterLossTextFlat>
+  <RimForex_LetterFeeBreakdown>本日手续费 {0} 白银；扣除手续费前盈亏为 {1} 白银。</RimForex_LetterFeeBreakdown>
   <RimForex_LetterStamp>
 
 （结算时刻：第 {0} 日 {1} 时）</RimForex_LetterStamp>

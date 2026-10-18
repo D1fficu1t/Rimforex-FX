@@ -222,6 +222,7 @@ Free margin is now {2} silver.</RimForex_LetterProfitText>
 Free margin is now {2} silver.</RimForex_LetterLossText>
   <RimForex_LetterProfitTextFlat>Daily settlement on the FX exchange: today's P/L was +{0} silver (all positions closed).\n\nFree margin is now {1} silver.</RimForex_LetterProfitTextFlat>
   <RimForex_LetterLossTextFlat>Daily settlement on the FX exchange: today's P/L was -{0} silver (all positions closed).\n\nFree margin is now {1} silver.</RimForex_LetterLossTextFlat>
+  <RimForex_LetterFeeBreakdown>Fees charged this period: {0} silver. Before fees, P/L was {1} silver.</RimForex_LetterFeeBreakdown>
   <RimForex_LetterStamp>
 
 (settled at day {0}, hour {1})</RimForex_LetterStamp>

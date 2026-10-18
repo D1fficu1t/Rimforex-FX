@@ -529,6 +529,32 @@ def main():
         if not ok_withdraw:
             print("  !! 提取没有记入现金流 —— 会被报成假亏损")
 
+    # ---- 4a12d. 结算信必须摊开手续费口径（2026-10-18）--------------------
+    # 信里的"今日盈亏"是净额（已扣手续费），交易历史那列"盈亏"是毛利。
+    # 只写净额时玩家会拿它去对账，然后认定算错（作者本人误判过三次）。
+    # 所以要有一行"手续费 X，扣除前 Y"。
+    # 判断四件事：字段在、存档、结算后归零、四个收费点都累加。
+    ok_fee_field = re.search(r"public float feesSinceSettle", core_nc) is not None
+    ok_fee_scribe = re.search(r'Scribe_Values\.Look\(ref feesSinceSettle', core) is not None
+    ok_fee_reset = re.search(r"acc\.feesSinceSettle\s*=\s*0f", core_nc) is not None
+    ok_fee_letter = "RimForex_LetterFeeBreakdown" in core_nc
+    fee_sites = len(re.findall(r"feesSinceSettle\s*[+\-]=", core_nc + dep_nc))
+
+    if ok_fee_field and ok_fee_scribe and ok_fee_reset and ok_fee_letter and fee_sites >= 4:
+        print("  OK 结算信摊开手续费口径（%d 个收费点已接入）" % fee_sites)
+    else:
+        fail += 1
+        if not ok_fee_field:
+            print("  !! 缺少 feesSinceSettle 字段")
+        if not ok_fee_scribe:
+            print("  !! feesSinceSettle 没有存档")
+        if not ok_fee_reset:
+            print("  !! 结算后没有把 feesSinceSettle 归零 —— 会越攒越多")
+        if not ok_fee_letter:
+            print("  !! 结算信没用 RimForex_LetterFeeBreakdown —— 口径还是对不上")
+        if fee_sites < 4:
+            print("  !! 只有 %d 处累加手续费（应为 4：开仓 / 平仓 / 强平 / 退款回冲）" % fee_sites)
+
     # ---- 4a12c. 不能用"基线 == 0"判断有没有基线（2026-10-18）-------------
     # equityAtLastSettle 曾经既当数值又当哨兵：== 0 就被当成"没有基线"。
     # 但 0 是合法的权益值 —— 玩家满额提取或亏光之后，结算时权益正好是 0，
