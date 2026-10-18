@@ -529,6 +529,28 @@ def main():
         if not ok_withdraw:
             print("  !! 提取没有记入现金流 —— 会被报成假亏损")
 
+    # ---- 4a12c. 不能用"基线 == 0"判断有没有基线（2026-10-18）-------------
+    # equityAtLastSettle 曾经既当数值又当哨兵：== 0 就被当成"没有基线"。
+    # 但 0 是合法的权益值 —— 玩家满额提取或亏光之后，结算时权益正好是 0，
+    # 基线被存成 0；第二天无论赚多少都会走进"没有基线"分支、把基线刷成当前值，
+    # 于是当日盈亏恒为 0。
+    # 实测：已实现 +1212 的一天，结算信报"今日盈亏 +0"。
+    # 现在改用独立的 settleBaselineSet 回答"有没有基线"。
+    bad_sentinel = re.search(r"equityAtLastSettle\s*==\s*0f", core_nc) is not None
+    has_flag = re.search(r"if\s*\(\s*!\s*acc\.settleBaselineSet\s*\)", core_nc) is not None
+    flag_scribed = re.search(r'Scribe_Values\.Look\(ref settleBaselineSet', core) is not None
+
+    if has_flag and flag_scribed and not bad_sentinel:
+        print("  OK 结算基线用独立标记判断（不再拿 0 当哨兵）")
+    else:
+        fail += 1
+        if bad_sentinel:
+            print("  !! 又用 equityAtLastSettle == 0 当哨兵 —— 满额提取后当日盈亏会恒为 0")
+        if not has_flag:
+            print("  !! 结算没有检查 settleBaselineSet")
+        if not flag_scribed:
+            print("  !! settleBaselineSet 没有存档")
+
     # 必须先剥掉注释再匹配：修复说明里就写着 `dayPnl = acc.FloatingPnl`，
     # 直接搜会把注释当成代码，误报失败（踩过一次）。
     if re.search(r"dayPnl\s*=\s*acc\.FloatingPnl", core_nc):

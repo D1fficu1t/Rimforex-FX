@@ -714,10 +714,26 @@ namespace RimForex
         /// 用来算"当日盈亏"：<b>当日盈亏 = 本次权益 − 上次权益</b>。
         /// 这样一次就涵盖了「白天已平仓的已实现盈亏」与「此刻还挂着的浮动盈亏」，
         /// 不需要分别累加两个口径 —— 分别累加容易漂移，而权益差是天然自洽的。
-        ///
-        /// 0 表示旧存档还没有这个字段，此时在第一次结算时补记基线。
         /// </summary>
         public float equityAtLastSettle;
+
+        /// <summary>
+        /// <see cref="equityAtLastSettle"/> 是否已经有过基线。
+        ///
+        /// ── 为什么不能拿 0 当"没有基线"的标记（2026-10-18 修）──
+        /// 早先的写法是 `if (equityAtLastSettle == 0f)` 就认为没有基线、
+        /// 把它重设成当前权益。但 <b>0 是一个合法的权益值</b>：
+        /// 玩家把余额全部提取、或爆仓亏光之后，结算时的权益正好是 0，
+        /// 于是基线被存成 0；到了第二天，无论赚了多少都会走进"没有基线"分支，
+        /// 基线被刷成当前值 → 当日盈亏恒为 0。
+        ///
+        /// 实测：已实现 +1212 的一天，结算信报"今日盈亏 +0"。
+        /// 因为前一次满额提取把基线留成了 0。
+        ///
+        /// 所以改用独立的布尔标记：数值可以是任何值（含 0），
+        /// "有没有基线"由这个字段单独回答。
+        /// </summary>
+        public bool settleBaselineSet;
 
         /// <summary>已平仓交易记录，最新的在末尾。用于"交易历史"页面。</summary>
         public List<FxTradeRecord> history = new List<FxTradeRecord>();
@@ -854,6 +870,11 @@ namespace RimForex
             Scribe_Collections.Look(ref positions, "positions", LookMode.Deep);
             Scribe_Values.Look(ref equityAtLastSettle, "equityAtLastSettle", 0f);
             Scribe_Values.Look(ref cashFlowSinceSettle, "cashFlowSinceSettle", 0f);
+            // 旧存档没有这个字段：用"基线是不是 0"推断。
+            // 非 0 → 说明存过基线，视为已建立；恰好 0 → 按"无基线"处理，
+            // 第一晚结算会记为 0 并把基线建起来（一次性，之后正常）。
+            Scribe_Values.Look(ref settleBaselineSet, "settleBaselineSet",
+                equityAtLastSettle != 0f);
             Scribe_Collections.Look(ref moodEntries, "moodEntries", LookMode.Deep);
             Scribe_Values.Look(ref lastDayPnl, "lastDayPnl", 0f);
             Scribe_Values.Look(ref lastDayPositions, "lastDayPositions", 0);
@@ -3292,11 +3313,14 @@ namespace RimForex
             // 那个错误的 AccountEquity 已删除，避免再被误用。
             float equityNow = acc.Equity;
 
-            if (acc.equityAtLastSettle == 0f)
+            // 是否已有基线，由独立标记回答 —— 不能再看数值是否为 0，
+            // 因为权益本来就可能真的是 0（满额提取、亏光）。见 settleBaselineSet 的说明。
+            if (!acc.settleBaselineSet)
             {
-                // 旧存档或首次结算：没有基线，只能把今天记为 0 并从这里开始计。
+                // 旧存档或首次结算：没有基线，今天记为 0 并从这里开始计。
                 acc.equityAtLastSettle = equityNow;
                 acc.cashFlowSinceSettle = 0f;
+                acc.settleBaselineSet = true;
             }
 
             // ── 必须扣掉期间净外部现金流（2026-10-18 修）──
