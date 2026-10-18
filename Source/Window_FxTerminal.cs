@@ -1904,6 +1904,9 @@ namespace RimForex
 
             int deposited = want - remaining;
             account.balance += deposited;
+            // 记入"期间外部现金流"：存入是玩家自己搬进来的钱，不是交易收益。
+            // 不计的话每日结算会把它报成等额的假盈利（见 FxAccount.cashFlowSinceSettle）。
+            account.cashFlowSinceSettle += deposited;
             Messages.Message("RimForex_MsgDeposited".Translate(deposited), MessageTypeDefOf.PositiveEvent, false);
         }
 
@@ -1939,7 +1942,12 @@ namespace RimForex
                 spawned += chunk;
             }
 
-            account.balance -= spawned * silverDef.BaseMarketValue;
+            // 提取是"玩家把钱搬出去"，权益会随之下降，但那不是亏损。
+            // 必须记入外部现金流，否则每日结算会报出一笔等于提取额的假亏损
+            // （实测：真实 +56，报出 −1000）。详见 FxAccount.cashFlowSinceSettle。
+            float taken = spawned * silverDef.BaseMarketValue;
+            account.balance -= taken;
+            account.cashFlowSinceSettle -= taken;
             // 不钳到 0：余额本来就可能因为穿仓而为负，这里只是继续扣减。
             Messages.Message("RimForex_MsgWithdrew".Translate(spawned), MessageTypeDefOf.PositiveEvent, false);
         }

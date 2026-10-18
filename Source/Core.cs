@@ -824,13 +824,36 @@ namespace RimForex
             }
         }
 
+        /// <summary>账户权益：可用余额 + 占用保证金 + 浮动盈亏。</summary>
         public float Equity => balance + MarginUsed + FloatingPnl;
+
+        /// <summary>
+        /// 自上次结算以来的<b>净外部资金流</b>：存入记正、提取记负。
+        ///
+        /// ── 为什么必须有这个字段 ──
+        /// 每日盈亏是用"权益差"算的（见 ReportDaily）。权益包含 balance，
+        /// 而存入 / 提取会直接增删 balance —— 那是<b>玩家自己搬钱</b>，
+        /// 不是交易赚亏。若不扣除，就会：
+        ///     盈利平仓后把余额全部提取 → 权益掉到 0
+        ///     → 结算报出一笔等于"提取额"的假亏损
+        /// （实测：真实 +56，报出 −1000）
+        /// 反过来，存入会被报成等额的假盈利。
+        ///
+        /// 这正是基金会计里的老规矩：<b>净值变化 = 投资收益 + 外部现金流</b>，
+        /// 所以 投资收益 = 净值变化 − 外部现金流。
+        ///
+        /// 注意：追加保证金不走这里 —— 它是 balance 减、margin 加，
+        /// 权益不变，本来就不影响盈亏。爆仓后补银填平则走"存入"，记入现金流，
+        /// 因此不会把那笔亏损抵掉。
+        /// </summary>
+        public float cashFlowSinceSettle;
 
         public void ExposeData()
         {
             Scribe_Values.Look(ref balance, "balance", 0f);
             Scribe_Collections.Look(ref positions, "positions", LookMode.Deep);
             Scribe_Values.Look(ref equityAtLastSettle, "equityAtLastSettle", 0f);
+            Scribe_Values.Look(ref cashFlowSinceSettle, "cashFlowSinceSettle", 0f);
             Scribe_Collections.Look(ref moodEntries, "moodEntries", LookMode.Deep);
             Scribe_Values.Look(ref lastDayPnl, "lastDayPnl", 0f);
             Scribe_Values.Look(ref lastDayPositions, "lastDayPositions", 0);
@@ -3273,10 +3296,23 @@ namespace RimForex
             {
                 // 旧存档或首次结算：没有基线，只能把今天记为 0 并从这里开始计。
                 acc.equityAtLastSettle = equityNow;
+                acc.cashFlowSinceSettle = 0f;
             }
 
-            float dayPnl = equityNow - acc.equityAtLastSettle;
+            // ── 必须扣掉期间净外部现金流（2026-10-18 修）──
+            //
+            // 权益里含 balance，而存入 / 提取直接增删 balance ——
+            // 那是玩家自己搬钱，不是交易赚亏。不扣除的话：
+            //     盈利平仓后把余额全部提取 → 权益掉到 0 → 结算报出假亏损
+            //     （实测：真实 +56，报出 −1000，误差恰好等于提取额）
+            //     存入则相反，会被报成等额的假盈利（存 500、没做任何交易 → 报 +500）
+            //
+            // 净值变化 = 投资收益 + 外部现金流，所以收益 = 净值变化 − 外部现金流。
+            // 这两个字段是一对：snapshot 记"上次结算时的权益"，cashFlow 记
+            // "这期间玩家自己进出了多少"，两者都在结算时归零。
+            float dayPnl = equityNow - acc.equityAtLastSettle - acc.cashFlowSinceSettle;
             acc.equityAtLastSettle = equityNow;
+            acc.cashFlowSinceSettle = 0f;
             acc.lastDayPnl = dayPnl;
             acc.lastDayPositions = openCount;
 

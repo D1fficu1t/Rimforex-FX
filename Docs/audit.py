@@ -498,6 +498,37 @@ def main():
         if reintroduced:
             print("  !! AccountEquity（balance + FloatingPnl）又出现了 —— 它会漏算保证金")
 
+    # ---- 4a12b. 结算必须扣掉【外部现金流】（2026-10-18）-------------------
+    # 权益里含 balance，而存入/提取直接增删 balance —— 那是玩家自己搬钱，不是赚亏。
+    # 不扣除的话：盈利平仓后把余额全部提取，权益掉到 0，
+    # 结算会报出一笔等于提取额的假亏损（实测 真实 +56 → 报出 −1000）；
+    # 存入则相反，会被报成等额的假盈利（存 500、不做交易 → 报 +500）。
+    #
+    # 判断三件事：字段存在、结算公式里减了它、存入与提取都更新了它。
+    ok_field = re.search(r"public float cashFlowSinceSettle", core_nc) is not None
+    ok_scribe = re.search(r'Scribe_Values\.Look\(ref cashFlowSinceSettle', core) is not None
+    ok_formula = re.search(
+        r"dayPnl\s*=\s*equityNow\s*-\s*acc\.equityAtLastSettle\s*-\s*acc\.cashFlowSinceSettle",
+        core_nc) is not None
+    dep_nc = re.sub(r"//[^\n]*", "", win)
+    ok_deposit = re.search(r"cashFlowSinceSettle\s*\+=\s*deposited", dep_nc) is not None
+    ok_withdraw = re.search(r"cashFlowSinceSettle\s*-=\s*taken", dep_nc) is not None
+
+    if ok_field and ok_scribe and ok_formula and ok_deposit and ok_withdraw:
+        print("  OK 结算扣除外部现金流（存入/提取不计入盈亏）")
+    else:
+        fail += 1
+        if not ok_field:
+            print("  !! 缺少 cashFlowSinceSettle 字段")
+        if not ok_scribe:
+            print("  !! cashFlowSinceSettle 没有存档")
+        if not ok_formula:
+            print("  !! 结算公式没减 cashFlowSinceSettle —— 提取会被报成亏损")
+        if not ok_deposit:
+            print("  !! 存入没有记入现金流 —— 会被报成假盈利")
+        if not ok_withdraw:
+            print("  !! 提取没有记入现金流 —— 会被报成假亏损")
+
     # 必须先剥掉注释再匹配：修复说明里就写着 `dayPnl = acc.FloatingPnl`，
     # 直接搜会把注释当成代码，误报失败（踩过一次）。
     if re.search(r"dayPnl\s*=\s*acc\.FloatingPnl", core_nc):
