@@ -1,4 +1,4 @@
-# Rimforex — 0.2.0
+# Rimforex — 0.2.1
 
 RimWorld 1.6 外汇交易模组。纯增量设计：**不修改原版任何交易逻辑**，因此与 Vanilla Trading Expanded
 等经济模组不存在价格系统层面的冲突。
