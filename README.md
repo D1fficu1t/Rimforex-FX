@@ -17,6 +17,23 @@ RimWorld 1.6 外汇交易模组。纯增量设计：**不修改原版任何交�
 目标路径应形如：
 `G:\SteamLibrary\steamapps\common\RimWorld\Mods\RimForex\About\About.xml`
 
+### ⚠️ 作者专用：`About\PublishedFileId.txt` 不能丢
+
+RimWorld 判断「这个 mod 已经发布过」靠的是 `About\PublishedFileId.txt`，
+**不是 packageId**（反编译确认：`ulong.TryParse(File.ReadAllText(path), ...)`）。
+上传成功后游戏自己把条目 ID 写进去，内容是**纯数字、无换行**。
+
+**这个文件一旦丢失，下一次上传就会在创意工坊里新建一个重复条目。**
+它恰恰在 `About\` 里，而部署时人们习惯整个文件夹覆盖过去 —— 最容易被抹掉。
+
+所以部署时二选一：
+
+- **整文件夹复制**（文件会跟着走，最省心），或
+- **只覆盖真正改过的文件**（`Assemblies\RimForex.dll`、`About\About.xml` 等）
+
+它已被 `.gitignore` 排除（属于作者账号信息，不该进公开仓库），
+但**必须留在本地文件夹里**。别人克隆仓库时没有它是正确的 —— 他们不是作者。
+
 ### 从 GitHub 获取
 
 本仓库**包含编译好的 `Assemblies/RimForex.dll`**，所以克隆下来即可直接使用：

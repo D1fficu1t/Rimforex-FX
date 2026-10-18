@@ -21,6 +21,25 @@ Source/Local.props
 # 若哪天想改成不跟踪：在下面加一行 `Assemblies/*.dll`，
 # 然后 `git rm --cached Assemblies/RimForex.dll`，并改用 Releases 分发。
 
+# ── 创意工坊条目 ID ──
+# About/PublishedFileId.txt 里只有一个数字：这个 mod 在 Steam 创意工坊的条目 ID。
+#
+# ── 它为什么必须存在，以及为什么最容易丢 ──
+# RimWorld 靠**这个文件**判断"这个 mod 已经发布过"，而不是靠 packageId：
+#     if (File.Exists(path) && ulong.TryParse(File.ReadAllText(path), out var id))
+#         publishedFileIdInt = new PublishedFileId_t(id);
+# 上传成功后它自己写回来（纯数字，无换行）。
+#
+# 文件一旦丢失，下一次上传就会被当成一个**全新的 mod**，
+# 在创意工坊里多出一个重复条目。作者已经因此踩过一次。
+#
+# 它最容易被覆盖丢失：就在 About\ 里，而部署时人们习惯整个 About 文件夹覆盖过去。
+#
+# 所以：它被 .gitignore 排除（属于作者账号的信息，不该进公开仓库），
+# 但**必须留在本地文件夹里**。以后部署要么整文件夹复制（带着它），
+# 要么只覆盖真正改动过的文件。
+About/PublishedFileId.txt
+
 # ── .NET / Visual Studio ──
 .vs/
 *.user
