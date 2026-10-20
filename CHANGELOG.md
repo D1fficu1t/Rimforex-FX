@@ -6,23 +6,21 @@
 
 **平衡**
 
-- **强平线从「剩 50% 保证金」下调到「剩 30%」，预警线从 60% 调到 45%。**
+- **强平线从「剩 50% 保证金」下调到 30%，预警线从 60% 调到 45%。**
   仓位能活更久，穿仓（负余额）也会更常见 —— 这是有意的。
-- **修复部分高波动货币选不了 100x 的问题。** 之前杠杆会自己跳回 50x。
+- **修复部分高波动货币用不了 100x**（杠杆会自己跳回 50x）。
 
 **新增**
 
-- **悬浮盈亏窗**：关掉交易终端去干别的时，屏幕角落会显示当前持仓的浮动盈亏。
-  左键可拖动，位置会记住；在设置页可关闭。
+- **悬浮盈亏窗**：关掉交易终端也能在屏幕角落看到浮动盈亏。可拖动、可关闭。
 - **设置页顶部显示版本号**，报错时附上这一行就行。
-- **设置页测试区新增「清理幽灵货币」按钮**，读完旧档后可以立刻清掉历史遗留的临时派系货币。
 
 **修复**
 
-- **做任务时生成的临时派系不再出现在货币列表里。** 之前 boss 团、朝圣者之类的临时派系
-  会多出几种"没有实际派系"的货币，而且任务结束后也一直留着。
-- **K 线的爆仓线画得比实际近得多**，会出现"价格越过线却没被强平"。
-  现在线与真实强平点一致。
+- **任务生成的临时派系不再出现在货币列表里。**
+  设置页测试区另有「清理幽灵货币」按钮，可清掉旧档里遗留的这类货币。
+- **K 线的爆仓线曾画得比实际近得多**，会出现「价格越过线却没被强平」。
+  现在与真实强平点一致。
 - **殖民地交易盈亏的心情不再影响囚犯、访客与任务寄宿者。**
 - **货币列表的盈亏列不再被持仓数量挤掉。**
 
@@ -32,23 +30,20 @@
 
 - **Stop-out moved from 50% of margin left to 30%; the margin-call warning from 60% to 45%.**
   Positions survive longer, and a negative balance becomes more common — intended.
-- **Fixed high-volatility currencies being unable to use 100x.** Leverage used to snap back to 50x.
+- **Fixed high-volatility currencies being unable to use 100x** (leverage would snap back to 50x).
 
 **Added**
 
 - **Floating P/L window**: shows the floating P/L of your open positions in a screen corner
-  while the terminal is closed. Drag with the left mouse button; the position is remembered.
-  Can be turned off in the settings.
+  while the terminal is closed. Draggable, and can be turned off in the settings.
 - **Version string at the top of the settings page** — include it in bug reports.
-- **A "Clear ghost currencies" button in the settings test section**, for cleaning old saves immediately.
 
 **Fixed**
 
-- **Temporary factions created by quests no longer appear in the market list.** Boss groups,
-  pilgrims and similar temporary factions used to add "currencies" for factions that no longer
-  existed, and those entries stayed forever.
-- **The stop-out line on the chart was drawn far closer than the real one**, so prices could
-  sail past it without triggering liquidation. It now matches the actual stop-out point.
+- **Temporary factions created by quests no longer appear in the market list.** A new
+  "Clear ghost currencies" button in the settings test section removes leftovers from old saves.
+- **The chart's stop-out line was drawn far closer than the real one**, so prices could pass it
+  without triggering liquidation. It now matches the actual stop-out point.
 - **Colony P/L mood no longer affects prisoners, guests or quest lodgers.**
 - **The P/L column is no longer pushed out by large position sizes.**
 
