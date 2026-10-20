@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+  <!-- 终端建筑的中文名与描述。
+
+       ── 为什么这个文件是反方向的（2026-10-20）──
+       Defs\ThingDefs_Buildings.xml 里的 label/description 写的是**英文**
+       （"FX trading terminal"），因为原版默认语言是英文，那两行就是默认语言。
+
+       而心情系统的 10 个 ThoughtDef 恰好相反：原文写的是中文，
+       英文靠 Languages\English\DefInjected\ThoughtDef\ 补。
+
+       结果就是两个方向各缺一块：
+         · 英文玩家：看到中文心情      → 由 English\DefInjected 补上
+         · 中文玩家：看到英文建筑名    → 由本文件补上（作者截图里一直是英文的）
+
+       目录名 ThingDef 必须与 Def 类型名一致，文件名可任意。 -->
+
+  <RimForex_TradingTerminal.label>外汇交易终端</RimForex_TradingTerminal.label>
+  <RimForex_TradingTerminal.description>一台接入星际外汇交易所的控制台。存入白银作为保证金，即可加杠杆交易各派系的货币。</RimForex_TradingTerminal.description>
+
+</LanguageData>

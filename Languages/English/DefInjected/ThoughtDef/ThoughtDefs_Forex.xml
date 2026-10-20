@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+  <!-- English labels/descriptions for the forex mood thoughts.
+
+       ── Why this file has to exist (2026-10-20) ──
+       The label/description in Defs\ThoughtDefs_Forex.xml are written in Chinese,
+       and Chinese is also the fallback for any language without a translation.
+       So without this file, English players see a fully Chinese mood list:
+       "外汇巨亏", "又亏掉一万多。有人提议把交易终端拆了改造成花盆，没人笑。"
+
+       RimWorld's default language is English, but it only falls back to the Def
+       text when no translation exists — it does not translate Chinese for us.
+       Hence a real English DefInjected is required.
+
+       Directory name (ThoughtDef) must match the Def type name; the file name
+       itself is arbitrary.
+
+       Text style: deadpan, slightly sarcastic, same as the Chinese. These lines
+       are also fed to LLM dialogue mods as context, so each one stands alone. -->
+
+  <!-- ══════════════ Huge loss ══════════════ -->
+  <RimForex_FxLossHuge.stages.0.label>Huge forex loss</RimForex_FxLossHuge.stages.0.label>
+  <RimForex_FxLossHuge.stages.0.description>Over ten thousand lost on forex. The bookkeeper checked three times; the number was patient and did not change.</RimForex_FxLossHuge.stages.0.description>
+  <RimForex_FxLossHuge.stages.1.label>Huge forex loss</RimForex_FxLossHuge.stages.1.label>
+  <RimForex_FxLossHuge.stages.1.description>Another ten thousand gone. Someone suggested cutting the terminal up for flower pots. Nobody laughed.</RimForex_FxLossHuge.stages.1.description>
+  <RimForex_FxLossHuge.stages.2.label>Huge forex loss</RimForex_FxLossHuge.stages.2.label>
+  <RimForex_FxLossHuge.stages.2.description>Another five-figure hole in the trading account. Everyone turned in early tonight; the lights went out two hours sooner than usual.</RimForex_FxLossHuge.stages.2.description>
+
+  <!-- ══════════════ Major loss ══════════════ -->
+  <RimForex_FxLossBig.stages.0.label>Major forex loss</RimForex_FxLossBig.stages.0.label>
+  <RimForex_FxLossBig.stages.0.description>Several thousand gone on forex, close to ten. That money would have bought the whole colony a hundred simple meals.</RimForex_FxLossBig.stages.0.description>
+  <RimForex_FxLossBig.stages.1.label>Major forex loss</RimForex_FxLossBig.stages.1.label>
+  <RimForex_FxLossBig.stages.1.description>Another near-five-figure loss. Someone asked the trader about credit. The trader looked away.</RimForex_FxLossBig.stages.1.description>
+  <RimForex_FxLossBig.stages.2.label>Major forex loss</RimForex_FxLossBig.stages.2.label>
+  <RimForex_FxLossBig.stages.2.description>This round cost nearly ten thousand. Nobody raised it at the meeting; the chairs scraped very neatly on the way out.</RimForex_FxLossBig.stages.2.description>
+
+  <!-- ══════════════ Moderate loss ══════════════ -->
+  <RimForex_FxLossMedium.stages.0.label>Moderate forex loss</RimForex_FxLossMedium.stages.0.label>
+  <RimForex_FxLossMedium.stages.0.description>A few thousand lost on forex. The numbers on screen barely moved, but the canteen went vegetarian first.</RimForex_FxLossMedium.stages.0.description>
+  <RimForex_FxLossMedium.stages.1.label>Moderate forex loss</RimForex_FxLossMedium.stages.1.label>
+  <RimForex_FxLossMedium.stages.1.description>Another thousand or so down. Nobody looks toward the terminal anymore.</RimForex_FxLossMedium.stages.1.description>
+  <RimForex_FxLossMedium.stages.2.label>Moderate forex loss</RimForex_FxLossMedium.stages.2.label>
+  <RimForex_FxLossMedium.stages.2.description>Another few-thousand hole. I keep the books now. Nobody ask.</RimForex_FxLossMedium.stages.2.description>
+
+  <!-- ══════════════ Small loss ══════════════ -->
+  <RimForex_FxLossSmall.stages.0.label>Small forex loss</RimForex_FxLossSmall.stages.0.label>
+  <RimForex_FxLossSmall.stages.0.description>Lost a little on forex. Call it tuition.</RimForex_FxLossSmall.stages.0.description>
+  <RimForex_FxLossSmall.stages.1.label>Small forex loss</RimForex_FxLossSmall.stages.1.label>
+  <RimForex_FxLossSmall.stages.1.description>Another small loss. The tuition payments are getting frequent.</RimForex_FxLossSmall.stages.1.description>
+  <RimForex_FxLossSmall.stages.2.label>Small forex loss</RimForex_FxLossSmall.stages.2.label>
+  <RimForex_FxLossSmall.stages.2.description>After several small losses, that tuition would cover an entire degree.</RimForex_FxLossSmall.stages.2.description>
+
+  <!-- ══════════════ Small gain ══════════════ -->
+  <RimForex_FxGainSmall.stages.0.label>Small forex gain</RimForex_FxGainSmall.stages.0.label>
+  <RimForex_FxGainSmall.stages.0.description>Made a little on forex. Everyone gets an extra spoon of honey tonight.</RimForex_FxGainSmall.stages.0.description>
+  <RimForex_FxGainSmall.stages.1.label>Small forex gain</RimForex_FxGainSmall.stages.1.label>
+  <RimForex_FxGainSmall.stages.1.description>Another small win. The account is a bit fatter. A bit.</RimForex_FxGainSmall.stages.1.description>
+  <RimForex_FxGainSmall.stages.2.label>Small forex gain</RimForex_FxGainSmall.stages.2.label>
+  <RimForex_FxGainSmall.stages.2.description>Several small wins in a row. Enjoy it, but don't get cocky.</RimForex_FxGainSmall.stages.2.description>
+
+  <!-- ══════════════ Moderate gain ══════════════ -->
+  <RimForex_FxGainMedium.stages.0.label>Moderate forex gain</RimForex_FxGainMedium.stages.0.label>
+  <RimForex_FxGainMedium.stages.0.description>A few thousand made on forex. Enough to patch a wall, plus some herbal medicine.</RimForex_FxGainMedium.stages.0.description>
+  <RimForex_FxGainMedium.stages.1.label>Moderate forex gain</RimForex_FxGainMedium.stages.1.label>
+  <RimForex_FxGainMedium.stages.1.description>Another thousand or so in. This one was actually earned.</RimForex_FxGainMedium.stages.1.description>
+  <RimForex_FxGainMedium.stages.2.label>Moderate forex gain</RimForex_FxGainMedium.stages.2.label>
+  <RimForex_FxGainMedium.stages.2.description>Another few thousand up. Someone is asking what a sofa costs these days.</RimForex_FxGainMedium.stages.2.description>
+
+  <!-- ══════════════ Major gain ══════════════ -->
+  <RimForex_FxGainBig.stages.0.label>Major forex gain</RimForex_FxGainBig.stages.0.label>
+  <RimForex_FxGainBig.stages.0.description>A big win — several thousand, near ten. This season can be lived with some dignity.</RimForex_FxGainBig.stages.0.description>
+  <RimForex_FxGainBig.stages.1.label>Major forex gain</RimForex_FxGainBig.stages.1.label>
+  <RimForex_FxGainBig.stages.1.description>Another few thousand in. Someone proposed gold-plating the terminal. The project is on hold, but he is happy.</RimForex_FxGainBig.stages.1.description>
+  <RimForex_FxGainBig.stages.2.label>Major forex gain</RimForex_FxGainBig.stages.2.label>
+  <RimForex_FxGainBig.stages.2.description>This trade made several thousand. The trader upgraded to a proper padded chair.</RimForex_FxGainBig.stages.2.description>
+
+  <!-- ══════════════ Huge gain ══════════════ -->
+  <RimForex_FxGainHuge.stages.0.label>Huge forex gain</RimForex_FxGainHuge.stages.0.label>
+  <RimForex_FxGainHuge.stages.0.description>A clean ten thousand on forex. The bookkeeper's fingers shook while counting it.</RimForex_FxGainHuge.stages.0.description>
+  <RimForex_FxGainHuge.stages.1.label>Huge forex gain</RimForex_FxGainHuge.stages.1.label>
+  <RimForex_FxGainHuge.stages.1.description>Another ten thousand in. Someone suggested expanding the silver vault; it will not fit otherwise.</RimForex_FxGainHuge.stages.1.description>
+  <RimForex_FxGainHuge.stages.2.label>Huge forex gain</RimForex_FxGainHuge.stages.2.label>
+  <RimForex_FxGainHuge.stages.2.description>Another ten thousand. Now the worry is how to spend it — an easier problem than losing it.</RimForex_FxGainHuge.stages.2.description>
+
+  <!-- ══════════════ Margin call ══════════════ -->
+  <RimForex_FxMarginCall.stages.0.label>Forex margin call</RimForex_FxMarginCall.stages.0.label>
+  <RimForex_FxMarginCall.stages.0.description>The margin blew. It was gone without a sound.</RimForex_FxMarginCall.stages.0.description>
+  <RimForex_FxMarginCall.stages.1.label>Forex margin call</RimForex_FxMarginCall.stages.1.label>
+  <RimForex_FxMarginCall.stages.1.description>Blown again — margin wiped to zero. The terminal looks factory-new. Our silver does not.</RimForex_FxMarginCall.stages.1.description>
+  <RimForex_FxMarginCall.stages.2.label>Forex margin call</RimForex_FxMarginCall.stages.2.label>
+  <RimForex_FxMarginCall.stages.2.description>Blown once more. The chair in front of the terminal is empty now, and people walk around it.</RimForex_FxMarginCall.stages.2.description>
+
+  <!-- ══════════════ Negative equity (single stage by design) ══════════════ -->
+  <RimForex_FxBlowUp.stages.0.label>Forex negative equity</RimForex_FxBlowUp.stages.0.label>
+  <RimForex_FxBlowUp.stages.0.description>Negative equity: the margin is gone and the account balance has been pushed below zero. We now owe the trading platform money.</RimForex_FxBlowUp.stages.0.description>
+
+</LanguageData>

@@ -17,6 +17,8 @@
 
 **修复**
 
+- **补齐翻译：英文版不再显示中文心情，中文版不再显示英文建筑名。**
+  心情的十个档位补齐了英文标签与描述，交易终端补齐了中文名。
 - **任务生成的临时派系不再出现在货币列表里。**
   设置页测试区另有「清理幽灵货币」按钮，可清掉旧档里遗留的这类货币。
 - **K 线的爆仓线曾画得比实际近得多**，会出现「价格越过线却没被强平」。
@@ -40,6 +42,9 @@
 
 **Fixed**
 
+- **Localization filled in: English no longer shows Chinese mood text, and Chinese no longer
+  shows the English building name.** All ten mood tiers now have English labels and
+  descriptions, and the terminal has a Chinese name.
 - **Temporary factions created by quests no longer appear in the market list.** A new
   "Clear ghost currencies" button in the settings test section removes leftovers from old saves.
 - **The chart's stop-out line was drawn far closer than the real one**, so prices could pass it

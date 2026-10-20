@@ -1083,6 +1083,81 @@ def main():
             fail += 1
             print("  !! 幽灵货币判据没有用 f.temporary —— 临时派系永不被删，清理会空转")
 
+    # ---- 7. DefInjected 双向覆盖（2026-10-20）--------------------------
+    # 背景：Defs 里的原文语言不统一 ——
+    #   10 个 ThoughtDef 的 label/description 写的是中文
+    #   终端 ThingDef 的 label/description 写的是英文（默认语言）
+    # 于是两个方向各缺一块，只有一方能看懂：
+    #   · 英文玩家曾经看到中文心情（因为英文没有 DefInjected）
+    #   · 中文玩家一直看到 "FX trading terminal"（因为中文没有 ThingDef 的 DefInjected）
+    # 这里直接把两个方向都查一遍，任何新增 Def 忘了翻译都会在这里报出来。
+    cjk_re = re.compile(r"[\u4e00-\u9fff]")
+
+    def _defs_fields():
+        out = []
+        for dp, _, fsn in os.walk(os.path.join(ROOT, "Defs")):
+            for fn in sorted(fsn):
+                if not fn.endswith(".xml"):
+                    continue
+                raw = open(os.path.join(dp, fn), encoding="utf-8-sig").read()
+                raw = re.sub(r"<\?xml[^>]*\?>", "", raw)
+                raw = re.sub(r"<!--.*?-->", "", raw, flags=re.S)
+                try:
+                    tree = ET.fromstring("<root>" + raw + "</root>")
+                except ET.ParseError:
+                    continue
+                for defn in tree.iter():
+                    if defn.tag == "root":
+                        continue
+                    nm = defn.findtext("defName")
+                    if not nm:
+                        continue
+                    for fld in ("label", "description"):
+                        el = defn.find(fld)
+                        if el is not None and el.text and el.text.strip():
+                            out.append((nm, fld, el.text.strip()))
+                    st = defn.find("stages")
+                    if st is not None:
+                        for i, li in enumerate(st.findall("li")):
+                            for fld in ("label", "description"):
+                                el = li.find(fld)
+                                if el is not None and el.text and el.text.strip():
+                                    out.append((nm, "stages.%d.%s" % (i, fld), el.text.strip()))
+        return out
+
+    def _inj_keys(langdir):
+        keys = set()
+        base = os.path.join(ROOT, "Languages", langdir, "DefInjected")
+        if not os.path.isdir(base):
+            return keys
+        for dp, _, fsn in os.walk(base):
+            for fn in fsn:
+                if not fn.endswith(".xml"):
+                    continue
+                txt = open(os.path.join(dp, fn), encoding="utf-8-sig").read()
+                for m in re.finditer(r"<([A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)+)>", txt):
+                    keys.add(m.group(1))
+        return keys
+
+    dz = _inj_keys("ChineseSimplified (简体中文)")
+    de = _inj_keys("English")
+    fields = _defs_fields()
+    miss_en = [f for f in fields if cjk_re.search(f[2]) and ("%s.%s" % (f[0], f[1])) not in de]
+    miss_zh = [f for f in fields if not cjk_re.search(f[2]) and ("%s.%s" % (f[0], f[1])) not in dz]
+
+    if not miss_en and not miss_zh:
+        print("  OK DefInjected 双向覆盖（中文 %d 键 / 英文 %d 键）" % (len(dz), len(de)))
+    else:
+        fail += 1
+        if miss_en:
+            print("  !! %d 条中文 Def 文本缺英文翻译（英文玩家会看到中文）" % len(miss_en))
+            for f in miss_en[:4]:
+                print("       %s.%s" % (f[0], f[1]))
+        if miss_zh:
+            print("  !! %d 条英文 Def 文本缺中文翻译（中文玩家会看到英文）" % len(miss_zh))
+            for f in miss_zh[:4]:
+                print("       %s.%s" % (f[0], f[1]))
+
     print()
     print("结果:", "全部通过" if fail == 0 else "%d 项失败" % fail)
     return 1 if fail else 0
