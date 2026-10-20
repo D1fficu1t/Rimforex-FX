@@ -28,9 +28,14 @@ namespace RimForex
         /// <summary>贴边留白，用于默认位置。</summary>
         private const float Margin = 12f;
 
-        /// <summary>宽度上下限。上限防止极端数字（几十万）把窗口拉到半屏。</summary>
+        /// <summary>宽度下限，避免短数字时窗口窄得像条线。</summary>
         private const float MinW = 116f;
-        private const float MaxW = 260f;
+
+        /// <summary>
+        /// 宽度上限。设得比较宽（420），因为**宁可窗口宽一点，也不能让数字被横向截断** ——
+        /// 玩家看这个窗就是为了那个数字。真正会把宽度撑大的只有极端盈亏（七八位数）。
+        /// </summary>
+        private const float MaxW = 420f;
 
         /// <summary>
         /// 画悬浮窗。
@@ -49,14 +54,24 @@ namespace RimForex
             string label = "RimForex_HudFloat".Translate();
             string value = acc.FloatingPnl.ToString("+0;-0;0");
 
-            // 先按实际文字量量出尺寸，再定位 —— 这样任何数字都不会被切。
-            Text.Font = GameFont.Tiny;
-            float labelW = Text.CalcSize(label).x;
+            // ── 中文标签不能用 GameFont.Tiny（2026-10-20 二次修）──
+            //
+            // 第一版把标签放在 Tiny 字号、14px 高的格子里，结果
+            // "浮动盈亏"四个字**纵向被切掉一半**（作者截图确认）。
+            // 数字倒是完整的 —— 说明不是宽度不够，而是中文字形在 Tiny 下
+            // 超出该字号的标称行高，被 Rect 裁掉了。
+            //
+            // 改成【单行布局】+ 全部 GameFont.Small 来彻底绕开这类行高问题：
+            // 只有一行字，就没有"上下两行挤在一起/行高不够"的可能。
+            // 高度直接取 Text.LineHeight，而不是写死的数字。
             Text.Font = GameFont.Small;
+            float labelW = Text.CalcSize(label).x;
             float valueW = Text.CalcSize(value).x;
+            float lineH = Text.LineHeight;
 
-            float w = Mathf.Clamp(Mathf.Max(labelW, valueW) + PadX * 2f, MinW, MaxW);
-            float h = 40f;
+            // 标签 + 间隔 + 数字 + 两侧内边距
+            float w = Mathf.Clamp(labelW + 8f + valueW + PadX * 2f, MinW, MaxW);
+            float h = lineH + 12f;
 
             Rect box = CurrentRect(cfg, w, h);
 
@@ -64,14 +79,14 @@ namespace RimForex
             Widgets.DrawBoxSolid(box, new Color(0.10f, 0.11f, 0.13f, 0.72f));
             Widgets.DrawBox(box, 1);
 
-            Text.Font = GameFont.Tiny;
+            Text.Font = GameFont.Small;
+
             GUI.color = new Color(0.72f, 0.76f, 0.82f);
-            Widgets.Label(new Rect(box.x + PadX, box.y + 4f, box.width - PadX * 2f, 14f), label);
+            Widgets.Label(new Rect(box.x + PadX, box.y + 6f, labelW + 2f, lineH), label);
             GUI.color = Color.white;
 
-            Text.Font = GameFont.Small;
             GUI.color = Window_FxTerminal.PnlGuiColor(acc.FloatingPnl);
-            Widgets.Label(new Rect(box.x + PadX, box.y + 18f, box.width - PadX * 2f, 20f), value);
+            Widgets.Label(new Rect(box.x + PadX + labelW + 8f, box.y + 6f, valueW + 2f, lineH), value);
             GUI.color = Color.white;
             Text.Font = GameFont.Small;
 
