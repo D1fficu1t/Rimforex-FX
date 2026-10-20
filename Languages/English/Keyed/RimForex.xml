@@ -115,6 +115,11 @@ Floating P/L {2} silver</RimForex_PosLineTip>
   <RimForex_LineCompact>{0} units   |   notional {1}</RimForex_LineCompact>
   <RimForex_LineCompactTip>Spread cost {0} silver, margin taken {1} silver, fee {2} silver.</RimForex_LineCompactTip>
 
+  <RimForex_TestClearGhost>Clear ghost currencies</RimForex_TestClearGhost>
+  <RimForex_TestClearGhostTip>Temporary factions created by quests (boss groups, pilgrims, hacked terminals, etc.) are not real trading partners; currencies under their names were created by an older bug. Daily settlement clears them automatically — this button is for cleaning an old save immediately. Currencies still used by an open position are skipped; close those first.</RimForex_TestClearGhostTip>
+  <RimForex_MsgGhostCleared>Cleared {0} ghost currencies ({1} skipped because of open positions).</RimForex_MsgGhostCleared>
+  <RimForex_MsgGhostBlocked>{0} ghost currencies are still used by open positions. Close them first — deleting a currency would leave those positions without a market.</RimForex_MsgGhostBlocked>
+  <RimForex_MsgGhostNone>No ghost currencies found.</RimForex_MsgGhostNone>
   <RimForex_SettingsGameplay>Gameplay</RimForex_SettingsGameplay>
   <RimForex_SettingsGameplayDesc>These three actually change the market and the economy, not just the display.</RimForex_SettingsGameplayDesc>
   <RimForex_Set_QuoteInterval>Quote interval: {0}s (real time, 1x speed)</RimForex_Set_QuoteInterval>

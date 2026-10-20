@@ -15,6 +15,7 @@
 - **悬浮盈亏窗**：关掉交易终端去干别的时，屏幕角落会显示当前持仓的浮动盈亏。
   左键可拖动，位置会记住；在设置页可关闭。
 - **设置页顶部显示版本号**，报错时附上这一行就行。
+- **设置页测试区新增「清理幽灵货币」按钮**，读完旧档后可以立刻清掉历史遗留的临时派系货币。
 
 **修复**
 
@@ -39,6 +40,7 @@
   while the terminal is closed. Drag with the left mouse button; the position is remembered.
   Can be turned off in the settings.
 - **Version string at the top of the settings page** — include it in bug reports.
+- **A "Clear ghost currencies" button in the settings test section**, for cleaning old saves immediately.
 
 **Fixed**
 

@@ -2789,37 +2789,72 @@ namespace RimForex
                 market.EnsureCurrency(f);
             }
 
-            // ── ② 清：删掉派系已经消失的残留货币 ──
-            PruneOrphanCurrencies(all);
+            // ── ② 清：删掉幽灵货币（临时派系的、或派系已不存在的）──
+            int blocked;
+            PruneGhostCurrencies(all, out blocked);
         }
 
         /// <summary>
-        /// 清理孤儿货币：所属派系已不在派系表里、且没有任何持仓引用它。
+        /// 测试用：手动清理全部幽灵货币（设置页按钮）。
         ///
-        /// 为什么要求"无持仓"：持仓只存 currencyFactionLoadID，
-        /// 货币被删之后那个仓位就永远找不到自己的行情，会被静默当成 0 盈亏。
-        /// 宁可留着一行幽灵，也不能让玩家的仓位凭空消失。
+        /// 为什么需要手动按钮：每日结算已经会自动清，但如果玩家**当前存档里
+        /// 已经有**一堆旧版本造出来的幽灵货币，他会想在读档后立刻清干净，
+        /// 而不是等到下一个结算日。手动按钮就是给这个场景的。
+        ///
+        /// 返回清掉的条数；blocked 是因仍有持仓而跳过的条数。
+        /// </summary>
+        public int DebugClearGhostCurrencies(out int blocked)
+        {
+            blocked = 0;
+            if (Find.FactionManager == null) return 0;
+            return PruneGhostCurrencies(Find.FactionManager.AllFactionsListForReading, out blocked);
+        }
+
+        /// <summary>
+        /// 清理幽灵货币，返回删掉的条数（<paramref name="blocked"/> 是因有持仓而跳过的条数）。
+        ///
+        /// ── 什么叫"幽灵"（2026-10-20 修正判据）──
+        /// **所属派系是临时派系（<c>Faction.temporary</c>），或该派系已不存在。**
+        ///
+        /// 最初的实现只认"派系不在派系表里"，作者实测**完全没有生效**。
+        /// 原因是反编译查出来的一句事实：
+        ///
+        ///     RimWorld 全程序**没有任何地方调用 FactionManager.RemoveFaction**
+        ///
+        /// 也就是说临时派系（boss 团、圣物朝圣者、被黑终端……）虽然
+        /// <c>temporary = true</c>，但**会永远留在派系表里直到存档结束**。
+        /// 于是"派系不存在"这个条件永远为假，清理等于空转。
+        ///
+        /// 所以判据必须直接看 `temporary`：只要它不是真实交易对手，就算幽灵。
+        ///
+        /// ── 为什么要求"无持仓"──
+        /// 持仓只存 currencyFactionLoadID，货币被删之后那个仓位就永远找不到自己的行情，
+        /// 会被静默当成 0 盈亏。宁可留着一行幽灵，也不能让玩家的仓位凭空消失。
+        /// 这类会被计入 blocked，等玩家平掉仓位后自动清掉（或手动再点一次按钮）。
         ///
         /// 已平仓的交易记录不受影响 —— <see cref="FxTradeRecord"/> 里存的是
         /// currencyName / pairLabel 字符串，不是引用。
         /// </summary>
-        private void PruneOrphanCurrencies(List<Faction> all)
+        private int PruneGhostCurrencies(List<Faction> all, out int blocked)
         {
-            if (market.currencies.Count == 0) return;
+            blocked = 0;
+            if (market == null || market.currencies.Count == 0) return 0;
 
-            // 派系表里出现过的 loadID（含隐藏与临时）—— 只要还在，就不算孤儿
-            pruneAlive.Clear();
+            // 真实派系（!temporary）的 loadID。不在这个集合里的都是幽灵。
+            pruneReal.Clear();
             for (int i = 0; i < all.Count; i++)
             {
                 Faction f = all[i];
-                if (f != null) pruneAlive.Add(f.loadID);
+                if (f == null) continue;
+                if (f.temporary) continue;   // 临时派系永远留在表里，但不算真实派系
+                pruneReal.Add(f.loadID);
             }
 
             pruneKeys.Clear();
             foreach (var kv in market.currencies)
             {
-                if (pruneAlive.Contains(kv.Key)) continue;
-                if (HasAnyPosition(kv.Key)) continue;
+                if (pruneReal.Contains(kv.Key)) continue;   // 真实派系，保留
+                if (HasAnyPosition(kv.Key)) { blocked++; continue; }
                 pruneKeys.Add(kv.Key);
             }
 
@@ -2829,10 +2864,11 @@ namespace RimForex
                 string name = c != null ? c.name : pruneKeys[i].ToString();
                 if (market.RemoveCurrency(pruneKeys[i]))
                 {
-                    Log.Message("[RimForex] 清理残留货币「" + name
-                        + "」—— 所属派系已不存在。");
+                    Log.Message("[RimForex] 清理幽灵货币「" + name + "」。");
                 }
             }
+
+            return pruneKeys.Count;
         }
 
         /// <summary>是否还有任何账户持有该货币的仓位。</summary>
@@ -2851,7 +2887,7 @@ namespace RimForex
         }
 
         /// <summary>清理用的临时容器（避免每天结算都分配新集合）。</summary>
-        private readonly HashSet<int> pruneAlive = new HashSet<int>();
+        private readonly HashSet<int> pruneReal = new HashSet<int>();
         private readonly List<int> pruneKeys = new List<int>();
 
         // ══════════════════════════════════════════════════════════════════

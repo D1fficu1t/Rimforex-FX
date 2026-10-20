@@ -126,6 +126,11 @@
   <RimForex_LineCompact>{0} 单位   |   名义仓位 {1}</RimForex_LineCompact>
   <RimForex_LineCompactTip>点差成本 {0} 白银，实际占用保证金 {1} 白银，手续费 {2} 白银。</RimForex_LineCompactTip>
 
+  <RimForex_TestClearGhost>清理幽灵货币</RimForex_TestClearGhost>
+  <RimForex_TestClearGhostTip>任务生成的临时派系（boss 团、朝圣者、被黑终端等）不是真实交易对手，它们名下的货币是旧版本误建的。每日结算会自动清理；这个按钮用于读完旧档后立刻清干净。仍持有仓位的货币会被跳过，先平仓再点。</RimForex_TestClearGhostTip>
+  <RimForex_MsgGhostCleared>已清理 {0} 种幽灵货币（{1} 种因仍有持仓而跳过）。</RimForex_MsgGhostCleared>
+  <RimForex_MsgGhostBlocked>有 {0} 种幽灵货币仍被未平仓的仓位占用。请先平掉这些仓位，否则删掉货币会让它们失去行情。</RimForex_MsgGhostBlocked>
+  <RimForex_MsgGhostNone>没有找到幽灵货币。</RimForex_MsgGhostNone>
   <RimForex_SettingsGameplay>玩法参数</RimForex_SettingsGameplay>
   <RimForex_SettingsGameplayDesc>下面三项会真正改变行情与经济，不只是显示。</RimForex_SettingsGameplayDesc>
   <RimForex_Set_QuoteInterval>报价间隔：{0} 秒（现实时间，1x 速度）</RimForex_Set_QuoteInterval>

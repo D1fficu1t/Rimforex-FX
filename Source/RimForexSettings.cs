@@ -358,6 +358,39 @@ namespace RimForex
             }
             Hint(l, "RimForex_TestBlowUpTip".Translate(FxGameComponent.ForceGapDelayHours));
 
+            // ---- 清理幽灵货币 ----
+            // 临时派系（boss 团、圣物朝圣者……）永远留在派系表里，
+            // 旧版本把它们也造成了货币。每日结算会自动清，但这个按钮
+            // 让玩家读完旧档后立刻清干净，不用等到下一个结算日。
+            l.Gap(6f);
+            if (l.ButtonText("RimForex_TestClearGhost".Translate()))
+            {
+                FxGameComponent fx = Find.World != null
+                    ? Find.World.GetComponent<FxGameComponent>() : null;
+                if (fx != null)
+                {
+                    int blocked;
+                    int n = fx.DebugClearGhostCurrencies(out blocked);
+                    if (n > 0)
+                    {
+                        Messages.Message("RimForex_MsgGhostCleared".Translate(n, blocked),
+                            MessageTypeDefOf.TaskCompletion, false);
+                    }
+                    else if (blocked > 0)
+                    {
+                        // 有幽灵，但都被未平仓的仓位占着 —— 说清楚为什么没清
+                        Messages.Message("RimForex_MsgGhostBlocked".Translate(blocked),
+                            MessageTypeDefOf.RejectInput, false);
+                    }
+                    else
+                    {
+                        Messages.Message("RimForex_MsgGhostNone".Translate(),
+                            MessageTypeDefOf.RejectInput, false);
+                    }
+                }
+            }
+            Hint(l, "RimForex_TestClearGhostTip".Translate());
+
             // ---- 玩法参数 ----
             Text.Font = GameFont.Medium;
             l.Label("RimForex_SettingsGameplay".Translate());

@@ -1067,6 +1067,22 @@ def main():
             if "f.def.hidden" in body:
                 print("       仍在使用 f.def.hidden（应为实例属性 f.Hidden）")
 
+    # ---- 6b. 幽灵货币清理必须按 temporary 判（2026-10-20 实测修正）--------
+    # 最初只认"派系已不在派系表里"，结果**完全没生效**：
+    # 反编译确认 RimWorld 全程序没有任何地方调用 FactionManager.RemoveFaction，
+    # 临时派系会永远留在表里，于是那个条件永远为假。
+    if "PruneGhostCurrencies" not in core_nc:
+        fail += 1
+        print("  !! 找不到 PruneGhostCurrencies")
+    else:
+        m = re.search(r"private int PruneGhostCurrencies\(.*?\n        \}", core_nc, re.S)
+        body = m.group(0) if m else ""
+        if "f.temporary" in body:
+            print("  OK 幽灵货币按 temporary 判定（临时派系不会永远留在表里）")
+        else:
+            fail += 1
+            print("  !! 幽灵货币判据没有用 f.temporary —— 临时派系永不被删，清理会空转")
+
     print()
     print("结果:", "全部通过" if fail == 0 else "%d 项失败" % fail)
     return 1 if fail else 0
