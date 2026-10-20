@@ -955,8 +955,19 @@ namespace RimForex
             float denom = newest.isLong ? (1f - half) : (1f + half);
             if (denom <= 0.0001f) return;
 
-            // 强平距离（方向价空间）：StopOutFraction × margin / units
-            float dist = FxGameComponent.StopOutFraction * newest.margin
+            // ── 强平距离（方向价空间）──────────────────────────────
+            //
+            // 从开仓价到强平价，价格还能走：
+            //     可亏损净值 / 单位数 = (1 − StopOutFraction) × margin / units
+            //
+            // ⚠️ 这里原来写的是 `StopOutFraction × margin / units`（2026-10-20 修）。
+            // 当 StopOutFraction = 0.5 时 0.5 == 1 − 0.5，错误看不出来；
+            // 改成 0.3 后，这个式子只算出 30% 的距离，
+            // **K 线上的爆仓线被画到了实际位置的 3/7 处** ——
+            // 表现为"价格早就越过爆仓线了，却还没被强平"。
+            // 实盘逻辑（Core.cs 的 stopOutLevel）一直是对的，
+            // 错的只是这条【显示用】的线。
+            float dist = (1f - FxGameComponent.StopOutFraction) * newest.margin
                        / Mathf.Abs((float)newest.units);
             float markStop = newest.isLong
                 ? newest.entryRate - dist
@@ -1458,7 +1469,11 @@ namespace RimForex
             {
                 // 杠杆可用，但如果强平距离比一天波动还小，就把这个事实摆出来。
                 // 不禁止 —— 梭哈本来就是这个 mod 的乐趣 —— 只是别让玩家不知情。
-                float stopDist = FxGameComponent.StopOutFraction / orderLeverage;
+                //
+                // 距离 = (1 − StopOut) / 杠杆，不是 StopOut / 杠杆。
+                // 与 K 线爆仓线、MaxSafeLeverageFor 用的是同一个口径；
+                // 0.5 时代两者相等，改 0.3 后必须一起改（2026-10-20）。
+                float stopDist = (1f - FxGameComponent.StopOutFraction) / orderLeverage;
                 float dailyVol = FxMarket.DailyVol * sel.volatility;
                 if (stopDist < dailyVol)
                 {

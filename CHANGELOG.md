@@ -17,11 +17,17 @@
 
 - **悬浮盈亏窗**：关掉交易终端去干别的时，屏幕角落会显示当前持仓的浮动盈亏。
   可以用鼠标左键拖动，位置会记住。在设置页可关闭。
+  窗口尺寸按实际数字自动调整，不会被切掉。
 - **设置页顶部显示版本号**（形如 `0.2.2 (a1b2c3d)`）——
   报错时附上这一行就知道装的是哪一版。
 
 **修复**
 
+- **K 线的爆仓线画错了位置**（约在实际位置的 3/7 处）。
+  它用的距离公式把「到强平线还剩多少余量」算成了强平线本身 ——
+  在旧值 50% 时两者恰好相等，所以一直没暴露；改成 30% 后
+  表现为「价格早就越过爆仓线了，却还没被强平」。实盘判据一直是对的，错的只是显示。
+  下单区那句「强平距离约 X%」也是同一个错误，一并修正。
 - **殖民地交易盈亏的心情不再影响囚犯、访客与任务寄宿者。**
   之前只看「在哪张地图」，把同地图所有有人形思维的角色都算进去了。
   现在只作用于**自由殖民者**（奴隶不算）。
@@ -47,11 +53,17 @@
 
 - **Floating P/L window**: shows the floating P/L of your open positions in a screen corner
   while the terminal is closed. Drag with the left mouse button; the position is remembered.
-  Can be turned off in the settings.
+  Can be turned off in the settings. The box sizes itself to the number, so nothing is clipped.
 - **Version string in the settings page** (e.g. `0.2.2 (a1b2c3d)`) — include it in bug reports.
 
 **Fixed**
 
+- **The stop-out line on the chart was drawn in the wrong place** (about 3/7 of the way to the
+  real one). Its distance formula used the stop-out fraction itself instead of the room left
+  before liquidation — identical at the old 50%, so it stayed hidden until the threshold moved
+  to 30%. Symptom: the price sails past the dashed line without being liquidated. The actual
+  liquidation check was always correct; only the display was wrong. The "stop-out distance
+  ~X%" line in the order panel had the same bug and is fixed too.
 - **Colony P/L mood no longer affects prisoners, guests or quest lodgers.** It used to check
   only "which map", catching every humanlike thinker there. Now free colonists only
   (slaves excluded).

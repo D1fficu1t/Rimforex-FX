@@ -435,7 +435,11 @@ def main():
 
     # 爆仓线必须用【含追加保证金】的 pos.margin —— 强平判据用的就是它。
     # 若改用 (margin - addedMargin)，补过保证金的仓位会画出一条偏近的假线。
-    if re.search(r"StopOutFraction \* newest\.margin", win):
+    #
+    # 2026-10-20：公式前面加了 (1 − StopOutFraction)，原来的字面匹配失效了。
+    # 这里放宽成"以 newest.margin 结尾、且没有出现 margin − addedMargin"，
+    # 仍然能抓住"误用扣掉追加保证金"那种改法。
+    if re.search(r"\*\s*newest\.margin\b", win) and "newest.margin - newest.addedMargin" not in win:
         print("  OK 爆仓线用含追加的 margin（与强平判据同口径）")
     else:
         fail += 1
@@ -1009,6 +1013,27 @@ def main():
     else:
         fail += 1
         print("  !! 找不到 MaxSafeLeverageFor 的约束 2 公式")
+
+    # ---- 5d. 所有"到强平线还有多远"的地方都必须用 (1 − StopOut) ----------
+    # 这一族公式在 StopOutFraction = 0.5 时两种写法数值相等，错误被掩盖了很久。
+    # 改成 0.3 后必须全部同步，否则会出现很诡异的现象：
+    #   · MaxSafeLeverageFor 写错 → 高波动品种 100x 被静默降档
+    #   · K 线爆仓线写错          → 线画在实际位置的 3/7 处，
+    #                               价格早越过线了却还没被强平（作者实测截图）
+    #   · 下单区"强平距离"写错    → 展示的百分比是真实值的 43%
+    win_nc_inv = re.sub(r"//[^\n]*", "", win)
+    bad_patterns = [
+        r"StopOutFraction\s*\*\s*newest\.margin",        # K 线爆仓线距离
+        r"StopOutFraction\s*/\s*orderLeverage",            # 下单区强平距离
+    ]
+    hit = [pat for pat in bad_patterns if re.search(pat, win_nc_inv)]
+    if hit:
+        fail += 1
+        print("  !! 爆仓线距离仍在用 StopOutFraction 当余量 —— 应为 (1 − StopOutFraction)")
+        for pat in hit:
+            print("       命中: %s" % pat)
+    else:
+        print("  OK 爆仓线距离统一用 (1 − StopOutFraction)（K线 / 下单区 / 最大杠杆）")
 
     # ---- 5c. 心情必须只作用于自由殖民者（2026-10-20）-------------------
     # 账户按【地图】索引，不判身份的话囚犯、访客、任务寄宿者都会吃到
