@@ -1046,6 +1046,27 @@ def main():
         fail += 1
         print("  !! ThoughtWorker 没有按 IsFreeColonist 过滤 —— 囚犯和访客会共担殖民地盈亏")
 
+    # ---- 6. 派系货币生成必须排除临时派系（2026-10-20）------------------
+    # 原版 AllFactionsListForReading 不过滤，任务系统会往里塞 temporary 派系
+    # （boss 团、圣物朝圣者、被黑终端……），任务一结束就被原版删掉。
+    # 我们每天结算都跑一次 EnsureAllFactionCurrencies，漏判的后果是：
+    #   · 任何一次任务都可能让它多出一种货币
+    #   · 派系被删后，那一行货币永远留着
+    # 两个坑：判的是 def.hidden（应为实例属性 Hidden），以及根本没判 temporary。
+    m = re.search(r"public void EnsureAllFactionCurrencies\(\).*?\n        \}", core_nc, re.S)
+    if not m:
+        fail += 1
+        print("  !! 找不到 EnsureAllFactionCurrencies")
+    else:
+        body = m.group(0)
+        if "f.temporary" in body and "f.Hidden" in body:
+            print("  OK 派系货币生成排除了临时派系（f.Hidden + f.temporary）")
+        else:
+            fail += 1
+            print("  !! 派系货币生成未排除临时派系 —— 任务生成的临时派系会变成货币")
+            if "f.def.hidden" in body:
+                print("       仍在使用 f.def.hidden（应为实例属性 f.Hidden）")
+
     print()
     print("结果:", "全部通过" if fail == 0 else "%d 项失败" % fail)
     return 1 if fail else 0

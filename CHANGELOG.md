@@ -18,6 +18,8 @@
 
 **修复**
 
+- **做任务时生成的临时派系不再出现在货币列表里。** 之前 boss 团、朝圣者之类的临时派系
+  会多出几种"没有实际派系"的货币，而且任务结束后也一直留着。
 - **K 线的爆仓线画得比实际近得多**，会出现"价格越过线却没被强平"。
   现在线与真实强平点一致。
 - **殖民地交易盈亏的心情不再影响囚犯、访客与任务寄宿者。**
@@ -40,6 +42,9 @@
 
 **Fixed**
 
+- **Temporary factions created by quests no longer appear in the market list.** Boss groups,
+  pilgrims and similar temporary factions used to add "currencies" for factions that no longer
+  existed, and those entries stayed forever.
 - **The stop-out line on the chart was drawn far closer than the real one**, so prices could
   sail past it without triggering liquidation. It now matches the actual stop-out point.
 - **Colony P/L mood no longer affects prisoners, guests or quest lodgers.**

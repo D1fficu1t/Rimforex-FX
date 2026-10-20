@@ -1333,6 +1333,22 @@ namespace RimForex
             anchors[faction.loadID] = currency.rate;
         }
 
+        /// <summary>
+        /// 彻底删除某个货币的全部状态（货币本体、锚点、K 线序列）。
+        ///
+        /// 只用于**孤儿清理**：该派系已经从世界上消失了，留着这个货币没有意义，
+        /// 而且会一直占着行情表的一行。
+        ///
+        /// 调用方必须先确认"没有持仓引用它" —— 持仓里存的是 currencyFactionLoadID，
+        /// 货币一旦被删，那个仓位就再也找不到自己的行情了。
+        /// </summary>
+        public bool RemoveCurrency(int factionLoadID)
+        {
+            anchors.Remove(factionLoadID);
+            series.Remove(factionLoadID);
+            return currencies.Remove(factionLoadID);
+        }
+
         public FxCurrency Get(int factionLoadID)
         {
             FxCurrency c;
@@ -2729,18 +2745,114 @@ namespace RimForex
         }
 
         /// <summary>确保所有已知派系的货币都已生成。惰性调用，避免开局卡顿。</summary>
+        /// <summary>
+        /// 让行情里"每个真实派系都有一种货币"，并清掉派系已经消失的残留货币。
+        ///
+        /// ── 2026-10-20：临时派系曾经会漏进来（作者发现）──
+        ///
+        /// 原实现只跳过了 `f.def.isPlayer` 和 **`f.def.hidden`**，有两个漏洞：
+        ///
+        ///   1. 判的是【def 的】hidden，不是【实例的】hidden。
+        ///      原版 `Faction.Hidden => hidden ?? def.hidden` —— 实例字段优先。
+        ///      任务系统造临时派系时走的是 `NewGeneratedFactionWithRelations(..., hidden: true)`，
+        ///      也就是把 **实例** hidden 设成 true，而 def（如 TribeCivil）本身并不 hidden。
+        ///      于是 `def.hidden` 为 false，这个临时派系就被当成了正常派系。
+        ///
+        ///   2. 完全没有判 `f.temporary`。
+        ///      boss 团、圣物朝圣者、被黑终端这些都是 `faction.temporary = true`，
+        ///      任务结束后原版会把它们从派系表里删掉。但我们生成的货币**永远不会被删**，
+        ///      于是行情表里留下一行"所属派系已经不存在的货币"。
+        ///
+        /// 而且本方法**每天结算都会跑一次**，所以这不是"中途加 mod"才有的问题 ——
+        /// 任何一次任务生成临时派系，第二天的结算就会给它造一种货币。
+        ///
+        /// 现在：判 `f.Hidden`（实例优先）与 `f.temporary`，并且顺手清理孤儿货币。
+        /// </summary>
         public void EnsureAllFactionCurrencies()
         {
+            if (Find.FactionManager == null || market == null) return;
             var all = Find.FactionManager.AllFactionsListForReading;
+
+            // ── ① 补：只给真实派系建货币 ──
             for (int i = 0; i < all.Count; i++)
             {
-                var f = all[i];
+                Faction f = all[i];
                 if (f == null || f.def == null) continue;
                 if (f.def.isPlayer) continue;
-                if (f.def.hidden) continue;
+
+                // f.Hidden = 实例 hidden ?? def.hidden，比只看 def.hidden 更准
+                if (f.Hidden) continue;
+
+                // 任务临时派系：结论上不是真实交易对手，任务结束就会被原版删除
+                if (f.temporary) continue;
+
                 market.EnsureCurrency(f);
             }
+
+            // ── ② 清：删掉派系已经消失的残留货币 ──
+            PruneOrphanCurrencies(all);
         }
+
+        /// <summary>
+        /// 清理孤儿货币：所属派系已不在派系表里、且没有任何持仓引用它。
+        ///
+        /// 为什么要求"无持仓"：持仓只存 currencyFactionLoadID，
+        /// 货币被删之后那个仓位就永远找不到自己的行情，会被静默当成 0 盈亏。
+        /// 宁可留着一行幽灵，也不能让玩家的仓位凭空消失。
+        ///
+        /// 已平仓的交易记录不受影响 —— <see cref="FxTradeRecord"/> 里存的是
+        /// currencyName / pairLabel 字符串，不是引用。
+        /// </summary>
+        private void PruneOrphanCurrencies(List<Faction> all)
+        {
+            if (market.currencies.Count == 0) return;
+
+            // 派系表里出现过的 loadID（含隐藏与临时）—— 只要还在，就不算孤儿
+            pruneAlive.Clear();
+            for (int i = 0; i < all.Count; i++)
+            {
+                Faction f = all[i];
+                if (f != null) pruneAlive.Add(f.loadID);
+            }
+
+            pruneKeys.Clear();
+            foreach (var kv in market.currencies)
+            {
+                if (pruneAlive.Contains(kv.Key)) continue;
+                if (HasAnyPosition(kv.Key)) continue;
+                pruneKeys.Add(kv.Key);
+            }
+
+            for (int i = 0; i < pruneKeys.Count; i++)
+            {
+                FxCurrency c = market.Get(pruneKeys[i]);
+                string name = c != null ? c.name : pruneKeys[i].ToString();
+                if (market.RemoveCurrency(pruneKeys[i]))
+                {
+                    Log.Message("[RimForex] 清理残留货币「" + name
+                        + "」—— 所属派系已不存在。");
+                }
+            }
+        }
+
+        /// <summary>是否还有任何账户持有该货币的仓位。</summary>
+        private bool HasAnyPosition(int factionLoadID)
+        {
+            foreach (var kv in accounts)
+            {
+                List<FxPosition> list = kv.Value != null ? kv.Value.positions : null;
+                if (list == null) continue;
+                for (int i = 0; i < list.Count; i++)
+                {
+                    if (list[i] != null && list[i].currencyFactionLoadID == factionLoadID) return true;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>清理用的临时容器（避免每天结算都分配新集合）。</summary>
+        private readonly HashSet<int> pruneAlive = new HashSet<int>();
+        private readonly List<int> pruneKeys = new List<int>();
 
         // ══════════════════════════════════════════════════════════════════
         //  测试专用板块（模组设置里两个按钮）
