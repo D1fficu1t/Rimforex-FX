@@ -311,8 +311,11 @@ namespace RimForex
         /// 这样顶部「浮动盈亏」与持仓行看起来是同一种绿/红。
         ///
         /// 阈值 ±1：0 附近不着色（刚开仓时盈亏几乎是 0，涂成绿色会误导）。
+        ///
+        /// public：悬浮盈亏窗（<see cref="FxHud"/>）也用它，
+        /// 这样默认色和终端里的色永远一致，不会各调各的。
         /// </summary>
-        private static Color PnlGuiColor(float value)
+        public static Color PnlGuiColor(float value)
         {
             if (value > 1f) return new Color(0.45f, 0.85f, 0.50f);
             if (value < -1f) return new Color(0.95f, 0.45f, 0.40f);
@@ -376,14 +379,29 @@ namespace RimForex
                 Widgets.Label(new Rect(row.x + 346f, row.y + 5f, 38f, 20f), "x" + cur.volatility.ToString("0.0"));
                 Widgets.Label(new Rect(row.x + 386f, row.y + 5f, 72f, 20f), PositionSummaryFor(cur.factionLoadID));
 
+                // 单位数不再显示在格子里（会挤掉盈亏），改放悬停提示。
+                float sumUnits, sumPnl;
+                PositionTotalsFor(cur.factionLoadID, out sumUnits, out sumPnl);
+                if (Mathf.Abs(sumUnits) >= 0.5f)
+                {
+                    TooltipHandler.TipRegion(
+                        new Rect(row.x + 386f, row.y, 72f, MarketRowH),
+                        "RimForex_TipPosCell".Translate(
+                            sumUnits.ToString("+0;-0;0"), sumPnl.ToString("F0")));
+                }
+
                 y += MarketRowH;
             }
             Widgets.EndScrollView();
         }
 
-        private string PositionSummaryFor(int factionLoadID)
+        /// <summary>
+        /// 该货币的持仓汇总：单位数（带方向）与浮动盈亏。
+        /// </summary>
+        private void PositionTotalsFor(int factionLoadID, out float units, out float pnl)
         {
-            float units = 0f, pnl = 0f;
+            units = 0f;
+            pnl = 0f;
             for (int i = 0; i < account.positions.Count; i++)
             {
                 FxPosition p = account.positions[i];
@@ -391,8 +409,25 @@ namespace RimForex
                 units += p.isLong ? p.units : -p.units;
                 pnl += p.Pnl;
             }
-            if (Mathf.Abs(units) < 0.5f && Mathf.Abs(pnl) < 0.5f) return "-";
-            return units.ToString("+0;-0;0") + " / " + ColorizeBySign(pnl.ToString("F0"), pnl);
+        }
+
+        /// <summary>
+        /// 货币列表里"盈亏"那一格的内容。
+        ///
+        /// ── 只显示盈亏，不再显示单位数（2026-10-20）──
+        /// 原来是 <c>单位 / 盈亏</c>，例如 <c>+258 / -33</c>。
+        /// 但单位数能到四位数（实测 -4551），72px 的格子根本放不下，
+        /// 于是**把后面的盈亏挤出了格子** —— 玩家只看到 "-4551 /"，
+        /// 最该看的那个数字反而消失了。
+        ///
+        /// 盈亏才是这一列的用途。单位数移进了这一格的悬停提示。
+        /// </summary>
+        private string PositionSummaryFor(int factionLoadID)
+        {
+            float units, pnl;
+            PositionTotalsFor(factionLoadID, out units, out pnl);
+            if (Mathf.Abs(pnl) < 0.5f) return "-";
+            return ColorizeBySign(pnl.ToString("+0;-0;0"), pnl);
         }
 
         // ============================ K 线 ============================
@@ -1611,15 +1646,18 @@ namespace RimForex
                 // 为什么还保留"成本"这一列：光有净盈亏会让玩家误判 ——
                 // 锁定期一过数字就跳到 -点差×数量并一直挂着，看起来像"行情永远在跟自己作对"。
                 // 分开显示后：净盈亏 = 纯行情盈亏 - 入场成本。
-                // ── 盈亏数字改用 GUI.color 分段绘制，不再靠富文本 ──
-                // 之前这里用 ColorizeBySign（拼 <color=...> 标签），实测在持仓格里
-                // 标签不生效、数字显示为白色，玩家根本看不出盈还是亏。
-                // 而顶部「浮动盈亏」是正常绿/红 —— 说明问题出在富文本这条路径上
-                //（RimWorld 的 Colorize 产出 8 位 RGBA，而 Unity 富文本只认 6 位，解析失败即忽略标签）。
+                // ── 盈亏数字用 GUI.color 分段绘制 ──
+                // 之前这里用 ColorizeBySign（拼 <color=...> 标签），当时观察到持仓格里
+                // 标签不生效、数字显示为白色。**但那个归因是错的**（2026-10-20 修正）：
+                // 作者实测确认富文本着色在货币列表里工作正常（涨跌幅是彩色的），
+                // 所以当初持仓格的问题另有原因（更可能是文本被截断或标签被拆开），
+                // 不是"8 位 RGBA 不被 Unity 接受"。
                 //
-                // GUI.color 是 IMGUI 原生着色，不经过富文本解析，必定生效。
-                // 代价是整格会一起上色，所以把数字与后缀拆成两次绘制：
-                // 数字按盈亏染色，后缀保持灰色，视觉上仍然分得清。
+                // 保留 GUI.color 写法的理由不是"富文本不行"，而是：
+                // 这一行要把【数字】和【灰色后缀】分成两种颜色画，
+                // 用 GUI.color 逐段绘制比在字符串里塞标签更直观、也不依赖标签解析。
+                //
+                // ⚠️ 别照着"富文本不可用"这个旧结论去改别处的代码 —— 它可以正常用。
                 string pnlNum = p.Pnl.ToString("+0;-0;0");
                 string pnlTag = " " + "RimForex_PnlTag".Translate();
                 string costText = p.SpreadCost.ToString("F0") + " " + "RimForex_CostTag".Translate();
@@ -1948,7 +1986,14 @@ namespace RimForex
             // 提取是"玩家把钱搬出去"，权益会随之下降，但那不是亏损。
             // 必须记入外部现金流，否则每日结算会报出一笔等于提取额的假亏损
             // （实测：真实 +56，报出 −1000）。详见 FxAccount.cashFlowSinceSettle。
-            float taken = spawned * silverDef.BaseMarketValue;
+            //
+            // ── 这里【不能】乘以 Silver.BaseMarketValue（2026-10-20 改）──
+            // 白银是**记账单位本身**，不是有价格的商品：原版 Core 里
+            // <MarketValue>1</MarketValue> 是定义，整场游戏的经济都以白银计价。
+            // 乘一个恒为 1 的系数，除了暗示"白银价格会变"之外没有任何作用，
+            // 反而和"存入按数量 1:1 计"（见 DoDeposit）拼出一个假的不对称。
+            // 直接用数量，让"1 白银 = 1 余额单位"在代码里显式成立。
+            float taken = spawned;
             account.balance -= taken;
             account.cashFlowSinceSettle -= taken;
             // 不钳到 0：余额本来就可能因为穿仓而为负，这里只是继续扣减。

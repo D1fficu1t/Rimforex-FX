@@ -32,6 +32,27 @@ namespace RimForex
         /// <summary>账户区：时间诊断行（排查时间问题用）。</summary>
         public bool showTimeDebug = false;
 
+        // ================= 悬浮盈亏窗（HUD） =================
+
+        /// <summary>
+        /// 是否显示悬浮盈亏窗。默认开。
+        ///
+        /// 用途：关掉交易终端去干别的时，仍能在屏幕角落看到当前持仓的浮动盈亏。
+        /// 交易终端本身自带"浮动盈亏"，但它只在窗口打开时可见 ——
+        /// 而玩家真正需要盯盘的时刻，恰恰是在基地里忙别的事的时候。
+        /// </summary>
+        public bool showFloatingPnl = true;
+
+        /// <summary>
+        /// 悬浮窗左上角位置（屏幕坐标）。可拖动，位置记在这里。
+        ///
+        /// 用 -1 表示"还没被拖过"，此时用默认位置（右上角）。
+        /// 之所以不做成固定位置：这类 HUD 元素必然会和别的 mod 的 HUD 撞，
+        /// 而玩家各自装的 mod 又完全不同 —— 只有可拖动才能一次解决。
+        /// </summary>
+        public float floatPnlX = -1f;
+        public float floatPnlY = -1f;
+
         // ================= 玩法参数（会改变行情与经济） =================
 
         /// <summary>
@@ -111,6 +132,11 @@ namespace RimForex
             Scribe_Values.Look(ref showSettlementCountdown, "showSettlementCountdown", true);
             Scribe_Values.Look(ref showTimeDebug, "showTimeDebug", false);
 
+            // 悬浮盈亏窗（2026-10-20）
+            Scribe_Values.Look(ref showFloatingPnl, "showFloatingPnl", true);
+            Scribe_Values.Look(ref floatPnlX, "floatPnlX", -1f);
+            Scribe_Values.Look(ref floatPnlY, "floatPnlY", -1f);
+
             Scribe_Values.Look(ref secondsPerQuote, "secondsPerQuote", 3f);
             Scribe_Values.Look(ref quotesPerCandle, "quotesPerCandle", 6);
             Scribe_Values.Look(ref gapIntensity, "gapIntensity", 0.5f);
@@ -179,6 +205,10 @@ namespace RimForex
             showTimeSpeedHint = true;
             showSettlementCountdown = true;
             showTimeDebug = false;
+
+            showFloatingPnl = true;
+            floatPnlX = -1f;
+            floatPnlY = -1f;
 
             secondsPerQuote = 3f;
             quotesPerCandle = 6;
@@ -273,6 +303,16 @@ namespace RimForex
         /// <summary>设置页正文。拆出来是为了能在同一帧里重画一次（见调用处的说明）。</summary>
         private void DrawSettingsBody(Listing_Standard l)
         {
+            // ---- 版本号（放最上面，玩家截图就能带上）----
+            // 订阅者报 bug 时最常见的一轮往返就是"你装的是哪一版"。
+            // 显示在这里、不用滚动就能看到，能省掉那一轮。
+            // 完整值（含 40 位提交哈希）仍然写在 Player.log 的加载行里。
+            Text.Font = GameFont.Tiny;
+            GUI.color = Color.gray;
+            l.Label("RimForex_SettingsVersion".Translate(RimForexBootstrap.VersionLabel));
+            GUI.color = Color.white;
+            Text.Font = GameFont.Small;
+
             // ---- 测试专用（放最上面，因为它就是要频繁按的）----
             // 这两个按钮覆盖的是"必须验证但正常游玩验不到"的路径：
             // 心情叠加/过期要跨游戏日，穿仓要等约 1000 游戏日一次。
@@ -489,6 +529,10 @@ namespace RimForex
                 "RimForex_Set_CostBreakdownTip".Translate());
             l.CheckboxLabeled("RimForex_Set_TimeSpeed".Translate(), ref Settings.showTimeSpeedHint,
                 "RimForex_Set_TimeSpeedTip".Translate());
+
+            // 悬浮盈亏窗（2026-10-20）：关掉终端时也能看到浮动盈亏
+            l.CheckboxLabeled("RimForex_Set_FloatingPnl".Translate(), ref Settings.showFloatingPnl,
+                "RimForex_Set_FloatingPnlTip".Translate());
 
             l.Gap(10f);
             if (l.ButtonText("RimForex_Set_Reset".Translate()))

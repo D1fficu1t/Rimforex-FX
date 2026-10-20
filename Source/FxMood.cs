@@ -281,6 +281,9 @@ namespace RimForex
             get
             {
                 if (pawn == null || pawn.Map == null) return null;
+                // 只对殖民地成员生效。理由见 ThoughtWorker 里的说明 ——
+                // 账户是按地图索引的，不判身份的话囚犯与访客也会中招。
+                if (!pawn.IsFreeColonist) return null;
                 var fx = Find.World.GetComponent<FxGameComponent>();
                 return fx != null ? fx.AccountFor(pawn.Map) : null;
             }
@@ -310,6 +313,22 @@ namespace RimForex
         protected override ThoughtState CurrentStateInternal(Pawn p)
         {
             if (p == null || p.Map == null) return ThoughtState.Inactive;
+
+            // ── 必须先按身份过滤（2026-10-20 修）──
+            //
+            // 账户是按【地图】索引的（AccountFor(Map)），而这里原来只判了 p.Map != null
+            // 就往下走 —— 于是**地图上任何有人形 ThoughtHandler 的角色**都会吃到
+            // 殖民地交易盈亏的心情：囚犯、访客、商队成员、任务寄宿者全都中招。
+            // 作者实测发现：殖民地亏钱，囚犯心情跟着掉。
+            //
+            // 用 IsFreeColonist 而不是 IsColonist：
+            //   IsColonist    = 玩家派系 + 人形 + (!IsSlave || guest.SlaveIsSecure)
+            //   IsFreeColonist= IsColonist && HostFaction == null
+            // 即：**奴隶不算**（作者决定）。奴隶是财产，不共担殖民地的盈亏。
+            //
+            // 注意不能用更宽松的写法（例如 p.Faction == Faction.OfPlayer），
+            // 那会把"归顺的奴隶"也放进来。
+            if (!p.IsFreeColonist) return ThoughtState.Inactive;
 
             var fx = Find.World.GetComponent<FxGameComponent>();
             if (fx == null) return ThoughtState.Inactive;

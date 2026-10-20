@@ -321,17 +321,26 @@ namespace RimForex
         {
             // 用派生种子，避免消耗全局 Rand 状态（否则会受 UI 刷新时机影响）
             int derived = loadID * 31 + (int)tier * 7919 + 104729;
-            Rand.PushState(derived);
             float v;
-            switch (tier)
+            // try/finally 不是洁癖：原版 Rand 的种子栈是**全局**的，
+            // Push 之后若中途抛异常，Pop 就永远不会执行，
+            // 之后所有用到 Rand 的地方（包括别的 mod）都会拿到错乱的序列。
+            Rand.PushState(derived);
+            try
             {
-                case FxVolTier.Raider: v = Rand.Range(1.15f, 1.25f); break;
-                case FxVolTier.Tribal: v = Rand.Range(0.95f, 1.10f); break;
-                case FxVolTier.Spacer: v = Rand.Range(0.30f, 0.40f); break;
-                case FxVolTier.Medieval: v = Rand.Range(0.65f, 0.85f); break;
-                default: v = Rand.Range(0.45f, 0.60f); break;
+                switch (tier)
+                {
+                    case FxVolTier.Raider: v = Rand.Range(1.15f, 1.25f); break;
+                    case FxVolTier.Tribal: v = Rand.Range(0.95f, 1.10f); break;
+                    case FxVolTier.Spacer: v = Rand.Range(0.30f, 0.40f); break;
+                    case FxVolTier.Medieval: v = Rand.Range(0.65f, 0.85f); break;
+                    default: v = Rand.Range(0.45f, 0.60f); break;
+                }
             }
-            Rand.PopState();
+            finally
+            {
+                Rand.PopState();
+            }
             return v;
         }
 
@@ -773,10 +782,6 @@ namespace RimForex
         }
 
         /// <summary>
-        /// 按<b>档位</b>记一笔。爆仓走这里 —— 它的盈亏金额可能落进任意亏损档，
-        /// 但玩家该看到的是"爆仓"，不是"亏了若干"。
-        /// </summary>
-        /// <summary>
         /// 会被本档挤掉的对立档。
         ///
         /// 穿仓与爆仓是同一件事的两个严重程度（穿仓 = 保证金亏光之外还倒欠），
@@ -789,6 +794,14 @@ namespace RimForex
             return tier == FxMoodSystem.TierBlowUp ? FxMoodSystem.TierMarginCall : -1;
         }
 
+        /// <summary>
+        /// 按<b>档位</b>记一笔。爆仓走这里 —— 它的盈亏金额可能落进任意亏损档，
+        /// 但玩家该看到的是"爆仓"，不是"亏了若干"。
+        ///
+        /// （这段文档原来悬在 <see cref="SupersededBy"/> 上方，成了孤儿注释：
+        ///  两段 &lt;summary&gt; 连着写、中间没有方法体，于是 RecordMoodTier
+        ///  一直没有文档，而 SupersededBy 头上顶着两段。2026-10-20 归位。）
+        /// </summary>
         public void RecordMoodTier(int tier)
         {
             if (tier < 0) return;
@@ -1192,7 +1205,7 @@ namespace RimForex
         ///
         /// 旧参数 `Coef=0.0003, Floor=0.003` 让点差落在 0.31%~0.34%，
         /// 而且被地板主导，几乎不随品种变化。问题出在：
-        ///     回本需移动 / 强平距离 = 点差 / StopOutFraction = 点差 / 0.5
+        ///     回本需移动 / 强平距离 = 点差 / (1 − StopOutFraction)
         /// 这个比值<b>与杠杆无关</b>，所以 100x 下必须走完 63% 的强平距离才回本 ——
         /// 风险预算几乎全被交易成本吃掉，手感极差。
         ///
@@ -2212,19 +2225,27 @@ namespace RimForex
             //   - 同一存档内稳定（只要不重掷）
             //   - 换存档 / 点"重掷"后全部换新
             int seed = NameSeed ^ (faction.loadID * 7919 + 104729);
+
+            string name, symbol;
+            float rate;
+            // try/finally：原版 Rand 种子栈是全局的，抛异常后不 Pop 会污染后续所有随机。
             Rand.PushState(seed);
+            try
+            {
+                FxVolTier tier = FxCurrency.TierFor(faction.def);
+                TierStyle style = Pack.For(tier);
 
-            FxVolTier tier = FxCurrency.TierFor(faction.def);
-            TierStyle style = Pack.For(tier);
+                string factionName = faction.Name.NullOrEmpty() ? "" : faction.Name.Trim();
+                name = Compose(style, factionName);
 
-            string factionName = faction.Name.NullOrEmpty() ? "" : faction.Name.Trim();
-            string name = Compose(style, factionName);
+                symbol = MakeSymbol(name, faction.loadID);
 
-            string symbol = MakeSymbol(name, faction.loadID);
-
-            float rate = Rand.Range(style.RateMin, style.RateMax);
-
-            Rand.PopState();
+                rate = Rand.Range(style.RateMin, style.RateMax);
+            }
+            finally
+            {
+                Rand.PopState();
+            }
 
             return Build(faction, name, symbol, rate);
         }
@@ -2316,14 +2337,21 @@ namespace RimForex
             if (c.factionLoadID != faction.loadID) return;
 
             int seed = NameSeed ^ (faction.loadID * 7919 + 104729);
+
+            string name;
             Rand.PushState(seed);
+            try
+            {
+                FxVolTier tier = FxCurrency.TierFor(faction.def);
+                TierStyle style = Pack.For(tier);
+                string factionName = faction.Name.NullOrEmpty() ? "" : faction.Name.Trim();
 
-            FxVolTier tier = FxCurrency.TierFor(faction.def);
-            TierStyle style = Pack.For(tier);
-            string factionName = faction.Name.NullOrEmpty() ? "" : faction.Name.Trim();
-
-            string name = Compose(style, factionName);
-            Rand.PopState();
+                name = Compose(style, factionName);
+            }
+            finally
+            {
+                Rand.PopState();
+            }
 
             c.name = name;
             c.symbol = MakeSymbol(name, faction.loadID);
@@ -2411,13 +2439,19 @@ namespace RimForex
 
                 // 用真实种子体系，所以"重掷"后这里也会跟着变
                 int seed = NameSeed ^ ((i + 1000) * 7919 + (int)tier * 31);
+
+                string name, symbol;
                 Rand.PushState(seed);
-
-                TierStyle style = Pack.For(tier);
-                string name = Compose(style, fac);
-                string symbol = MakeSymbol(name, i * 7);
-
-                Rand.PopState();
+                try
+                {
+                    TierStyle style = Pack.For(tier);
+                    name = Compose(style, fac);
+                    symbol = MakeSymbol(name, i * 7);
+                }
+                finally
+                {
+                    Rand.PopState();
+                }
 
                 into.Add(TierLabel(tier).PadRight(9) + name.PadRight(20) + "[" + symbol + "]");
             }
@@ -2516,29 +2550,36 @@ namespace RimForex
         ///
         /// ── 健康度与"浮亏百分比"的换算（容易搞混，务必看清）──
         /// 健康度 = 净值 / 原始保证金，所以：
-        ///     健康度 0.70 ⇔ 浮亏 30%
-        ///     健康度 0.60 ⇔ 浮亏 40%  ← 本阈值
-        ///     健康度 0.50 ⇔ 浮亏 50%  ← 强平线
-        /// 取 0.60 是为了给强平线留出 10 个百分点的缓冲，让玩家还有机会追加保证金。
+        ///     健康度 0.45 ⇔ 浮亏 55%  ← 本阈值（2026-10-20）
+        ///     健康度 0.30 ⇔ 浮亏 70%  ← 强平线
+        /// 取 0.45 是为了给强平线留出 15 个百分点的缓冲，让玩家还有机会追加保证金。
+        ///
+        /// ── 为什么从 0.60 / 0.50 一起下调 ──
+        /// 作者反馈"强平线太高，没有节目效果"：50% 就砍太早了。
+        /// 改成 30% 后，100x 下的爆仓距离从约 4.6 根报价拉长到 7.2 根（+57%），
+        /// 仓位能活更久、波动更充分，穿仓（负余额）的概率也随之上升 ——
+        /// 这是刻意的，穿仓本身就是这个模组的卖点之一。
         ///
         /// 不变量：<c>CriticalThreshold &gt; StopOutFraction</c>，
         /// 否则强平会先发生、预警永远不触发。`Docs/audit.py` 会强制检查。
         /// </summary>
-        public const float CriticalThreshold = 0.60f;  // 浮亏 40%
+        public const float CriticalThreshold = 0.45f;  // 浮亏 55%
 
         /// <summary>
         /// 强平线（Stop-Out Level）：净值跌到"已用保证金 × 这个比例"时强制平仓，
-        /// 即浮亏 50%。
+        /// 即浮亏 70%。
         ///
-        /// 真实海外 FX 平台的强平线普遍设在保证金水平的 <b>20% ~ 50%</b>，
-        /// 而不是 0%。参照：
-        ///   - Axi      https://help.axi.com/zh-TW/axiv2--axicorp-prod/article/auEr1HqT-
-        ///   - Pepperstone   https://pepperstone.com/
-        ///   - IC Markets    https://www.icmarkets.com.au/
-        /// 取 50%（三者中最宽松的一档）：对玩家最友好，同时保留"不会归零"的真实性。
-        /// 平仓时剩余的净值会退还账户，损失的只是 50% 保证金。
+        /// 真实海外 FX 平台的强平线普遍设在保证金水平的 <b>20% ~ 50%</b>。
+        /// 2026-10-20 从 0.5 下调到 0.3（三者里最靠下限的一档）：
+        /// 玩家明确要求"别太早死，否则没节目效果"，同时 0.3 仍在真实平台的区间内。
+        /// 平仓时剩余的净值会退还账户。
+        ///
+        /// ⚠️ 改这个值【必须】同时改 <see cref="MaxSafeLeverageFor"/> 里的 byVol 公式。
+        /// 那里原本写的是 StopOutFraction / (…)，在 0.5 时恰好等于 1−StopOutFraction，
+        /// 所以错误被掩盖了很久。改成 0.3 后两者不再相等，不改公式会让
+        /// 高波动品种的最大可用杠杆从 100x 掉到 64x —— **100x 会被静默降档到 50x**。
         /// </summary>
-        public const float StopOutFraction = 0.5f;
+        public const float StopOutFraction = 0.3f;
 
         /// <summary>
         /// 点差造成的保证金冲击上限（相对保证金的比例）。
@@ -2591,12 +2632,23 @@ namespace RimForex
         ///
         ///   约束 1（开仓即死）：点差 × 杠杆 ≤ <see cref="MaxSpreadImpactOnMargin"/>
         ///                        → 杠杆 ≤ 0.35 / 点差
-        ///   约束 2（被日波动打死）：强平距离 0.5/杠杆 ≥ N × 日波动
-        ///                        → 杠杆 ≤ 0.5 / (N × 日波动)
+        ///   约束 2（被日波动打死）：强平距离 (1 − StopOut)/杠杆 ≥ N × 日波动
+        ///                        → 杠杆 ≤ (1 − StopOut) / (N × 日波动)
         ///
         /// 通常约束 2 更紧，因为高波动品种的日波动远大于点差。
         /// 这就是为什么"高波动货币只能配低杠杆"—— 它是波动率的直接后果，
         /// 不是人为限制。真实平台对新兴市场货币也是这个逻辑。
+        ///
+        /// ── 2026-10-20 修正：分子原来是 StopOutFraction，写错了 ──
+        ///
+        /// 从开仓到强平，价格还能走的**比例**是 (1 − StopOutFraction) / 杠杆，
+        /// 不是 StopOutFraction / 杠杆。举例：StopOut = 0.3 时净值要从 100% 掉到 30%，
+        /// 可亏损的比例是 **70%**，不是 30%。
+        ///
+        /// 因为旧值正好是 0.5，`0.5` 和 `1 − 0.5` 相等，这个错误被完全掩盖了。
+        /// 一旦 StopOutFraction 改成 0.3，错误分子会让 byVol 缩小：
+        ///     高波动档（vol 1.2）从 149x 掉到 64x → 100x 被**静默降档到 50x**。
+        /// 所以这两个常量必须一起改，不能只改一个。
         /// </summary>
         public static float MaxSafeLeverageFor(FxCurrency c)
         {
@@ -2606,10 +2658,10 @@ namespace RimForex
             float sr = FxMarket.SpreadRateFor(c);
             float bySpread = sr <= 0f ? 100f : MaxSpreadImpactOnMargin / sr;
 
-            // 约束 2
+            // 约束 2：可亏损比例 = 1 − 强平线
             float dailyVol = FxMarket.DailyVol * (c.volatility > 0.01f ? c.volatility : 1f);
             float byVol = dailyVol > 0.0001f
-                ? StopOutFraction / (StopOutVolCoverage * dailyVol)
+                ? (1f - StopOutFraction) / (StopOutVolCoverage * dailyVol)
                 : 100f;
 
             return System.Math.Min(bySpread, byVol);
@@ -2826,8 +2878,26 @@ namespace RimForex
                     lastStepTick += FxMarket.TicksPerStep;
                     steps++;
                 }
-                // 万一积压超过 8 步，直接对齐，避免永远追不上
-                if (now - lastStepTick >= FxMarket.TicksPerStep) lastStepTick = now;
+
+                // ── 万一积压超过 8 步：直接对齐，避免永远追不上 ──
+                //
+                // 代价是**这一帧的行情被丢弃**：那几步的跳空、波动、K 线全都没发生，
+                // 价格直接跳到当前位置。正常情况下 8 步要 ≥4.4 秒的卡顿才会触发，
+                // 但 300+ mod 的存档在加载或战斗时完全可能卡这么久。
+                //
+                // 2026-10-20：原来这里是**完全静默**的，出问题时无法与"模型抖动"区分。
+                // 现在至少留一条 Log.Warning，并把丢了多少步写清楚。
+                // 用 WarningOnce 是因为警告键固定 —— 同一类事件只刷一条，不淹没日志。
+                if (now - lastStepTick >= FxMarket.TicksPerStep)
+                {
+                    int dropped = (now - lastStepTick) / FxMarket.TicksPerStep;
+                    lastStepTick = now;
+                    Log.WarningOnce(
+                        "[RimForex] 行情积压超过单帧上限，丢弃了约 " + dropped
+                        + " 个报价步（该段 K 线与跳空不会出现）。"
+                        + "常见原因：游戏卡顿、超高倍速，或 mod 过多导致的低帧率。",
+                        0x52465801);
+                }
 
                 // 当前步内还欠多少子步
                 int doneTicks = now - lastStepTick;
@@ -3261,10 +3331,20 @@ namespace RimForex
         /// </summary>
         public override void WorldComponentOnGUI()
         {
+            if (Current.ProgramState != ProgramState.Playing) return;
+
+            // 屏幕角落的浮动盈亏窗（2026-10-20）。
+            // 放在这里而不是终端窗口里，是为了让玩家关掉终端干别的时也能看到。
+            // 它自己会处理"终端开着就隐藏"和"没持仓就不画"。
+            Map hudMap = Find.CurrentMap;
+            if (hudMap != null)
+            {
+                FxHud.DrawFloatingPnl(AccountFor(hudMap));
+            }
+
             if (pendingWarnings.Count == 0) return;
             if (Find.WindowStack == null) return;
             if (Find.WindowStack.IsOpen(typeof(Window_MarginCall))) return;
-            if (Current.ProgramState != ProgramState.Playing) return;
 
             int key = -1;
             MarginWarning picked = null;

@@ -28,7 +28,8 @@
   <RimForex_ColRate>Rate</RimForex_ColRate>
   <RimForex_ColChange>Day %</RimForex_ColChange>
   <RimForex_ColVol>Vol</RimForex_ColVol>
-  <RimForex_ColPosition>Pos / P/L</RimForex_ColPosition>
+  <RimForex_ColPosition>P/L</RimForex_ColPosition>
+  <RimForex_TipPosCell>{0} units open\nfloating P/L {1} silver</RimForex_TipPosCell>
 
   <RimForex_ChartTitle>{0}</RimForex_ChartTitle>
   <RimForex_ChartSpeedHint>One candle every {0} quotes ({1} game h each, about {2}s)</RimForex_ChartSpeedHint>
@@ -153,7 +154,7 @@ Floating P/L {2} silver</RimForex_PosLineTip>
   <RimForex_Set_ChartLegendTip>Show a small line under the chart explaining why the entry line is not on the last-price line (the fill price includes half a spread). Turn off once you know it.</RimForex_Set_ChartLegendTip>
   <RimForex_ChartStopOutOff>stop-out {0} ({1}% off-chart)</RimForex_ChartStopOutOff>
   <RimForex_ChartStopOut>stop-out {0}</RimForex_ChartStopOut>
-  <RimForex_ChartStopOutTip>Force-close line for your {0} position, in mid price.\n\nYou filled at {1}; if price reaches {2} equity falls to half the margin and the position is liquidated.\nStop-out distance is about {3}% (accounting for any added margin).</RimForex_ChartStopOutTip>
+  <RimForex_ChartStopOutTip>Force-close line for your {0} position, in mid price.\n\nYou filled at {1}; if price reaches {2} equity falls to 30% of the margin and the position is liquidated.\nStop-out distance is about {3}% (accounting for any added margin).</RimForex_ChartStopOutTip>
   <RimForex_Set_StopOutLine>Stop-out line</RimForex_Set_StopOutLine>
   <RimForex_Set_StopOutLineTip>Draws the red dashed "stop-out" line on the chart, marking the price at which your current position would be force-closed.</RimForex_Set_StopOutLineTip>
   <RimForex_Set_BreakevenLine>Break-even line</RimForex_Set_BreakevenLine>
@@ -165,6 +166,9 @@ Floating P/L {2} silver</RimForex_PosLineTip>
   <RimForex_TimeDebug>TicksAbs {0} · hour {1} · {2} ticks to settlement ({3} h)</RimForex_TimeDebug>
   <RimForex_Set_CostBreakdown>Order cost breakdown</RimForex_Set_CostBreakdown>
   <RimForex_Set_CostBreakdownTip>When off, the per-line cost details collapse into one compact line with a tooltip.</RimForex_Set_CostBreakdownTip>
+  <RimForex_HudFloat>floating P/L</RimForex_HudFloat>
+  <RimForex_Set_FloatingPnl>Show floating P/L window</RimForex_Set_FloatingPnl>
+  <RimForex_Set_FloatingPnlTip>Shows the floating P/L of your open positions in a screen corner while the terminal is closed. Drag it with the left mouse button; the position is remembered.</RimForex_Set_FloatingPnlTip>
   <RimForex_Set_TimeSpeed>Game speed hint</RimForex_Set_TimeSpeed>
   <RimForex_Set_TimeSpeedTip>Shows the note next to the embedded time controls at the bottom of the terminal.</RimForex_Set_TimeSpeedTip>
   <RimForex_Set_MoodHeader>Close-trade mood strength</RimForex_Set_MoodHeader>
@@ -175,6 +179,7 @@ Floating P/L {2} silver</RimForex_PosLineTip>
   <RimForex_Set_MarginCallMoodScale>Margin-call mood multiplier {0}</RimForex_Set_MarginCallMoodScale>
   <RimForex_Set_MarginCallMoodScaleHint>Base -20, up to -60 when stacked three times. Margin calls are their own tier and ignore the two multipliers above.
 A blow-up (margin gone and balance pushed negative) is a heavier tier at base -28. It never stacks, and this multiplier controls it too.</RimForex_Set_MarginCallMoodScaleHint>
+  <RimForex_SettingsVersion>Rimforex {0}  ·  include this line in bug reports</RimForex_SettingsVersion>
   <RimForex_SettingsTest>Testing</RimForex_SettingsTest>
   <RimForex_SettingsTestDesc>These two buttons exercise paths that normal play rarely reaches. Not meant for everyday use.</RimForex_SettingsTestDesc>
   <RimForex_TestMood>1. Add a "small loss" mood</RimForex_TestMood>

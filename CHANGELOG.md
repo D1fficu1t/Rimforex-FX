@@ -1,5 +1,68 @@
 # 更新记录 / Changelog
 
+## 0.2.2
+
+### 中文
+
+**平衡调整**
+
+- **强平线从「剩 50% 保证金」下调到「剩 30%」。** 之前仓位死得太早、没节目效果。
+  预警线同步从 60% 调到 45%。100x 下爆仓距离从约 4.6 根报价拉长到 7.2 根（+57%），
+  代价是穿仓（负余额）概率上升 —— 这是刻意的。
+- **修复高波动品种的 100x 会被静默降档成 50x。**
+  最大安全杠杆的公式把「到强平线还剩多少余量」算成了强平线本身，
+  在旧值 50% 时两者恰好相等，所以一直没暴露。改强平线必须先修这个公式。
+
+**新增**
+
+- **悬浮盈亏窗**：关掉交易终端去干别的时，屏幕角落会显示当前持仓的浮动盈亏。
+  可以用鼠标左键拖动，位置会记住。在设置页可关闭。
+- **设置页顶部显示版本号**（形如 `0.2.2 (a1b2c3d)`）——
+  报错时附上这一行就知道装的是哪一版。
+
+**修复**
+
+- **殖民地交易盈亏的心情不再影响囚犯、访客与任务寄宿者。**
+  之前只看「在哪张地图」，把同地图所有有人形思维的角色都算进去了。
+  现在只作用于**自由殖民者**（奴隶不算）。
+- **货币列表的「持仓/盈亏」列改为只显示盈亏。**
+  持仓单位数能到四位数，会把后面的盈亏挤出格子；单位数移到了悬停提示里。
+- **行情积压丢弃时不再完全静默** —— 现在会在日志里留下警告，说明丢了多少步。
+- 提取白银不再乘以白银市价（白银本身就是记账单位，那是个恒为 1 的假换算）。
+- 随机数种子的 Push/Pop 全部补上 try/finally，避免异常后污染全局随机序列。
+
+### English
+
+**Balance**
+
+- **Stop-out moved from "50% of margin left" down to 30%.** Positions died too early to be
+  interesting. The margin-call warning moved from 60% to 45%. At 100x the distance to
+  liquidation goes from ~4.6 quotes to 7.2 (+57%); a negative balance becomes more likely,
+  which is intended.
+- **Fixed high-volatility currencies being silently capped to 50x.**
+  The max-safe-leverage formula used the stop-out fraction itself as the "room left before
+  liquidation". At the old value of 50% the two happened to be equal, hiding the bug.
+
+**Added**
+
+- **Floating P/L window**: shows the floating P/L of your open positions in a screen corner
+  while the terminal is closed. Drag with the left mouse button; the position is remembered.
+  Can be turned off in the settings.
+- **Version string in the settings page** (e.g. `0.2.2 (a1b2c3d)`) — include it in bug reports.
+
+**Fixed**
+
+- **Colony P/L mood no longer affects prisoners, guests or quest lodgers.** It used to check
+  only "which map", catching every humanlike thinker there. Now free colonists only
+  (slaves excluded).
+- **The "positions / P&L" column now shows P/L only.** Position sizes reach four digits and
+  pushed the P/L out of the cell; the unit count moved into the tooltip.
+- **Dropped market steps now log a warning** instead of failing silently.
+- Silver withdrawal no longer multiplies by silver's market value (silver *is* the unit of account).
+- Every random-seed push now has a `try/finally`, so an exception can't corrupt the global RNG.
+
+---
+
 ## 0.2.1
 
 ### 中文

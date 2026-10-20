@@ -28,7 +28,8 @@
   <RimForex_ColRate>汇率</RimForex_ColRate>
   <RimForex_ColChange>日涨跌%</RimForex_ColChange>
   <RimForex_ColVol>波动</RimForex_ColVol>
-  <RimForex_ColPosition>持仓/盈亏</RimForex_ColPosition>
+  <RimForex_ColPosition>盈亏</RimForex_ColPosition>
+  <RimForex_TipPosCell>持仓 {0} 单位\n浮动盈亏 {1} 白银</RimForex_TipPosCell>
 
   <RimForex_ChartTitle>{0}</RimForex_ChartTitle>
   <RimForex_ChartSpeedHint>每 {0} 次报价一根K线（每根 {1} 游戏时，约 {2} 秒）</RimForex_ChartSpeedHint>
@@ -164,7 +165,7 @@
   <RimForex_Set_ChartLegendTip>在图表底部显示一行小字，解释虚线与最新价线为什么不在同一位置（开仓成交价含半个点差）。熟悉后可以关掉。</RimForex_Set_ChartLegendTip>
   <RimForex_ChartStopOutOff>爆仓 {0}（在框外 {1}%）</RimForex_ChartStopOutOff>
   <RimForex_ChartStopOut>爆仓 {0}</RimForex_ChartStopOut>
-  <RimForex_ChartStopOutTip>{0}持仓的强制平仓线（按中间价）。\n\n开仓价 {1}，跌/涨到 {2} 时净值会掉到保证金的一半而被强平。\n强平距离约 {3}%（含追加保证金后的口径）。</RimForex_ChartStopOutTip>
+  <RimForex_ChartStopOutTip>{0}持仓的强制平仓线（按中间价）。\n\n开仓价 {1}，跌/涨到 {2} 时净值会掉到保证金的 30% 而被强平。\n强平距离约 {3}%（含追加保证金后的口径）。</RimForex_ChartStopOutTip>
   <RimForex_Set_StopOutLine>爆仓线</RimForex_Set_StopOutLine>
   <RimForex_Set_StopOutLineTip>在 K 线图上画出「爆仓 xxx」那条红色虚线，标出当前持仓会在哪个价位被强制平仓。</RimForex_Set_StopOutLineTip>
   <RimForex_Set_BreakevenLine>盈亏平衡线</RimForex_Set_BreakevenLine>
@@ -176,6 +177,9 @@
   <RimForex_TimeDebug>TicksAbs {0} · 当前第 {1} 时 · 距结算 {2} tick（{3} 小时）</RimForex_TimeDebug>
   <RimForex_Set_CostBreakdown>下单成本明细</RimForex_Set_CostBreakdown>
   <RimForex_Set_CostBreakdownTip>关闭后，逐行的成本明细会压缩成一行，鼠标悬停可查看详情。</RimForex_Set_CostBreakdownTip>
+  <RimForex_HudFloat>浮动盈亏</RimForex_HudFloat>
+  <RimForex_Set_FloatingPnl>显示悬浮盈亏窗</RimForex_Set_FloatingPnl>
+  <RimForex_Set_FloatingPnlTip>关掉交易终端去干别的时，在屏幕角落显示当前持仓的浮动盈亏。窗口可以用鼠标左键拖动，位置会记住。</RimForex_Set_FloatingPnlTip>
   <RimForex_Set_TimeSpeed>游戏速度提示</RimForex_Set_TimeSpeed>
   <RimForex_Set_TimeSpeedTip>终端底部时间控制条旁边的那句说明。</RimForex_Set_TimeSpeedTip>
   <RimForex_Set_MoodHeader>平仓心情强度</RimForex_Set_MoodHeader>
@@ -186,6 +190,7 @@
   <RimForex_Set_MarginCallMoodScale>爆仓心情倍率 {0}</RimForex_Set_MarginCallMoodScale>
   <RimForex_Set_MarginCallMoodScaleHint>基准 -20，叠三层满为 -60。爆仓单独一档，不受上面两个倍率影响。
 穿仓（亏光保证金还倒欠）是更重的一档，基准 -28，【不叠加】，同样受本倍率控制。</RimForex_Set_MarginCallMoodScaleHint>
+  <RimForex_SettingsVersion>Rimforex {0}　·　报错时请附上这一行</RimForex_SettingsVersion>
   <RimForex_SettingsTest>测试专用</RimForex_SettingsTest>
   <RimForex_SettingsTestDesc>这两个按钮用于验证正常游玩很难碰到的路径。不是给日常用的。</RimForex_SettingsTestDesc>
   <RimForex_TestMood>① 加一层「小亏」心情</RimForex_TestMood>

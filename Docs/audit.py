@@ -144,8 +144,8 @@ def main():
     expect = {
         "FeeRate": "0.0002f",
         "MinFee": "2f",
-        "CriticalThreshold": "0.60f",
-        "StopOutFraction": "0.5f",
+        "CriticalThreshold": "0.45f",
+        "StopOutFraction": "0.3f",
         "SpreadCoef": "0.0008f",
         "SpreadExponent": "1.0f",
         "SpreadFloor": "0.0007f",
@@ -992,6 +992,34 @@ def main():
                 fail += 1
                 print("  !! 不变量失败：%s(%.2f) 必须 > %s(%.2f)，"
                       "否则后者会先发生、前者永远不触发" % (hi_name, hi, lo_name, lo))
+
+    # ---- 5b. 强平距离公式必须用 (1 − StopOutFraction)（2026-10-20）-------
+    # MaxSafeLeverageFor 里原本写的是 `StopOutFraction / (N × dailyVol)`，
+    # 但"从开仓到强平还能走多少比例"是 (1 − StopOut) / 杠杆，不是 StopOut / 杠杆。
+    # 旧值恰好是 0.5 时两者相等，错误被掩盖了很久；
+    # 一旦改成 0.3，错误分子会让高波动品种的可用杠杆从 149x 掉到 64x，
+    # **100x 会被静默降档到 50x**，且玩家看不到任何提示。
+    core_nc_inv = re.sub(r"//[^\n]*", "", core)
+    if re.search(r"\(\s*1f?\s*-\s*StopOutFraction\s*\)\s*/\s*\(\s*StopOutVolCoverage", core_nc_inv):
+        print("  OK 最大安全杠杆用的是 (1 − StopOutFraction)")
+    elif re.search(r"StopOutFraction\s*/\s*\(\s*StopOutVolCoverage", core_nc_inv):
+        fail += 1
+        print("  !! MaxSafeLeverageFor 用了 StopOutFraction 作分子 —— "
+              "应为 (1 − StopOutFraction)，否则 100x 会被静默降档")
+    else:
+        fail += 1
+        print("  !! 找不到 MaxSafeLeverageFor 的约束 2 公式")
+
+    # ---- 5c. 心情必须只作用于自由殖民者（2026-10-20）-------------------
+    # 账户按【地图】索引，不判身份的话囚犯、访客、任务寄宿者都会吃到
+    # 殖民地交易盈亏的心情。作者实测发现过：殖民地亏钱，囚犯心情跟着掉。
+    mood = open(os.path.join(SRC, "FxMood.cs"), encoding="utf-8").read()
+    mood_nc = re.sub(r"//[^\n]*", "", mood)
+    if re.search(r"if\s*\(\s*!\s*p\.IsFreeColonist\s*\)\s*return\s+ThoughtState\.Inactive", mood_nc):
+        print("  OK 心情只作用于自由殖民者（囚犯/访客/寄宿者被排除）")
+    else:
+        fail += 1
+        print("  !! ThoughtWorker 没有按 IsFreeColonist 过滤 —— 囚犯和访客会共担殖民地盈亏")
 
     print()
     print("结果:", "全部通过" if fail == 0 else "%d 项失败" % fail)
