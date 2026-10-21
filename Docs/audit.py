@@ -1158,6 +1158,23 @@ def main():
             for f in miss_zh[:4]:
                 print("       %s.%s" % (f[0], f[1]))
 
+    # ---- 8. 预警必须带滞回与冷却（2026-10-21）--------------------------
+    # 修好子步采样后，每步采样从 1 次变成 17 次。
+    # 若仍按 "health > CriticalThreshold 就复位"，健康度在 0.45 附近摆动时
+    # 会退化成 "复位→提醒→复位→提醒"，并每次都暂停游戏。
+    # 100x 下盘内摆幅折算到健康度约 ±2.3 个百分点，几乎每步都穿越。
+    if "WarnHysteresis" not in core_nc or "WarnCooldownTicks" not in core_nc:
+        fail += 1
+        print("  !! 缺少预警滞回/冷却常量（WarnHysteresis / WarnCooldownTicks）")
+    else:
+        m = re.search(r"private void MaybeWarn\(.*?\n        \}", core_nc, re.S)
+        body = m.group(0) if m else ""
+        if "WarnHysteresis" in body and "WarnCooldownTicks" in body:
+            print("  OK 预警带滞回带与冷却（子步采样下不会刷屏）")
+        else:
+            fail += 1
+            print("  !! MaybeWarn 未同时使用滞回与冷却 —— 修好采样后会刷屏")
+
     print()
     print("结果:", "全部通过" if fail == 0 else "%d 项失败" % fail)
     return 1 if fail else 0

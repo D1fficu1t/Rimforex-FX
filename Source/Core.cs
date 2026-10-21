@@ -395,11 +395,21 @@ namespace RimForex
         /// <summary>是否已经就"跌破爆仓线"强制提醒过。</summary>
         public bool criticalWarned;
 
+        /// <summary>
+        /// 上次预警发生的 tick（0 = 从未预警）。
+        ///
+        /// 与 <see cref="criticalWarned"/> 一样【不持久化】—— 它只影响"多久之后允许再弹一次"，
+        /// 读档后重新计时既安全又简单，不值得为它增加存档字段。
+        /// </summary>
+        public int warnedAtTick;
+
         /// <summary>行情回到安全区时复位告警状态，将来再恶化会重新提醒。</summary>
         public void ResetWarnState()
         {
             warnedHealth = -1f;
             criticalWarned = false;
+            // warnedAtTick 故意不复位：冷却时间要跨过"复位"继续有效，
+            // 否则"回到安全区 → 立刻跌回 → 再弹"还是能刷屏。
         }
         /// <summary>开仓时支付的手续费。平仓时把两次合计写入交易历史。</summary>
         public float openFee;
@@ -2609,6 +2619,38 @@ namespace RimForex
         public const float CriticalThreshold = 0.45f;  // 浮亏 55%
 
         /// <summary>
+        /// 预警的<b>滞回带</b>宽度（健康度单位）。
+        ///
+        /// 健康度必须回到 <c>CriticalThreshold + 本值</c>（默认 0.55）以上，
+        /// 才算"脱离危险"、重新武装预警。
+        ///
+        /// ── 为什么必须有它（2026-10-21）──
+        /// 原来只判 <c>health &gt; CriticalThreshold</c>，于是健康度在 0.45 附近
+        /// 上下摆动时会 "复位 → 提醒 → 复位 → 提醒" 无限循环。
+        ///
+        /// 修好子步采样（R01）之后，每个报价步的采样次数从 1 次变成 17 次，
+        /// 这个循环立刻被放大成刷屏 —— 100x 下盘内桥的摆幅折算到健康度就有
+        /// ±2.3 个百分点，几乎每一步都要穿越 0.45。作者实测：预警窗几乎
+        /// 每次健康度下跌都弹，并且每次都暂停游戏。
+        ///
+        /// 取 10 个百分点：远大于 100x 时的盘内摆幅（±2.3），
+        /// 又不会大到让玩家错过真正的二次恶化。
+        /// </summary>
+        public const float WarnHysteresis = 0.10f;
+
+        /// <summary>
+        /// 同一仓位两次预警之间的最小间隔（游戏 tick）。默认 1 游戏小时。
+        ///
+        /// 滞回带能挡住"同一段下跌反复穿越"，但挡不住
+        /// "弹一次 → 回到 0.55 以上 → 一分钟内又跌回 0.45 以下"这种来回。
+        /// 再加一道时间闸，保证最坏情况下也只有约每游戏小时一次打断。
+        ///
+        /// 只作用于预警，<b>不影响强平</b> —— 强平仍然按子步实时判定，
+        /// 不做任何防抖（作者决定：插针爆仓本身就是这个模组要表达的东西）。
+        /// </summary>
+        public const int WarnCooldownTicks = TicksPerHour;
+
+        /// <summary>
         /// 强平线（Stop-Out Level）：净值跌到"已用保证金 × 这个比例"时强制平仓，
         /// 即浮亏 70%。
         ///
@@ -3471,19 +3513,35 @@ namespace RimForex
                 return;
             }
 
-            // 反弹回安全区：复位，将来再恶化会重新提醒一次
-            if (health > CriticalThreshold)
+            // ── 复位：必须回到【警告线 + 滞回带】以上（2026-10-21）──
+            // 只判 health > CriticalThreshold 的话，健康度在 0.45 附近摆动时
+            // 会"复位→提醒→复位→提醒"无限循环。详见 WarnHysteresis 的说明。
+            if (health > CriticalThreshold + WarnHysteresis)
             {
                 pendingWarnings.Remove(pos.openTick);
                 pos.ResetWarnState();
                 return;
             }
 
+            // 落在滞回带内（0.45 ~ 0.55）：既不算脱离危险，也还没真正跌破。
+            // 什么都不做 —— 不复位、也不提醒。
+            if (health > CriticalThreshold) return;
+
             // 已经提醒过就不再弹，直到上面把它复位
             if (pos.criticalWarned) return;
 
+            // 冷却：同一仓位两次预警至少隔一个游戏小时。
+            // 与滞回带互补 —— 滞回带管"同一段下跌内的抖动"，
+            // 冷却管"来回穿越"（弹一次 → 回到安全区 → 很快又跌回来）。
+            if (pos.warnedAtTick > 0
+                && GenTicks.TicksGame - pos.warnedAtTick < WarnCooldownTicks)
+            {
+                return;
+            }
+
             pos.criticalWarned = true;
             pos.warnedHealth = health;
+            pos.warnedAtTick = GenTicks.TicksGame;
             EnqueueWarning(pos, acc);
         }
 
