@@ -1581,19 +1581,46 @@ namespace RimForex
                 // 补上这个边界点后，开盘恰好落在步起点，实体与原实现一致。
                 AccumulateCandle(c, stepStartTick);
 
+                // 本步开始时的价格。此刻 c.rate 还停在【上一步的终点】——
+                // 子步由 WorldComponentTick 调 AdvanceSubSteps 逐步推进，不在这里跑。
                 float rateBefore = c.rate;
-                for (int k = 0; k < SubSteps; k++) AdvanceSubStep(c);
-                c.rate = Clamp(Exp(c.stepLogTarget), MinRate, MaxRate);
 
-                // 记下跳空的实际幅度（相对本步开始时的价格），供 UI 提示用
-                c.lastGapPct = mult > 0f && rateBefore > 0.001f
-                    ? (c.rate / rateBefore - 1f) * 100f
-                    : 0f;
+                // ── 子步不在这里推进（2026-10-21 修）────────────────────────
+                //
+                // 这里原来写的是：
+                //     for (int k = 0; k < SubSteps; k++) AdvanceSubStep(c);
+                //     c.rate = Clamp(Exp(c.stepLogTarget), ...);
+                //
+                // 后果是 subStep 当场被推到 16，于是 AdvanceSubSteps 里的
+                //     while (c.subStep < targetSubStep) { AdvanceSubStep(); AccumulateCandle(); }
+                // 从此永远不成立 —— **每个子步的路径点一次都没有被采样过**，
+                // K 线的影线只剩下步边界那几个点，桥的形状完全看不见。
+                // （16 次子步运算照样跑了，只是结果直接被覆盖，纯属白算。）
+                //
+                // 现在这里只建预算（上面已完成），推进与采样交回 AdvanceSubSteps，
+                // 那本来就是它的职责 —— 见该方法与 SubSteps 的说明。
+                //
+                // 端点依旧精确：桥在 k = SubSteps 处恒为 0，所以
+                //     rate @ k=16 == Clamp(Exp(stepLogTarget))
+                // 步边界分布、日波动、跳空幅度都不受影响。
+
+                // 记下跳空的实际幅度（相对本步开始时的价格），供 UI 提示用。
+                // 必须用**预算终点**算，不能等 c.rate —— 它要到子步走完才到终点。
+                c.lastGapPct = 0f;
+                if (mult > 0f && rateBefore > 0.001f)
+                {
+                    float rateAtEnd = Clamp(Exp(c.stepLogTarget), MinRate, MaxRate);
+                    c.lastGapPct = (rateAtEnd / rateBefore - 1f) * 100f;
+                }
             }
         }
 
         /// <summary>
-        /// 推进<b>一个子步</b>的价格，并把新价累加进 K 线。
+        /// 推进<b>一个子步</b>的价格。
+        ///
+        /// <b>它不采样</b> —— 采样由调用方 <see cref="AdvanceSubSteps"/> 在每次推进后
+        /// 调 <c>AccumulateCandle</c> 完成。（注释曾写成"并把新价累加进 K 线"，
+        /// 与实现不符，正是这个错觉掩盖了 2026-10-21 修掉的那个 bug：采样循环永远不执行。）
         ///
         /// ── 走错过的两条路，记下来免得重犯 ──
         /// ① 每个子步各抽一个 <c>σ/√N</c> 的独立冲击：
