@@ -126,6 +126,11 @@
   <RimForex_LineCompact>{0} 单位   |   名义仓位 {1}</RimForex_LineCompact>
   <RimForex_LineCompactTip>点差成本 {0} 白银，实际占用保证金 {1} 白银，手续费 {2} 白银。</RimForex_LineCompactTip>
 
+  <RimForex_TestNormalGap>测试：常规跳空</RimForex_TestNormalGap>
+  <RimForex_TestNormalGapTip>{0} 游戏时后，所有货币各来一次常规跳空（8~9 倍单步波动，方向随机）。
+幅度取常规区间的上半段，是为了保证一定能触发播报——否则按下去没有提示，会让人以为按钮没生效。
+常规跳空不会把仓位打成负余额；要测穿仓请用上面的极端跳空。</RimForex_TestNormalGapTip>
+  <RimForex_MsgTestNormalGap>已安排常规跳空：{0} 游戏时后生效。</RimForex_MsgTestNormalGap>
   <RimForex_TestClearGhost>清理幽灵货币</RimForex_TestClearGhost>
   <RimForex_TestClearGhostTip>任务生成的临时派系（boss 团、朝圣者、被黑终端等）不是真实交易对手，它们名下的货币是旧版本误建的。每日结算会自动清理；这个按钮用于读完旧档后立刻清干净。仍持有仓位的货币会被跳过，先平仓再点。</RimForex_TestClearGhostTip>
   <RimForex_MsgGhostCleared>已清理 {0} 种幽灵货币（{1} 种因仍有持仓而跳过）。</RimForex_MsgGhostCleared>

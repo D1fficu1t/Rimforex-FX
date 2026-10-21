@@ -115,6 +115,11 @@ Floating P/L {2} silver</RimForex_PosLineTip>
   <RimForex_LineCompact>{0} units   |   notional {1}</RimForex_LineCompact>
   <RimForex_LineCompactTip>Spread cost {0} silver, margin taken {1} silver, fee {2} silver.</RimForex_LineCompactTip>
 
+  <RimForex_TestNormalGap>Test: normal gap</RimForex_TestNormalGap>
+  <RimForex_TestNormalGapTip>In {0} game hours every currency takes one normal gap (8-9x the single-step volatility, random direction).
+The upper half of the normal range is used so the announcement is guaranteed to fire — otherwise the button can look like it did nothing.
+A normal gap cannot push a position into negative balance; use the extreme gap button above for that.</RimForex_TestNormalGapTip>
+  <RimForex_MsgTestNormalGap>Normal gap scheduled: fires in {0} game hours.</RimForex_MsgTestNormalGap>
   <RimForex_TestClearGhost>Clear ghost currencies</RimForex_TestClearGhost>
   <RimForex_TestClearGhostTip>Temporary factions created by quests (boss groups, pilgrims, hacked terminals, etc.) are not real trading partners; currencies under their names were created by an older bug. Daily settlement clears them automatically — this button is for cleaning an old save immediately. Currencies still used by an open position are skipped; close those first.</RimForex_TestClearGhostTip>
   <RimForex_MsgGhostCleared>Cleared {0} ghost currencies ({1} skipped because of open positions).</RimForex_MsgGhostCleared>

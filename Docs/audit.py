@@ -746,11 +746,23 @@ def main():
         print("  !! 强制跳空没有延迟 —— 玩家来不及建仓就触发了")
 
     # 一次性：取走后必须清掉，否则会每步都跳空
-    if re.search(r"bool forcedGap = forceExtremeGap;\s*\n\s*forceExtremeGap = false;", core):
+    #
+    # 2026-10-21：强制跳空从 bool 泛化成两档（常规 1 / 极端 2），
+    # 取走后把 forcedGapKind 置回 None。这里跟着改成新写法，
+    # 同时顺带确认两档都存在（新增的普通跳空按钮不能只有按钮没有实现）。
+    if re.search(r"int forcedKind = forcedGapKind;\s*\n\s*forcedGapKind = ForcedGapNone;", core):
         print("  OK 强制跳空是一次性事件")
     else:
         fail += 1
         print("  !! 强制跳空未做成一次性 —— 会连续跳空")
+
+    has_normal = "ForceNormalGap()" in core and "ForcedGapNormal" in core
+    has_extreme = "ForceExtremeGap()" in core and "ForcedGapExtreme" in core
+    if has_normal and has_extreme:
+        print("  OK 测试按钮两档齐全（常规跳空 / 极端跳空）")
+    else:
+        fail += 1
+        print("  !! 缺少某档测试跳空：常规=%s 极端=%s" % (has_normal, has_extreme))
 
     # 必须向下跳空，否则"百倍做多"测不到穿仓
     # 幅度下限必须够大：最稳定的档位在 34σ 时只跌 0.91%，

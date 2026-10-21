@@ -358,6 +358,24 @@ namespace RimForex
             }
             Hint(l, "RimForex_TestBlowUpTip".Translate(FxGameComponent.ForceGapDelayHours));
 
+            // ---- 常规跳空（验证播报，不会穿仓）----
+            // 上一版只有一个"极端跳空"按钮，普通跳空靠等——而普通跳空恰恰是
+            // 2026-10-21 那次阈值重设计的对象，必须有办法主动验证。
+            l.Gap(6f);
+            if (l.ButtonText("RimForex_TestNormalGap".Translate()))
+            {
+                FxGameComponent fx = Find.World != null
+                    ? Find.World.GetComponent<FxGameComponent>() : null;
+                if (fx != null)
+                {
+                    fx.ScheduleForcedNormalGap();
+                    Messages.Message(
+                        "RimForex_MsgTestNormalGap".Translate(FxGameComponent.ForceGapDelayHours),
+                        MessageTypeDefOf.NeutralEvent, false);
+                }
+            }
+            Hint(l, "RimForex_TestNormalGapTip".Translate(FxGameComponent.ForceGapDelayHours));
+
             // ---- 清理幽灵货币 ----
             // 临时派系（boss 团、圣物朝圣者……）永远留在派系表里，
             // 旧版本把它们也造成了货币。每日结算会自动清，但这个按钮

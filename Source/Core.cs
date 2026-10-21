@@ -1508,16 +1508,36 @@ namespace RimForex
         /// </summary>
         public const int SubSteps = 16;
 
-        // ── 测试专用：下一次 TickStep 强制一次极端跳空 ──
+        // ── 测试专用：下一次 TickStep 强制一次跳空 ──
         // 极端跳空的日概率约 0.1%，正常要玩约 1000 游戏日才碰上一次；
-        // 而"穿仓"正是本模组最重要的风险展示，靠正常游玩验不到。
-        // 这个开关让测试按钮把事件提前引发。
-        private bool forceExtremeGap;
+        // 常规跳空虽然常见，但要"恰好落在某个货币上并达到播报阈值"也得碰运气。
+        // 这两个开关让设置页的测试按钮把事件提前引发。
+        //
+        // 0 = 无，1 = 常规跳空，2 = 极端跳空
+        private const int ForcedGapNone = 0;
+        private const int ForcedGapNormal = 1;
+        private const int ForcedGapExtreme = 2;
+        private int forcedGapKind = ForcedGapNone;
 
-        /// <summary>安排下一次报价步发生极端跳空（对所有货币生效）。</summary>
+        /// <summary>安排下一次报价步发生<b>极端</b>跳空（对所有货币生效，必然向下）。</summary>
         public void ForceExtremeGap()
         {
-            forceExtremeGap = true;
+            forcedGapKind = ForcedGapExtreme;
+        }
+
+        /// <summary>
+        /// 安排下一次报价步发生<b>常规</b>跳空（对所有货币生效）。
+        ///
+        /// 幅度取常规区间 3σ~9σ 的<b>上半段</b>（8σ~9σ），原因有二：
+        ///   · 保证能过播报阈值（现在按 6σ 判定，8σ 必然过线），
+        ///     否则按钮按下去可能什么都不提示，看起来像"没生效"
+        ///   · 8σ 仍然是"常规"量级，与极端跳空（14σ~34σ）在观感上分得开
+        /// 方向交给下面那句统一的随机翻转（50% 向上/向下），
+        /// 这样两个方向都能测到。
+        /// </summary>
+        public void ForceNormalGap()
+        {
+            forcedGapKind = ForcedGapNormal;
         }
 
         public void TickStep(int stepStartTick)
@@ -1525,8 +1545,8 @@ namespace RimForex
             keyBuffer.Clear();
 
             // 一次性事件：本步对所有货币生效，取走后就清掉，避免连续跳空
-            bool forcedGap = forceExtremeGap;
-            forceExtremeGap = false;
+            int forcedKind = forcedGapKind;
+            forcedGapKind = ForcedGapNone;
             keyBuffer.AddRange(currencies.Keys);
             for (int i = 0; i < keyBuffer.Count; i++)
             {
@@ -1557,7 +1577,7 @@ namespace RimForex
                 // 方向不偏：对数空间带均值回归，价格会被拉回锚点，
                 // 所以长期不会单边漂移。跳空只负责制造尾部风险。
                 float mult = 0f;
-                if (forcedGap)
+                if (forcedKind == ForcedGapExtreme)
                 {
                     // 测试按钮安排的：<b>强制向下</b>且幅度足够大。
                     //
@@ -1569,6 +1589,14 @@ namespace RimForex
                     //   实测最稳档（vol 0.35）在 34σ 时只跌 0.91% —— 亏 91% 保证金，
                     //   还差一点，测试会"看起来失败"。所以起点抬到 60σ（跌 1.60%）。
                     mult = -(ForcedGapMinMult + Rand.Value * ForcedGapMinMult);
+                }
+                else if (forcedKind == ForcedGapNormal)
+                {
+                    // 常规区间 3σ~9σ 的上半段（8σ~9σ）：
+                    // 足以过播报阈值（6σ），又与极端跳空在观感上分得开。
+                    // 方向不在这里定 —— 交给下面那句统一的随机翻转，
+                    // 这样按一次就能随机测到向上或向下。
+                    mult = (GapMaxMult - 1f) + Rand.Value * 1f;
                 }
                 else if (Rand.Chance(ExtremeGapChancePerStep))
                 {
@@ -3018,8 +3046,11 @@ namespace RimForex
         //  两者都是"必须验证但正常游玩验不到"的路径，所以给测试入口。
         // ══════════════════════════════════════════════════════════════════
 
-        /// <summary>下次强制极端跳空的 tick。&lt;= 0 表示没有待触发的事件。</summary>
+        /// <summary>下次强制跳空的 tick。&lt;= 0 表示没有待触发的事件。</summary>
         private int forceGapAtTick = -1;
+
+        /// <summary>排队中的强制跳空种类（1 = 常规，2 = 极端）。</summary>
+        private int scheduledGapKind = 2;
 
         /// <summary>强制跳空的延迟（游戏时）。留足时间去梭哈百倍杠杆做多。</summary>
         public const int ForceGapDelayHours = 3;
@@ -3037,10 +3068,22 @@ namespace RimForex
             }
         }
 
-        /// <summary>安排一次强制极端跳空（几游戏时后生效）。</summary>
+        /// <summary>安排一次强制<b>极端</b>跳空（几游戏时后生效）。</summary>
         public void ScheduleForcedGap()
         {
+            ScheduleGap(2);
+        }
+
+        /// <summary>安排一次强制<b>常规</b>跳空（几游戏时后生效）。</summary>
+        public void ScheduleForcedNormalGap()
+        {
+            ScheduleGap(1);
+        }
+
+        private void ScheduleGap(int kind)
+        {
             forceGapAtTick = GenTicks.TicksGame + ForceGapDelayHours * TicksPerHour;
+            scheduledGapKind = kind;
         }
 
         /// <summary>到点就触发。由 WorldComponentTick 每帧调用。</summary>
@@ -3048,7 +3091,8 @@ namespace RimForex
         {
             if (forceGapAtTick <= 0 || GenTicks.TicksGame < forceGapAtTick) return;
             forceGapAtTick = -1;
-            market.ForceExtremeGap();
+            if (scheduledGapKind == 1) market.ForceNormalGap();
+            else market.ForceExtremeGap();
             Messages.Message("RimForex_MsgForceGap".Translate(),
                 MessageTypeDefOf.ThreatBig, false);
         }
