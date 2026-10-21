@@ -21,6 +21,13 @@ namespace RimForex
             }
         }
 
+        /// <summary>终端是否可用：还活着、在地上、且通着电。</summary>
+        ///
+        /// 这个判据原来只在 gizmo 上用过（不满足就把"打开终端"按钮禁用），
+        /// 于是**已经打开的窗口**在断电或拆除后仍然能继续下单
+        /// —— 250W 的建造门槛等于可以绕过。窗口每帧都会重新查一次（见 Window_FxTerminal）。
+        public bool Usable => Spawned && !Destroyed && Powered;
+
         private bool Powered
         {
             get

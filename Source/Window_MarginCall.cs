@@ -21,7 +21,7 @@ namespace RimForex
         private const float InputGuardSeconds = 0.4f;
 
         private readonly FxGameComponent fx;
-        private readonly int positionKey;
+        private readonly FxPosition position;
         private readonly float openedAt;
 
         private int addAmount = 0;
@@ -30,10 +30,10 @@ namespace RimForex
 
         public override Vector2 InitialSize => new Vector2(560f, 356f);
 
-        public Window_MarginCall(FxGameComponent fx, int positionKey)
+        public Window_MarginCall(FxGameComponent fx, FxPosition position)
         {
             this.fx = fx;
-            this.positionKey = positionKey;
+            this.position = position;
             openedAt = Time.realtimeSinceStartup;
 
             doCloseX = true;
@@ -55,7 +55,7 @@ namespace RimForex
             get
             {
                 MarginWarning w;
-                return fx != null && fx.pendingWarnings.TryGetValue(positionKey, out w) ? w : null;
+                return fx != null && fx.pendingWarnings.TryGetValue(position, out w) ? w : null;
             }
         }
 
@@ -121,7 +121,7 @@ namespace RimForex
 
             // 估算补多少才能把健康度拉回预警线以上，给个一键值
             Rect safeBtn = new Rect(allBtn.xMax + 4f, y, 108f, 28f);
-            float toSafe = Mathf.Max(0f, FxGameComponent.CriticalThreshold * (p.margin - p.addedMargin) - p.Equity);
+            float toSafe = Mathf.Max(0f, FxGameComponent.CriticalThreshold * p.BaseMargin - p.Equity);
             int safeAmount = Mathf.Min(Mathf.CeilToInt(toSafe), Mathf.FloorToInt(acc.balance));
             if (Widgets.ButtonText(safeBtn, "RimForex_MarginToSafe".Translate()))
             {
@@ -184,7 +184,7 @@ namespace RimForex
             // 千万不要在这里重置 warnedHealth / criticalWarned ——
             // 那样下一个 tick 的 MaybeWarn 会立刻重新入队，窗口无限重弹。
             // 告警水位的复位交给 MaybeWarn：只有健康度回到安全区才复位。
-            if (fx != null) fx.pendingWarnings.Remove(positionKey);
+            if (fx != null) fx.pendingWarnings.Remove(position);
             Close();
         }
 
@@ -192,7 +192,7 @@ namespace RimForex
         public override void PreClose()
         {
             base.PreClose();
-            if (fx != null) fx.pendingWarnings.Remove(positionKey);
+            if (fx != null) fx.pendingWarnings.Remove(position);
         }
 
         public override void OnCancelKeyPressed()

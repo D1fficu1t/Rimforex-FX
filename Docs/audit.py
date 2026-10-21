@@ -433,17 +433,25 @@ def main():
         fail += 1
         print("  !! 缺少 DrawStopOutLine")
 
-    # 爆仓线必须用【含追加保证金】的 pos.margin —— 强平判据用的就是它。
-    # 若改用 (margin - addedMargin)，补过保证金的仓位会画出一条偏近的假线。
+    # 爆仓线必须与【强平判据】同口径。
     #
-    # 2026-10-20：公式前面加了 (1 − StopOutFraction)，原来的字面匹配失效了。
-    # 这里放宽成"以 newest.margin 结尾、且没有出现 margin − addedMargin"，
-    # 仍然能抓住"误用扣掉追加保证金"那种改法。
-    if re.search(r"\*\s*newest\.margin\b", win) and "newest.margin - newest.addedMargin" not in win:
-        print("  OK 爆仓线用含追加的 margin（与强平判据同口径）")
+    # 2026-10-21：判据从 pos.margin 改成 pos.BaseMargin（初始保证金）。
+    # 原因：追加保证金会抬高 margin，若拿它当强平基准，
+    # 玩家会在界面显示"健康度 60%、还没到预警线"时被静默强平。
+    # 所以画线与判据都必须用初始保证金。
+    if "newest.BaseMargin" in win and "newest.margin - newest.addedMargin" not in win:
+        print("  OK 爆仓线用初始保证金（与强平判据同口径）")
     else:
         fail += 1
-        print("  !! 爆仓线未用含追加的 margin —— 补过保证金时线会画错")
+        print("  !! 爆仓线没有用初始保证金 —— 补过保证金时会画出偏远的假线")
+
+    # 强平判据本身也必须从 BaseMargin 推出来（否则上面那条"同口径"无从谈起）
+    core_stripped = re.sub(r"//[^\n]*", "", core)
+    if "pos.BaseMargin" in core_stripped and "baseM * StopOutFraction" in core_stripped:
+        print("  OK 强平判据用初始保证金（追加保证金不会抬高强平线）")
+    else:
+        fail += 1
+        print("  !! 强平判据没有用 BaseMargin —— 追加保证金会造成标尺错位（R05）")
 
     if "showStopOutLine" in win and "showStopOutLine" in st:
         print("  OK 爆仓线有开关")

@@ -424,14 +424,30 @@ namespace RimForex
         public float addedMargin;
 
         /// <summary>
-        /// 保证金健康度：净值 / 原始保证金。1.0 = 打平，0 = 爆仓。
-        /// 用 (margin - addedMargin) 作分母，追加保证金不会篡改这个比例的含义。
+        /// 初始保证金（不含后续追加的部分）。
+        ///
+        /// 它是<b>健康度与强平判据的共同标尺</b>：健康度 = 净值 / 本值，
+        /// 强平线 = 本值 × <see cref="StopOutFraction"/>。
+        ///
+        /// ── 为什么必须是这个，而不是 margin（2026-10-21 修 R05）──
+        /// 原来健康度用 (margin − addedMargin) 作分母，强平却用 margin × StopOutFraction，
+        /// 追加保证金后两个标尺就永久错位了。
+        /// 实测例子：原始 100、追加 100、浮亏 140 →
+        ///     健康度 = 60/100 = 0.60（离 45% 预警线还很远）
+        ///     强平阈值 = 200 × 0.30 = 60 → 已经满足强平
+        /// 玩家会在界面显示"安全"的时候被静默强平。
+        /// </summary>
+        public float BaseMargin => margin - addedMargin;
+
+        /// <summary>
+        /// 保证金健康度：净值 / 初始保证金。1.0 = 打平，0 = 爆仓。
+        /// 用初始保证金作分母，追加保证金不会篡改这个比例的含义。
         /// </summary>
         public float MarginHealth
         {
             get
             {
-                float baseMargin = margin - addedMargin;
+                float baseMargin = BaseMargin;
                 if (baseMargin <= 0.01f) return 0f;
                 return Equity / baseMargin;
             }
@@ -797,11 +813,18 @@ namespace RimForex
         /// 穿仓与爆仓是同一件事的两个严重程度（穿仓 = 保证金亏光之外还倒欠），
         /// 同一账户不可能同时"爆仓"又"穿仓"。若两条都挂，一次事故吃两份心情
         /// （-20 与 -28 相加 = -48），那不是更真实，只是更狠。
-        /// 所以穿仓出现时把爆仓那条顶掉。
+        ///
+        /// ── 必须是<b>双向</b>（2026-10-21 修 R07）──
+        /// 原来只写了"穿仓 → 顶掉爆仓"，反过来"爆仓 → 顶掉穿仓"没有实现。
+        /// 实测：穿仓先记、爆仓后记时，两档会同时留在列表里，合计 -48。
+        /// 可触发于"穿仓后补款、在心情有效期内再次爆仓"，
+        /// 以及同一次强平检查连续处理多笔仓位、余额先负后正的情形。
         /// </summary>
         private static int SupersededBy(int tier)
         {
-            return tier == FxMoodSystem.TierBlowUp ? FxMoodSystem.TierMarginCall : -1;
+            if (tier == FxMoodSystem.TierBlowUp) return FxMoodSystem.TierMarginCall;
+            if (tier == FxMoodSystem.TierMarginCall) return FxMoodSystem.TierBlowUp;
+            return -1;
         }
 
         /// <summary>
@@ -1616,8 +1639,13 @@ namespace RimForex
 
                 // 记下跳空的实际幅度（相对本步开始时的价格），供 UI 提示用。
                 // 必须用**预算终点**算，不能等 c.rate —— 它要到子步走完才到终点。
+                //
+                // ⚠️ 判据是 mult != 0，不是 mult > 0（2026-10-21 修 R02）。
+                // mult 在下面有 50% 概率被翻成负数（向下跳空），强制跳空测试按钮
+                // 更是直接给负值 —— 原来的 `mult > 0f` 把所有向下跳空都写成了 0，
+                // 于是"价格暴跌却没有任何提示"。
                 c.lastGapPct = 0f;
-                if (mult > 0f && rateBefore > 0.001f)
+                if (mult != 0f && rateBefore > 0.001f)
                 {
                     float rateAtEnd = Clamp(Exp(c.stepLogTarget), MinRate, MaxRate);
                     c.lastGapPct = (rateAtEnd / rateBefore - 1f) * 100f;
@@ -1949,6 +1977,14 @@ namespace RimForex
 
             // 跨过区间边界：封掉旧根。用 rate 作收盘价 ——
             // 它已经包含了所有被跨过的子步位移（采样是连续的，不会跳价）。
+            //
+            // ⚠️ 必须先把 rate 并入旧根的 high/low（2026-10-21 修 R03）：
+            // 同一区间内只更新 high/low，跨区间时却直接把它当 close 写出去，
+            // 于是"跨边界那一笔恰好创了新高/新低"时会出现 close > high 的非法 K 线。
+            // 采样是连续的，把边界样本同时算进旧根的收盘与高低，K 线才自洽
+            // （新根的开盘价也是 rate，两根在边界上相接）。
+            if (rate > high) high = rate;
+            if (rate < low) low = rate;
             buf.Add(new FxCandle(open, high, low, rate));
             if (buf.Count > MaxCandles) buf.RemoveAt(0);
 
@@ -2794,8 +2830,22 @@ namespace RimForex
         public int nextSettlementTick = TicksPerDay;
         public bool initialized;
 
-        /// <summary>待处理的"临近爆仓"预警。key = 持仓的 openTick（同一存档内唯一）。</summary>
-        public Dictionary<int, MarginWarning> pendingWarnings = new Dictionary<int, MarginWarning>();
+        /// <summary>
+        /// 待处理的"临近爆仓"预警。key = <b>持仓对象本身</b>（引用相等）。
+        ///
+        /// ── 为什么用引用当键（2026-10-21 修 R04）──
+        /// 原来用 <c>pos.openTick</c>。但游戏暂停时 <c>GenTicks.TicksGame</c> 不前进，
+        /// 玩家可以在暂停里连开好几笔，它们的 openTick 完全相同 —— 于是：
+        ///   · 后入队的预警把先入队的**覆盖**掉
+        ///   · 任何一笔同 tick 的**安全**仓位走复位分支时，会把危险仓的预警一起删掉
+        ///   · 被覆盖的那笔已经置了 criticalWarned，不会重新入队 → 永久漏报
+        ///
+        /// FxPosition 是引用类型且没有重写 Equals/GetHashCode，
+        /// 字典天然按对象身份区分，不需要额外分配 id。
+        /// 本字典**不进存档**，改键类型没有任何兼容成本。
+        /// </summary>
+        public Dictionary<FxPosition, MarginWarning> pendingWarnings
+            = new Dictionary<FxPosition, MarginWarning>();
 
         public FxGameComponent(World world) : base(world)
         {
@@ -3347,17 +3397,40 @@ namespace RimForex
         /// <summary>
         /// 播报本步发生的行情跳空。
         ///
-        /// 只有幅度达到阈值才提示 —— 跳空每游戏日约 5.8% 概率，
-        /// 若每次都刷消息会淹没其他信息。阈值取 0.5%，
-        /// 低波动品种的小跳空会被过滤掉，高波动品种的大跳空才会出现。
+        /// ── 阈值必须按 σ 相对量算，不能用固定的 0.5%（2026-10-21 修）──
+        /// 原来写死 0.5%，而常规跳空的幅度是 3σ ~ 9σ，σ 随波动率缩放：
+        ///
+        ///     档位      3σ        9σ        能过 0.5% 吗
+        ///     太空      0.081%    0.242%    永远不能
+        ///     工业      0.122%    0.367%    永远不能
+        ///     中世纪    0.173%    0.519%    只有最顶端
+        ///     部落      0.235%    0.706%    部分
+        ///     袭击者    0.276%    0.830%    部分
+        ///
+        /// 于是低波动品种的常规跳空**从来不会被播报**，作者一度以为
+        /// "自己从没遇到过普通跳空"。而且滑块只调概率、不调幅度 ——
+        /// 拉满也只是更频繁，幅度仍是 3σ~9σ。
+        ///
+        /// 现在改成：幅度 ≥ 6σ 就播报（下限 0.15% 防止低波动品种刷屏）。
+        /// 各档位都能感知到跳空，且不会把消息淹没。
         /// </summary>
         private void AnnounceGaps()
         {
-            const float AnnounceThresholdPct = 0.5f;
+            // 6σ 是"肉眼可辨"与"不刷屏"之间的折中：
+            // 常规跳空 3σ~9σ 里约一半能过线，极端跳空 14σ~34σ 必然过线。
+            const float AnnounceSigmas = 6f;
+            // 下限：低波动品种 6σ 只有 0.16%，再低就会频繁播报
+            const float AnnounceFloorPct = 0.15f;
+
             foreach (FxCurrency c in market.AllCurrencies)
             {
                 if (c == null) continue;
-                if (System.Math.Abs(c.lastGapPct) < AnnounceThresholdPct) continue;
+
+                float vol = c.volatility > 0.01f ? c.volatility : 1f;
+                float sigmaPct = FxMarket.DailyVol * vol / Mathf.Sqrt(FxMarket.StepsPerDay) * 100f;
+                float threshold = Mathf.Max(AnnounceFloorPct, AnnounceSigmas * sigmaPct);
+
+                if (System.Math.Abs(c.lastGapPct) < threshold) continue;
 
                 Messages.Message(
                     "RimForex_MsgGap".Translate(c.PairLabel, c.lastGapPct.ToString("+0.0;-0.0")),
@@ -3388,7 +3461,16 @@ namespace RimForex
                 {
                     var pos = acc.positions[i];
                     float eq = pos.Equity;
-                    float stopOutLevel = pos.margin * StopOutFraction;
+
+                    // ── 强平线必须与健康度同一标尺（2026-10-21 修 R05）──
+                    // 用【初始保证金】而不是 margin：追加保证金会抬高 margin，
+                    // 若拿它当基准，玩家在界面显示"健康度 60%、还没到预警线"时
+                    // 就已经被强平了。见 FxPosition.BaseMargin 的说明。
+                    // 兜底：万一 addedMargin 被写坏成 ≥ margin，退回用 margin，
+                    // 宁可少平一次，也不能让强平线掉到 0 而永远不平仓。
+                    float baseM = pos.BaseMargin;
+                    if (baseM < 0.01f) baseM = pos.margin;
+                    float stopOutLevel = baseM * StopOutFraction;
 
                     // 还没触及强平线：只有确实处于亏损状态才考虑预警
                     if (eq > stopOutLevel)
@@ -3428,7 +3510,7 @@ namespace RimForex
                     // 注意：穿仓判据用【扣费后的余额】，因为那才是账户的真实状态
                     bool blewUp = acc.balance < 0f;
                     acc.positions.RemoveAt(i);
-                    pendingWarnings.Remove(pos.openTick);
+                    pendingWarnings.Remove(pos);
                     // 爆仓/穿仓各记各的档。刻意【不】再记一次普通亏损档 ——
                     // 一次事故吃掉两个坑太狠，而且爆仓本身就是那笔亏损。
                     //
@@ -3508,7 +3590,7 @@ namespace RimForex
             // （锁定期内盈亏恒为 0，因此开仓阶段不可能触发预警。）
             if (pos.Pnl >= 0f)
             {
-                pendingWarnings.Remove(pos.openTick);
+                pendingWarnings.Remove(pos);
                 pos.ResetWarnState();
                 return;
             }
@@ -3518,7 +3600,7 @@ namespace RimForex
             // 会"复位→提醒→复位→提醒"无限循环。详见 WarnHysteresis 的说明。
             if (health > CriticalThreshold + WarnHysteresis)
             {
-                pendingWarnings.Remove(pos.openTick);
+                pendingWarnings.Remove(pos);
                 pos.ResetWarnState();
                 return;
             }
@@ -3551,7 +3633,7 @@ namespace RimForex
             // 存进 MarginWarning.map —— 但那个字段**从来没有人读过**：
             // 预警窗只用到 position 与 account，弹窗位置由 WindowStack 决定。
             // 于是每次预警都白跑一遍全地图扫描。字段与循环一并删除。
-            pendingWarnings[pos.openTick] = new MarginWarning
+            pendingWarnings[pos] = new MarginWarning
             {
                 account = acc,
                 position = pos
@@ -3579,7 +3661,7 @@ namespace RimForex
             if (Find.WindowStack == null) return;
             if (Find.WindowStack.IsOpen(typeof(Window_MarginCall))) return;
 
-            int key = -1;
+            FxPosition key = null;
             MarginWarning picked = null;
             foreach (var kv in pendingWarnings)
             {

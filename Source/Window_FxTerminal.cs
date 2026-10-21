@@ -97,6 +97,15 @@ namespace RimForex
 
         public override void DoWindowContents(Rect inRect)
         {
+            // ── 终端失效就自动关窗（2026-10-21 修 R11）──
+            // 原来只在 gizmo 上检查通电状态，窗口一旦打开就再也不校验，
+            // 于是断电或拆掉终端之后，窗口还能照常下单 —— 250W 的门槛形同虚设。
+            if (terminal == null || !terminal.Usable)
+            {
+                Close();
+                return;
+            }
+
             FxGameComponent fx = Fx;
             if (fx == null || account == null)
             {
@@ -977,9 +986,13 @@ namespace RimForex
             // 改成 0.3 后，这个式子只算出 30% 的距离，
             // **K 线上的爆仓线被画到了实际位置的 3/7 处** ——
             // 表现为"价格早就越过爆仓线了，却还没被强平"。
-            // 实盘逻辑（Core.cs 的 stopOutLevel）一直是对的，
-            // 错的只是这条【显示用】的线。
-            float dist = (1f - FxGameComponent.StopOutFraction) * newest.margin
+            //
+            // 2026-10-21：基准从 margin 改成 BaseMargin。
+            // 强平判据用初始保证金（追加保证金不该抬高强平线），
+            // 画线必须跟判据同口径，否则补过保证金的仓位会画出一条偏远的假线。
+            float baseM = newest.BaseMargin;
+            if (baseM < 0.01f) baseM = newest.margin;
+            float dist = (1f - FxGameComponent.StopOutFraction) * baseM
                        / Mathf.Abs((float)newest.units);
             float markStop = newest.isLong
                 ? newest.entryRate - dist
@@ -1841,7 +1854,7 @@ namespace RimForex
             if (pos == null) return;
             FxGameComponent fx = Fx;
             if (fx == null) return;
-            fx.pendingWarnings.Remove(pos.openTick);
+            fx.pendingWarnings.Remove(pos);
         }
 
         private void ClosePosition(FxPosition pos)
