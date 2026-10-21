@@ -210,6 +210,7 @@
   <RimForex_MsgTestMood>已叠一层「小亏」心情。再按几次可以试叠加上限；睡过一晚看它是否自动消失。</RimForex_MsgTestMood>
   <RimForex_MsgTestBlowUp>极端跳空已排程。约 {0} 游戏时后触发。</RimForex_MsgTestBlowUp>
   <RimForex_MsgForceGap>汇市剧震：星际外汇平台刚刚出现了一次极端跳空。</RimForex_MsgForceGap>
+  <RimForex_MsgForceNormalGap>行情异动：星际外汇平台出现了一次跳空。</RimForex_MsgForceNormalGap>
   <RimForex_MsgNoMap>当前没有打开的地图，无法执行该测试。</RimForex_MsgNoMap>
   <RimForex_Set_Reset>恢复默认</RimForex_Set_Reset>
   <RimForex_AllIn>梭哈</RimForex_AllIn>

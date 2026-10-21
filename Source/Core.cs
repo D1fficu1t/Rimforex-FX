@@ -3091,10 +3091,17 @@ namespace RimForex
         {
             if (forceGapAtTick <= 0 || GenTicks.TicksGame < forceGapAtTick) return;
             forceGapAtTick = -1;
-            if (scheduledGapKind == 1) market.ForceNormalGap();
+
+            // 播报必须区分种类（2026-10-21 修）：
+            // 原来不管排的是哪一档，都播 "RimForex_MsgForceGap"（写着"极端跳空"），
+            // 于是按"常规跳空"按钮也会看到"极端跳空"的提示，自相矛盾。
+            bool normal = scheduledGapKind == 1;
+            if (normal) market.ForceNormalGap();
             else market.ForceExtremeGap();
-            Messages.Message("RimForex_MsgForceGap".Translate(),
-                MessageTypeDefOf.ThreatBig, false);
+
+            Messages.Message(
+                (normal ? "RimForex_MsgForceNormalGap" : "RimForex_MsgForceGap").Translate(),
+                normal ? MessageTypeDefOf.NeutralEvent : MessageTypeDefOf.ThreatBig, false);
         }
 
         /// <summary>

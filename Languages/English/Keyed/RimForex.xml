@@ -199,6 +199,7 @@ A blow-up (margin gone and balance pushed negative) is a heavier tier at base -2
   <RimForex_MsgTestMood>Stacked one more "small loss" mood. Press again to test the stacking cap, then sleep a night to see it expire.</RimForex_MsgTestMood>
   <RimForex_MsgTestBlowUp>Extreme gap scheduled. It will fire in about {0} game hours.</RimForex_MsgTestBlowUp>
   <RimForex_MsgForceGap>The exchange convulses: the interstellar FX platform just took an extreme gap.</RimForex_MsgForceGap>
+  <RimForex_MsgForceNormalGap>The exchange stirs: the interstellar FX platform just gapped.</RimForex_MsgForceNormalGap>
   <RimForex_MsgNoMap>No map is currently open, so that test cannot run.</RimForex_MsgNoMap>
   <RimForex_Set_Reset>Reset to defaults</RimForex_Set_Reset>
   <RimForex_AllIn>ALL IN</RimForex_AllIn>
