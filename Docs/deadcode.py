@@ -69,24 +69,42 @@ def main():
     print("=" * 74)
     print("B. 未被引用的文件")
     print("=" * 74)
+
+    # ── 这一节只查【孤儿贴图】（2026-10-21 收紧）──
+    #
+    # 原来的判据是"文件名有没有在源码或 README 里出现过"，
+    # 于是把一大批**根本不需要被名字引用**的文件全报了出来：
+    #   · Defs/ 与 Languages/：游戏按目录约定加载，不需要任何地方提到文件名
+    #   · About/：同上，About.xml 是固定入口
+    #   · Docs/ 与 .github/：开发文档与工作流，不是模组资产
+    #   · .gitignore / .gitattributes / *.md / *.txt / *.yml：配置与文档
+    #
+    # README 从"列全量目录树"改成玩家向的简介之后，这些误报从 13 条涨到 24 条 ——
+    # 说明这个判据本来就不成立，不是文档的错。
+    #
+    # 真正值得查的"孤儿文件"只有一类：**贴图没被任何 Def 引用**。
+    # 所以现在只扫 Textures/，其余一律跳过。
+    TEXTURE_EXT = (".png", ".jpg", ".jpeg", ".dds", ".psd")
+
     files = []
     for dirpath, _, fnames in os.walk(ROOT):
         for f in fnames:
             files.append(os.path.join(dirpath, f))
-    # 检查每个文件是否在别处被提及（按文件名与相对路径）
+
+    hay = all_raw + open(os.path.join(ROOT, "README.md"), encoding="utf-8").read()
+    tex_dir = os.path.join("Textures", "")
     for p in files:
         rel = os.path.relpath(p, ROOT)
+        if not rel.startswith(tex_dir):
+            continue
+        if not rel.lower().endswith(TEXTURE_EXT):
+            continue
         name = os.path.basename(p)
-        if rel.startswith("Source" + os.sep) or rel.startswith("Assemblies"):
-            continue
-        if name.lower() in ("about.xml", "modicon.png"):
-            continue
-        # 在源码与 README 中查找提及
-        hay = all_raw + open(os.path.join(ROOT, "README.md"), encoding="utf-8").read()
         base = os.path.splitext(name)[0]
-        mentioned = (name in hay) or (base in hay)
-        if not mentioned:
-            note("DEAD?", "file", f"未被任何源码/文档提及: {rel}")
+        # 贴图在 Def 里通常写成路径片段（不带扩展名），所以两种都查
+        if (name in hay) or (base in hay):
+            continue
+        note("DEAD?", "file", f"贴图未被任何源码/Def 引用: {rel}")
     print("  （见下方汇总）")
 
     print()
