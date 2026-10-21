@@ -1,5 +1,72 @@
 # 更新记录 / Changelog
 
+## 0.2.3
+
+### 中文
+
+**行情与图表**
+
+- **盘中价格现在会逐步移动，K 线影线也会反映盘内走势。**
+  之前每一步的价格是瞬间跳到终点的，逐点采样根本没执行 —— 影线只记到步边界那几个点。
+- **时 K / 日 K 不再出现"收盘价跑出最高最低价之外"的异常蜡烛。**
+- **跳空播报修好了**：向下跳空以前一律被记成 0（价格暴跌却没有任何提示）；
+  低波动货币的常规跳空也因为阈值写死 0.5% 而永远播不出来。现在按波动率判定。
+- 报价提示改写：明确写出"一步之内还有若干次微调"，倒计时只显示秒数，
+  并且不再被「日 K」按钮遮住。
+
+**保证金与风控**
+
+- **追加保证金后，预警线与强平线回到同一标尺。**
+  以前可能出现"界面显示健康度 60%、离预警线还很远"却被强平。
+- **游戏暂停时连开多笔，预警不再互相覆盖**（同 tick 的仓位以前会顶掉彼此的提示）。
+- **预警不再刷屏**：需回到 55% 以上、且间隔 1 游戏小时，才会再次提醒。
+- 穿仓之后再次爆仓，心情不再叠加成 −48。
+
+**操作**
+
+- **「梭哈」现在能开到真正买得起的最大量**（以前会少开一点，剩余的白银比该剩的多）。
+- 终端断电或被拆除时，已打开的窗口会**自动关闭**。
+
+**其他**
+
+- 设置页新增「测试：常规跳空」，且常规/极端两种跳空的提示文案不再混用。
+- 交易历史里的点差成本不再在每次读档后变化（旧存档里没有点差率的记录仍按 0 处理）。
+
+### English
+
+**Market & chart**
+
+- **Intra-quote price movement is now real, and candle wicks reflect the path inside each quote.**
+  Previously the price jumped straight to the end of each step and the per-step sampling never ran,
+  so wicks only ever recorded the step boundaries.
+- **Hour and day candles no longer produce impossible bars** where the close sits outside the high/low.
+- **Gap announcements work again**: downward gaps used to be recorded as 0 (a price crash with no
+  message at all), and normal gaps on low-volatility currencies never cleared the hard-coded 0.5%
+  threshold. The threshold is now based on volatility.
+- The quote-pacing hint was rewritten: it now says how many intra-quote steps there are, the
+  countdown shows seconds only, and it is no longer hidden behind the Day button.
+
+**Margin & risk**
+
+- **Warning and stop-out now use the same scale after you add margin.**
+  Previously the UI could show 60% health while the position was already past the stop-out line.
+- **Warnings for several positions opened on the same tick no longer overwrite each other.**
+- **Warnings no longer spam**: you have to recover above 55% and wait a game hour before another.
+- A margin call right after a negative-balance event no longer stacks both mood penalties (−48).
+
+**Controls**
+
+- **"All in" now buys the true maximum** (it used to stop a little short, leaving more silver behind than it should).
+- The terminal window **closes itself** when the building loses power or is destroyed.
+
+**Other**
+
+- New "Test: normal gap" button in the settings, and the two gap kinds no longer share one message text.
+- Spread cost in trade history no longer changes on every save load (older records without a spread
+  rate are still treated as zero).
+
+---
+
 ## 0.2.2
 
 ### 中文
