@@ -21,17 +21,14 @@
   以前可能出现"界面显示健康度 60%、离预警线还很远"却被强平。
 - **游戏暂停时连开多笔，预警不再互相覆盖**（同 tick 的仓位以前会顶掉彼此的提示，
   被顶掉的那笔还可能永久漏报）。
+- **预警不再刷屏**：必须回到 55% 以上、且距上次预警满 1 游戏小时，才会再次提醒。
+  （修好盘内采样后健康度每步都会小幅波动，原来的单阈值会反复触发。）
 - **穿仓之后再次爆仓，心情不再叠加成 −48。**
 - **「梭哈」现在能开到真正买得起的最大量**（以前会少开一点）。
 - **终端断电或被拆除时，已打开的窗口会自动关闭。**
 - **交易历史里的点差成本不再在每次读档后变化。**
 - 报价倒计时只显示秒数，并且不再被「日 K」按钮遮住。
 - 常规与极端跳空的提示文案不再混用。
-
-**平衡**
-
-- **预警不再刷屏**：必须回到 55% 以上、且距上次预警满 1 游戏小时，才会再次提醒。
-  （修好盘内采样后健康度每步都会小幅波动，原来的单阈值会反复触发。）
 
 ### English
 
@@ -55,18 +52,15 @@
   60% health while the position was already past the stop-out line.
 - **Warnings for several positions opened on the same tick no longer overwrite each other**
   (one of them could be lost for good).
+- **Warnings no longer spam**: you must recover above 55% and wait a game hour before another one.
+  (With intra-quote sampling fixed, health moves slightly every step and the old single threshold
+  fired repeatedly.)
 - A margin call right after a negative-balance event no longer stacks both mood penalties (-48).
 - **"All in" now buys the true maximum** (it used to stop a little short).
 - **The terminal window closes itself** when the building loses power or is destroyed.
 - Spread cost in trade history no longer changes on every save load.
 - The quote countdown now shows seconds only, and is no longer hidden behind the Day button.
 - Normal and extreme gaps no longer share the same message text.
-
-**Balance**
-
-- **Warnings no longer spam**: you must recover above 55% and wait a game hour before another one.
-  (With intra-quote sampling fixed, health moves slightly every step and the old single threshold
-  fired repeatedly.)
 
 ---
 
