@@ -649,6 +649,26 @@ namespace RimForex
             Scribe_Values.Look(ref dayHigh, "dayHigh", 0f);
             Scribe_Values.Look(ref dayLow, "dayLow", 0f);
             if (dayCandles == null) dayCandles = new List<FxCandle>();
+
+            // ── 读档后重新裁剪（2026-10-21 补 D3）──
+            // 写入前一定会裁到 MaxCandles，所以正常存档不会超。
+            // 但存档可能来自上限更大的旧版本、被外部工具改过、或来自别的分支 ——
+            // 那些情况下列表会原样保留，直到这根 K 线再次封根才被裁，
+            // 中间的显示与内存都按超量算。这里补一道防御，成本可以忽略。
+            if (Scribe.mode == LoadSaveMode.PostLoadInit)
+            {
+                TrimToMaxCandles(candles);
+                TrimToMaxCandles(hourCandles);
+                TrimToMaxCandles(dayCandles);
+            }
+        }
+
+        /// <summary>把缓冲裁到 <see cref="FxMarket.MaxCandles"/>，保留最新的那些。</summary>
+        private static void TrimToMaxCandles(List<FxCandle> buf)
+        {
+            if (buf == null) return;
+            int extra = buf.Count - FxMarket.MaxCandles;
+            if (extra > 0) buf.RemoveRange(0, extra);
         }
     }
 
@@ -970,33 +990,20 @@ namespace RimForex
                         ? t.units * (t.exitRate - t.entryRate)
                         : t.units * (t.entryRate - t.exitRate);
 
-                    // (2) 点差成本：旧版公式对做空恒为 0、对做多会混进价格变动，
-                    //     所以凡是没存下点差率的记录一律按"无点差"处理，不再沿用错值。
-                    //     新记录（带 spreadRateAtClose）用 units × mid × 点差率 精确复原。
-                    t.spreadCost = RecomputeSpreadCost(t);
+                    // (2) 点差成本：**只清理旧记录，不再重算新记录**（2026-10-21 修 R06）
+                    //
+                    // 旧版公式对做空恒为 0、对做多会混进价格变动，
+                    // 所以凡是没存下点差率的记录一律按"无点差"处理，不沿用错值。
+                    //
+                    // 而带 spreadRateAtClose 的新记录，写入时存的就是**开仓时真正被扣掉的那笔**
+                    // （|units| × spreadAtOpen）。原来这里对所有记录无条件重算，
+                    // 且重算用的是**平仓中间价** —— 价格一动，数字就和存档里的不一样了：
+                    // 实测 1000 单位、开 100 平 110、点差 0.00112 时，
+                    // 写入 112，重算得 123.2。
+                    // 结果是同一笔交易的历史成本在重启前后不一致。现在新记录读档原样保留。
+                    if (t.spreadRateAtClose <= 0f) t.spreadCost = 0f;
                 }
             }
-        }
-
-        /// <summary>
-        /// 由 (units, exitRate, spreadRateAtClose, isLong) 复原一笔交易的点差成本。
-        ///
-        /// 推导：exitRate = mid × (1 ∓ 半价差)，而点差成本 = units × 一个往返点差。
-        /// 把 mid 写成 exitRate / (1 ∓ 半价差) 代进去就能消掉方向差异，
-        /// 得到统一形式：<c>units × mid × 点差率</c>。
-        /// 实测对做多做空都等于 units × (ask − bid)。
-        ///
-        /// spreadRateAtClose &lt;= 0 表示旧存档没有这个字段 —— 返回 0，
-        /// 而不是沿用那个已知错误的旧值。
-        /// </summary>
-        private static float RecomputeSpreadCost(FxTradeRecord t)
-        {
-            if (t.spreadRateAtClose <= 0f || t.units == 0 || t.exitRate <= 0f) return 0f;
-            float half = t.spreadRateAtClose * 0.5f;
-            float denom = t.isLong ? (1f - half) : (1f + half);
-            if (denom <= 0.0001f) return 0f;
-            float mid = t.exitRate / denom;
-            return System.Math.Abs(t.units) * mid * t.spreadRateAtClose;
         }
     }
 
@@ -2073,12 +2080,26 @@ namespace RimForex
         ///
         /// 三级缓冲各自独立，所以切换周期时看到的是各自的历史长度：
         /// 分K 约 1.8 游戏日、时K 约 4.2 游戏日、日K 约 100 游戏日（默认设置下）。
+        ///
+        /// ── 返回值是<b>复用的内部缓冲</b>（2026-10-21 改，D4）──
+        /// 原来是每次调用 new 一个 List、再把每根引用拷进去、最后再 new 一个"正在形成"
+        /// 的 K 线对象。而它被 DrawCandles 在 OnGUI 的每一趟都调一次（Layout + Repaint），
+        /// 图表开着时每秒要丢掉上百 KB 短命对象。
+        ///
+        /// 现在固定复用 <see cref="viewBuf"/> 与 <see cref="viewLive"/>：
+        ///   · 不再分配 List / K 线对象
+        ///   · 「正在形成」那根每次原地更新字段
+        ///
+        /// ⚠️ 调用方约定：**只能在当前帧内使用返回值**，不要持有到下一帧，
+        /// 也不要修改它（下一帧会被覆盖）。目前唯一的调用方是 DrawCandles，
+        /// 它在同一帧里画完就丢，符合约定。
         /// </summary>
         public List<FxCandle> GetCandles(int factionLoadID, int want, FxChartSpan span = FxChartSpan.Minute)
         {
-            var list = new List<FxCandle>();
+            viewBuf.Clear();
+
             FxRateSeries s;
-            if (!series.TryGetValue(factionLoadID, out s) || s == null) return list;
+            if (!series.TryGetValue(factionLoadID, out s) || s == null) return viewBuf;
 
             List<FxCandle> buf;
             float curOpen, curHigh, curLow;
@@ -2094,21 +2115,30 @@ namespace RimForex
                     buf = s.candles; curOpen = s.curOpen; curHigh = s.curHigh; curLow = s.curLow;
                     break;
             }
-            if (buf == null) return list;
+            if (buf == null) return viewBuf;
 
             int from = buf.Count - want;
             if (from < 0) from = 0;
-            for (int i = from; i < buf.Count; i++) list.Add(buf[i]);
+            for (int i = from; i < buf.Count; i++) viewBuf.Add(buf[i]);
 
-            // 正在形成中的当前根，让图表实时跟着走
+            // 正在形成中的当前根，让图表实时跟着走（复用同一个对象）
             if (curOpen > 0f)
             {
                 float last = currencies.TryGetValue(factionLoadID, out var cur) && cur != null
                     ? cur.rate : curOpen;
-                list.Add(new FxCandle(curOpen, curHigh, curLow, last));
+                viewLive.open = curOpen;
+                viewLive.high = curHigh;
+                viewLive.low = curLow;
+                viewLive.close = last;
+                viewBuf.Add(viewLive);
             }
-            return list;
+            return viewBuf;
         }
+
+        /// <summary>GetCandles 的复用缓冲。见该方法的返回值约定。</summary>
+        private readonly List<FxCandle> viewBuf = new List<FxCandle>(128);
+        /// <summary>"正在形成"那根 K 线的复用对象，每次调用原地更新字段。</summary>
+        private readonly FxCandle viewLive = new FxCandle();
 
         private static float Clamp(float v, float lo, float hi)
         {

@@ -14,6 +14,8 @@
     手续费 = max(notional * FeeRate, MinFee)
 """
 
+import sys
+
 TICKS_PER_STEP = 180     # 3 游戏分钟 = 3 现实秒（1x）
 TICKS_PER_DAY = 60000    # 原版 GenDate.TicksPerDay（曾经错写成 3600）
 DAILY_VOL = 0.014
@@ -65,7 +67,11 @@ def round_trip(mid, units, vol, is_long):
         entry, exit_ = bid(mid, vol), ask(mid, vol)
 
     notional = units * entry
-    gross = units * (exit_ - entry)
+    # 2026-10-21 修 V01：做空的毛盈亏不能用 exit - entry。
+    # 做空是"先卖后买"，平仓价跌了才赚，所以是 entry - exit。
+    # 原来两个方向共用 exit - entry，于是空单在"价格没动"时也算出正毛盈 ——
+    # 脚本会打印"空单净赚 +151"，与它自己"净盈亏恒为负"的结论自相矛盾。
+    gross = units * (exit_ - entry) if is_long else units * (entry - exit_)
     fees = fee(notional) + fee(units * exit_)
     return gross - fees, gross, fees, notional, entry, exit_
 
@@ -104,7 +110,7 @@ def main():
         cover = eat / total
         print(f"  {name:<8} x{vol:<6.2f} {sr*100:<9.4f}% {ref_fee_rt*100:<9.4f}% "
               f"{total*100:<9.4f}% {ratio*100:>8.0f}%  {cover*100:>12.0f}%"
-              f"   {'压住' if cover < 1.0 else '!! 压不住'}")
+              f"   {'压住' if cover < 1.0 else fail('压不住')}")
     print()
     print("  最右列才是有效判据：完美方向下单步能拿到的期望幅度 / 往返成本。")
     print("  < 100% 表示连'每次都猜对'都亏，机械交易必然无利可图。")
@@ -230,7 +236,7 @@ def main():
         win10 = sum(1 for n in nets_10 if n > 0) / TRIALS * 100
 
         ok1 = avg1 <= 0
-        print(f"  {name:<8} {'1步就平（机械）':<20} {avg1:<14.2f} {win1:<8.1f}% {'OK 负期望' if ok1 else '!! 正期望'}")
+        print(f"  {name:<8} {'1步就平（机械）':<20} {avg1:<14.2f} {win1:<8.1f}% {'OK 负期望' if ok1 else fail('正期望')}")
         print(f"  {'':<8} {'持10步（随机方向）':<20} {avg10:<14.2f} {win10:<8.1f}% {'(随机方向，仍为负)' if avg10 <= 0 else '(接近零)'}")
     print()
     print("  解读：随机方向的机械交易期望为负；这是点差摩擦的直接体现。")
@@ -288,8 +294,8 @@ def main():
         trend_ok = ratio <= 0.85
         if not (churn_ok and trend_ok):
             ok_all = False
-        verdict = "OK" if (churn_ok and trend_ok) else (
-            "!! churn 仍盈利" if not churn_ok else "!! 点差相对日波动过高")
+        verdict = "OK" if (churn_ok and trend_ok) else fail(
+            "churn 仍盈利" if not churn_ok else "点差相对日波动过高")
         print(f"  {name:<8} x{vol:<6.2f} {rt*100:<10.3f}% {sv*100:<10.3f}% "
               f"{a1:<13.0f} {ratio*100:>10.0f}%   {verdict}")
 
@@ -328,6 +334,10 @@ def main():
                   f"   {'OK 无变化' if abs(delta) <= 1e-6 else '!! 出现净收益'}")
     print()
     print(f"  结论：{'所有循环余额完全不变，漏洞路径已封死' if all_zero else '!! 仍存在净收益路径'}")
+    if not all_zero:
+        fail("循环套利路径")
+    if not all_zero:
+        fail("循环套利路径")
 
     # ---- 验收 9：盈亏方向正确性（回归测试）----
     print()
@@ -377,10 +387,33 @@ def main():
     for name, got, want, ok in checks:
         if not ok:
             all_ok = False
-        print(f"  {name:<42} {got:>+12.2f} {want:>+12.2f}  {'OK' if ok else '!! 错误'}")
+        print(f"  {name:<42} {got:>+12.2f} {want:>+12.2f}  {'OK' if ok else fail('方向错误')}")
     print()
     print(f"  结论：{'方向符号全部正确；开仓两个方向都亏点差，不存在白送' if all_ok else '!! 存在方向错误'}")
+    if not all_ok:
+        fail("方向符号")
+
+    print()
+    if FAILS:
+        print(f"!! 共 {FAILS} 项验收未通过")
+    else:
+        print("  全部验收通过")
+    return FAILS
+
+
+FAILS = 0
+
+
+def fail(msg):
+    """记录一次验收失败。返回值供 f-string 直接嵌进输出。"""
+    global FAILS
+    FAILS += 1
+    return "!! " + msg
 
 
 if __name__ == "__main__":
+    # 2026-10-21 修 V01：把结果变成进程退出码。
+    # 原来只在屏幕上打印"!!"，最后无条件 exit 0 ——
+    # 发布工作流按退出码判断，等于这道验收永远通过。
     main()
+    sys.exit(1 if FAILS else 0)

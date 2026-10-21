@@ -1427,9 +1427,18 @@ namespace RimForex
             {
                 float askForMax = sel != null ? sel.rate * (1f + FxMarket.SpreadRateFor(sel) * 0.5f) : 0f;
                 int maxUnits = FxGameComponent.MaxAffordableUnits(account.balance, askForMax, orderLeverage);
+
+                // ── 必须回填【保证金 + 手续费】，不能只回填保证金（2026-10-21 修 R08）──
+                //
+                // 这个输入框的语义是"这次最多花多少白银"：下单路径会拿它当预算，
+                // 用 EstimateUnits 反推能开多少单位（预算 = 保证金 + 手续费）。
+                // 原来只回填保证金，下单时又扣一次手续费 —— 于是梭哈开出来的量
+                // 比真正买得起的少一截：实测余额 10000、价 100、100x 时，
+                // 最大可开 9803 单位，但梭哈只开到 9610，白剩约 198 白银。
                 float m;
                 ComputeEntry(maxUnits, askForMax, orderLeverage, out m);
-                orderMargin = Mathf.Max(Mathf.CeilToInt(minMargin), Mathf.CeilToInt(m));
+                float feeForMax = FxGameComponent.FeeFor(maxUnits * askForMax);
+                orderMargin = Mathf.Max(Mathf.CeilToInt(minMargin), Mathf.CeilToInt(m + feeForMax));
                 marginBuffer = orderMargin.ToString();
             }
             GUI.color = Color.white;

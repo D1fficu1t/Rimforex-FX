@@ -1195,6 +1195,40 @@ def main():
             fail += 1
             print("  !! MaybeWarn 未同时使用滞回与冷却 —— 修好采样后会刷屏")
 
+    # ---- 9. 提交 3 的四项回归防线（2026-10-21）-------------------------
+    # 只查"关键实现是否还在"，避免以后重构时悄悄退回旧行为。
+    core9 = re.sub(r"//[^\n]*", "", core)
+    win9 = re.sub(r"//[^\n]*", "", win)
+
+    # R06：读档只能清理旧记录，不能重算新记录。
+    # RecomputeSpreadCost 用平仓中间价重算，会把写入时的真实成本改掉。
+    if "RecomputeSpreadCost" not in core9 and "spreadRateAtClose <= 0f) t.spreadCost = 0f" in core9:
+        print("  OK 历史点差成本读档不改写（只清理旧记录）")
+    else:
+        fail += 1
+        print("  !! 读档仍在重算历史点差成本 —— 同一笔交易的成本会在重启前后变化（R06）")
+
+    # R08：梭哈必须把手续费一起算进预算，否则开不到最大量。
+    if "m + feeForMax" in win9:
+        print("  OK 梭哈预算含手续费（能开到最大可负担量）")
+    else:
+        fail += 1
+        print("  !! 梭哈只回填保证金 —— 会少开一截（R08）")
+
+    # D3：读档后必须重新裁剪 K 线缓冲。
+    if "TrimToMaxCandles" in core9:
+        print("  OK 读档后重新裁剪 K 线（防御超量存档）")
+    else:
+        fail += 1
+        print("  !! 读档不裁剪 K 线 —— 来自旧上限的存档会一直超量")
+
+    # D4：GetCandles 不应每帧分配。
+    if "viewLive.close = last" in core9 and "viewBuf.Clear()" in core9:
+        print("  OK GetCandles 复用缓冲（不再每帧分配）")
+    else:
+        fail += 1
+        print("  !! GetCandles 又变成每帧分配 —— 图表开着时会持续产生垃圾")
+
     print()
     print("结果:", "全部通过" if fail == 0 else "%d 项失败" % fail)
     return 1 if fail else 0

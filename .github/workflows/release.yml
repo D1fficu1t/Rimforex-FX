@@ -47,6 +47,19 @@ jobs:
         with:
           dotnet-version: "8.0.x"
 
+      # ── 先备份仓库里的 DLL（必须排在构建之前）──
+      # csproj 有 CopyToModFolder（AfterTargets="Build"），构建会把新 DLL 直接
+      # 拷进 Assemblies/ —— 所以**一旦构建过，仓库那份就没了**。
+      # 原来在构建之后才去比 "Assemblies/ 里的" 与 "Source/bin/ 里的"，
+      # 比的是同一次构建的两个副本，永远相等，这条检查等于不存在（V02）。
+      # 现在先备份，构建后再与备份比。
+      - name: 备份仓库里的 DLL（构建会覆盖它）
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path "$env:RUNNER_TEMP/rimforex-orig" | Out-Null
+          Copy-Item "Assemblies/RimForex.dll" "$env:RUNNER_TEMP/rimforex-orig/RimForex.dll"
+          Write-Host "已备份：$((Get-Item "$env:RUNNER_TEMP/rimforex-orig/RimForex.dll").Length) B"
+
       # ── 这里是最关键的一步 ──
       # 本机开发时 csproj 直接引用游戏目录里的程序集；
       # 但 CI 机器上没装 RimWorld，那个目录不存在。
@@ -96,7 +109,9 @@ jobs:
       - name: 比对「仓库里的 DLL」与「CI 刚构建的 DLL」
         shell: pwsh
         run: |
-          $repoDll = "Assemblies/RimForex.dll"
+          # 与【构建前备份的仓库原件】比，而不是与构建后被覆盖的 Assemblies/ 比
+          $repoDll = "$env:RUNNER_TEMP/rimforex-orig/RimForex.dll"
+          if (-not (Test-Path $repoDll)) { Write-Error "找不到备份的仓库 DLL"; exit 1 }
           $builtDll = Get-ChildItem -Recurse -Filter RimForex.dll -Path Source/bin |
                       Select-Object -First 1
           if (-not $builtDll) { Write-Error "CI 没有产出 DLL"; exit 1 }
@@ -104,8 +119,10 @@ jobs:
           function Get-Normalized([string]$path) {
             $b = [System.IO.File]::ReadAllBytes($path)
             $s = [System.Text.Encoding]::ASCII.GetString($b)
-            # 抹掉构建根源：InformationalVersion 里的 40 位提交哈希
-            $s2 = [regex]::Replace($s, '1\.0\.0\+[0-9a-f]{40}', '1.0.0+COMMIT')
+            # 抹掉构建根源：InformationalVersion 里的 40 位提交哈希。
+            # 原来写死了 `1\.0\.0\+`，而当前版本是 0.2.x —— 这条替换其实从没生效过。
+            # 改成不限定版本号，只认 "+<40 位十六进制>"。
+            $s2 = [regex]::Replace($s, '\+\d*[0-9a-f]{40}', '+COMMIT')
             $sha = [System.Security.Cryptography.SHA256]::Create()
             $h = $sha.ComputeHash([System.Text.Encoding]::ASCII.GetBytes($s2))
             return ($h | ForEach-Object { $_.ToString("x2") }) -join ""
@@ -113,8 +130,8 @@ jobs:
 
           $a = Get-Normalized $repoDll
           $b = Get-Normalized $builtDll.FullName
-          Write-Host "仓库里的 : $($a.Substring(0,24))  $((Get-Item $repoDll).Length) B"
-          Write-Host "CI 构建的: $($b.Substring(0,24))  $($builtDll.Length) B"
+          Write-Host "仓库原件  : $($a.Substring(0,24))  $((Get-Item $repoDll).Length) B"
+          Write-Host "CI 构建的 : $($b.Substring(0,24))  $($builtDll.Length) B"
           Write-Host "（已抹掉 DLL 内嵌的提交哈希，只比对引用程序集造成的差异）"
 
           if ($a -eq $b) {
