@@ -32,7 +32,7 @@
   <RimForex_TipPosCell>持仓 {0} 单位\n浮动盈亏 {1} 白银</RimForex_TipPosCell>
 
   <RimForex_ChartTitle>{0}</RimForex_ChartTitle>
-  <RimForex_ChartSpeedHint>每 {0} 次报价一根K线（每根 {1} 游戏时，约 {2} 秒）</RimForex_ChartSpeedHint>
+  <RimForex_ChartSpeedHint>每 {0} 次报价一根K线（{1} 游戏时 ≈ {2} 秒）；一步之内另有 {3} 次微调</RimForex_ChartSpeedHint>
   <RimForex_ChartEntryLegend>虚线 = 开仓成交价（做多=买价、做空=卖价，与中间价差半个点差）</RimForex_ChartEntryLegend>
   <RimForex_PnlTag>盈亏</RimForex_PnlTag>
   <RimForex_CostTag>成本</RimForex_CostTag>
@@ -76,7 +76,7 @@
   <RimForex_ChartNavTip>滚轮：放大 / 缩小。鼠标悬停在某根K线上：显示该根的开高低收。</RimForex_ChartNavTip>
   <RimForex_ChartView>显示 {0} 根   |   每根 {1}</RimForex_ChartView>
   <RimForex_SettleCountdown>距下次结算 {0} 小时</RimForex_SettleCountdown>
-  <RimForex_NextQuote>距下次报价 {0} 游戏时（{1} 秒）</RimForex_NextQuote>
+  <RimForex_NextQuote>距下次报价 {0} 秒</RimForex_NextQuote>
   <RimForex_TimeHint>可在此直接调整游戏速度，K 线会跟着变。</RimForex_TimeHint>
   <RimForex_All>全部</RimForex_All>
   <RimForex_DoDeposit>存入</RimForex_DoDeposit>
@@ -134,7 +134,7 @@
   <RimForex_SettingsGameplay>玩法参数</RimForex_SettingsGameplay>
   <RimForex_SettingsGameplayDesc>下面三项会真正改变行情与经济，不只是显示。</RimForex_SettingsGameplayDesc>
   <RimForex_Set_QuoteInterval>报价间隔：{0} 秒（现实时间，1x 速度）</RimForex_Set_QuoteInterval>
-  <RimForex_Set_QuoteIntervalTip>当前 {0} tick 一次报价，一个游戏日 {1} 次。日波动率不变，改的只是跳动频率。</RimForex_Set_QuoteIntervalTip>
+  <RimForex_Set_QuoteIntervalTip>当前 {0} tick 一次报价，一个游戏日约 {1} 次。日波动率不变，改的只是跳动频率。\n每一步之内，价格还会再分 {2} 次走完 —— 图表因此一直在动，这是正常的。</RimForex_Set_QuoteIntervalTip>
   <RimForex_Set_QuotesPerCandle>每根K线由 {0} 次报价合成</RimForex_Set_QuotesPerCandle>
   <RimForex_Set_QuotesPerCandleTip>一根K线约合现实 {0} 秒。只影响图表可读性。</RimForex_Set_QuotesPerCandleTip>
   <RimForex_Set_GapIntensity>跳空强度：{0}%（{1}）</RimForex_Set_GapIntensity>

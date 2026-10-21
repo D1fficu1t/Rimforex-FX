@@ -32,7 +32,7 @@
   <RimForex_TipPosCell>{0} units open\nfloating P/L {1} silver</RimForex_TipPosCell>
 
   <RimForex_ChartTitle>{0}</RimForex_ChartTitle>
-  <RimForex_ChartSpeedHint>One candle every {0} quotes ({1} game h each, about {2}s)</RimForex_ChartSpeedHint>
+  <RimForex_ChartSpeedHint>One candle per {0} quotes ({1} game h ≈ {2}s); {3} intra-quote updates per step</RimForex_ChartSpeedHint>
   <RimForex_ChartEntryLegend>Dashed line = your fill price (long = ask, short = bid; half a spread off the mid)</RimForex_ChartEntryLegend>
   <RimForex_PnlTag>P/L</RimForex_PnlTag>
   <RimForex_CostTag>cost</RimForex_CostTag>
@@ -65,7 +65,7 @@ Floating P/L {2} silver</RimForex_PosLineTip>
   <RimForex_ChartNavTip>Mouse wheel: zoom in/out. Hover a candle: see its open, high, low and close.</RimForex_ChartNavTip>
   <RimForex_ChartView>{0} candles shown   |   {1} each</RimForex_ChartView>
   <RimForex_SettleCountdown>next settlement in {0} h</RimForex_SettleCountdown>
-  <RimForex_NextQuote>next quote in {0} game h ({1} s)</RimForex_NextQuote>
+  <RimForex_NextQuote>next quote in {0}s</RimForex_NextQuote>
   <RimForex_TimeHint>Game speed can be changed here - the chart follows it.</RimForex_TimeHint>
   <RimForex_All>All</RimForex_All>
   <RimForex_DoDeposit>Deposit</RimForex_DoDeposit>
@@ -123,7 +123,7 @@ Floating P/L {2} silver</RimForex_PosLineTip>
   <RimForex_SettingsGameplay>Gameplay</RimForex_SettingsGameplay>
   <RimForex_SettingsGameplayDesc>These three actually change the market and the economy, not just the display.</RimForex_SettingsGameplayDesc>
   <RimForex_Set_QuoteInterval>Quote interval: {0}s (real time, 1x speed)</RimForex_Set_QuoteInterval>
-  <RimForex_Set_QuoteIntervalTip>One quote every {0} ticks, {1} quotes per game day. Daily volatility is unchanged; only the tick rate moves.</RimForex_Set_QuoteIntervalTip>
+  <RimForex_Set_QuoteIntervalTip>One quote every {0} ticks, about {1} per game day. Daily volatility is unchanged; only the tick rate moves.\nEach quote is walked in {2} intra-quote steps — that is why the chart keeps moving, and it is expected.</RimForex_Set_QuoteIntervalTip>
   <RimForex_Set_QuotesPerCandle>{0} quotes per candle</RimForex_Set_QuotesPerCandle>
   <RimForex_Set_QuotesPerCandleTip>One candle is about {0} real seconds. Affects chart readability only.</RimForex_Set_QuotesPerCandleTip>
   <RimForex_Set_GapIntensity>Gap intensity: {0}% ({1})</RimForex_Set_GapIntensity>

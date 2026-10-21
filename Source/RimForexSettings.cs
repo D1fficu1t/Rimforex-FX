@@ -406,7 +406,8 @@ namespace RimForex
             Settings.secondsPerQuote = Mathf.Round(sec * 10f) / 10f;
             Hint(l, "RimForex_Set_QuoteIntervalTip".Translate(
                 FxMarket.TicksPerStep.ToString(),
-                FxMarket.StepsPerDay.ToString()));
+                FxMarket.StepsPerDay.ToString(),
+                FxMarket.SubSteps.ToString()));
 
             // 每根 K 线几次报价
             l.Gap(4f);

@@ -464,10 +464,14 @@ namespace RimForex
             Rect hourBtn = new Rect(dayBtn.xMax + SpanGap, resetBtn.y, SpanW, resetBtn.height);
 
             // 倒计时（与推进逻辑同源：基于 lastStepTick；1x 下 60 tick = 1 现实秒）
+            //
+            // 2026-10-21：只显示**现实秒**。
+            // 原来第一个占位符是 "ticksLeft / TicksPerStep"，却被写成"游戏时" ——
+            // 那是"还剩几成一个报价步"的比例（0~1），不是游戏小时。
+            // 一个报价步只有 0.07 游戏时，用游戏时表达毫无意义，玩家关心的就是"还有几秒"。
             int ticksLeft = fx.TicksUntilQuote;
             string countdown = cfg == null || cfg.showQuotePacingHint
                 ? "RimForex_NextQuote".Translate(
-                    (ticksLeft / (float)FxMarket.TicksPerStep).ToString("0.0"),
                     (ticksLeft / (float)FxGameComponent.TicksPerRealSecond).ToString("0.0"))
                 : null;
 
@@ -483,7 +487,12 @@ namespace RimForex
             {
                 Text.Font = GameFont.Tiny;
                 Text.Anchor = TextAnchor.UpperRight;
-                Widgets.Label(new Rect(hourBtn.x - countdownW - Gap, r.y + 3f, countdownW, 18f), countdown);
+                // 2026-10-21：锚点从 hourBtn 移到 dayBtn 的左边。
+                // 原来锚在时K按钮左侧，而日K按钮就在时K左边 ——
+                // 倒计时矩形 [hourBtn.x-150-Gap, hourBtn.x-Gap] 与日K按钮
+                // [dayBtn.x, dayBtn.xMax] 重叠 44px，且日K按钮后绘制，
+                // 会把倒计时**右边的字符直接盖掉**。
+                Widgets.Label(new Rect(dayBtn.x - countdownW - Gap, r.y + 3f, countdownW, 18f), countdown);
                 Text.Anchor = TextAnchor.UpperLeft;
             }
 
@@ -507,8 +516,11 @@ namespace RimForex
                 Widgets.Label(new Rect(r.x, r.y + 22f, r.width, 16f),
                     "RimForex_ChartSpeedHint".Translate(
                         FxMarket.QuotesPerCandle,
-                        (FxMarket.TicksPerStep / (float)FxGameComponent.TicksPerDay * 24f).ToString("0.#"),
-                        (FxMarket.TicksPerCandle / (float)FxGameComponent.TicksPerRealSecond).ToString("0"))
+                        // 2026-10-21：这里原来漏乘 QuotesPerCandle，把"一步"当成"一根K线"，
+                        // 于是显示 0.1 游戏时，而实际是 0.43。
+                        (FxMarket.TicksPerCandle / (float)FxGameComponent.TicksPerDay * 24f).ToString("0.##"),
+                        (FxMarket.TicksPerCandle / (float)FxGameComponent.TicksPerRealSecond).ToString("0"),
+                        FxMarket.SubSteps)
                     + "   " + "RimForex_ChartSpanLabel".Translate(
                         chartSpan == FxChartSpan.Day ? "RimForex_SpanDay".Translate()
                             : chartSpan == FxChartSpan.Hour ? "RimForex_SpanHour".Translate()
