@@ -113,7 +113,8 @@
   <RimForex_OrderFor>新建订单 — {0}</RimForex_OrderFor>
   <RimForex_MarginInput>保证金</RimForex_MarginInput>
   <RimForex_Leverage>杠杆</RimForex_Leverage>
-  <RimForex_TipLevSafe>使用 {0}x 杠杆。点差占保证金的比例在安全范围内。</RimForex_TipLevSafe>
+  <RimForex_TipLevSafe>当前 {0}x。拖动滑块选档（1/2/3/5/8/10/15/20/30/50/75/100）；点差占保证金的比例在安全范围内。</RimForex_TipLevSafe>
+  <RimForex_LevCap>上限 {0}x</RimForex_LevCap>
   <RimForex_TipLevUnsafe>不可用：点差占保证金的冲击会达到 {0}%，超过强平线。该品种的安全杠杆上限约 {1}x。</RimForex_TipLevUnsafe>
   <RimForex_LevUnsafeNote>此杠杆下点差冲击超出强平线，解锁瞬间会被强制平仓。建议改用 {0}x 以内。</RimForex_LevUnsafeNote>
   <RimForex_LevRiskyNote>高风险：强平距离 {0}% &lt; 日波动 {1}%（{2} 倍），仓位大概率数小时内被强平。</RimForex_LevRiskyNote>

@@ -102,7 +102,8 @@ Floating P/L {2} silver</RimForex_PosLineTip>
   <RimForex_OrderFor>New order - {0}</RimForex_OrderFor>
   <RimForex_MarginInput>Margin</RimForex_MarginInput>
   <RimForex_Leverage>Leverage</RimForex_Leverage>
-  <RimForex_TipLevSafe>{0}x. Spread cost stays within a safe share of margin.</RimForex_TipLevSafe>
+  <RimForex_TipLevSafe>{0}x. Drag the slider to pick a step (1/2/3/5/8/10/15/20/30/50/75/100); the spread cost stays within a safe share of margin.</RimForex_TipLevSafe>
+  <RimForex_LevCap>Max {0}x</RimForex_LevCap>
   <RimForex_TipLevUnsafe>Unavailable: the spread alone would consume {0}% of your margin, past the stop-out level. Safe limit for this pair is about {1}x.</RimForex_TipLevUnsafe>
   <RimForex_LevUnsafeNote>At this leverage the spread alone exceeds the stop-out level, so the position would be liquidated the moment it unlocks. Use {0}x or less.</RimForex_LevUnsafeNote>
   <RimForex_LevRiskyNote>HIGH RISK: stop-out {0}% &lt; daily move {1}% ({2}x). Likely liquidated within hours.</RimForex_LevRiskyNote>

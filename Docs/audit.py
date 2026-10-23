@@ -1336,6 +1336,23 @@ def main():
         fail += 1
         print("  !! 可搬运但没有 <Mass> —— 主菜单会报红字：is haulable, but does not have an authored mass value")
 
+    # ---- 12. 杠杆滑块（2026-10-23 改，原来是一排按钮）----
+    # 离散档位而不是 1~100 连续：线性滑轨上 1~10 只占 9%，低倍区点不准。
+    win12 = re.sub(r"//[^\n]*", "", win)
+    if "LeverageLadder" in win12 and "Widgets.HorizontalSlider" in win12:
+        print("  OK 杠杆用离散档位滑块（不是一排按钮）")
+    else:
+        fail += 1
+        print("  !! 杠杆区又变回按钮 / 或滑块被删了")
+    if re.search(r"MaxLadderIndex\(", win12) and "LeverageSafeFor" in win12:
+        print("  OK 滑块上限仍受安全杠杆约束（拖不到解锁即强平的档位）")
+    else:
+        fail += 1
+        print("  !! 滑块没有夹到安全杠杆上限 —— 玩家能滑出必死档位")
+    if re.search(r"float\[\]\s+tiers", win12) or re.search(r"float\[\]\s+all\s*=\s*\{", win12):
+        fail += 1
+        print("  !! 又出现硬编码的杠杆档位数组（应该统一用 LeverageLadder）")
+
     print()
     print("结果:", "全部通过" if fail == 0 else "%d 项失败" % fail)
     return 1 if fail else 0

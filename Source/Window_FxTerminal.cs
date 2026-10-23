@@ -27,6 +27,37 @@ namespace RimForex
         private float orderLeverage = 1f;
         private string marginBuffer = "";
 
+        /// <summary>
+        /// 杠杆档位。滑块在这些值之间跳，不是连续取值。
+        ///
+        /// 为什么不用 1~100 连续：线性滑轨上 1~10 只占 9%，而玩家最常用的就是低倍区，
+        /// 连续滑到 3x 或 5x 基本靠运气。改成离散档位后每一档都点得准，
+        /// 高倍区（50/75/100）也只需要往右拖到底。
+        ///
+        /// 与 <see cref="FxGameComponent.MaxSafeLeverageFor"/> 配合：
+        /// 滑块上限会被夹到该品种撑得住的最大档，所以不会滑出"解锁即强平"的档位。
+        /// </summary>
+        private static readonly float[] LeverageLadder =
+            { 1f, 2f, 3f, 5f, 8f, 10f, 15f, 20f, 30f, 50f, 75f, 100f };
+
+        /// <summary>把任意杠杆值映射到不超过它的最高档位索引（找不到就返回 0）。</summary>
+        private static int LadderIndexOf(float lev)
+        {
+            int best = 0;
+            for (int i = 0; i < LeverageLadder.Length; i++)
+                if (LeverageLadder[i] <= lev + 0.001f) best = i;
+            return best;
+        }
+
+        /// <summary>该安全杠杆上限允许到达的最大档位索引。</summary>
+        private static int MaxLadderIndex(float cap)
+        {
+            int best = 0;
+            for (int i = 0; i < LeverageLadder.Length; i++)
+                if (LeverageLadder[i] <= cap + 0.001f) best = i;
+            return best;
+        }
+
         // 存取款输入（直接填数字，不再靠"禁用"）
         private int depositAmount = 0;
         private string depositBuffer = "0";
@@ -1374,17 +1405,11 @@ namespace RimForex
             float spreadPct = FxMarket.SpreadRateFor(sel) * 100f;
 
             // 切换货币后，原来选的杠杆可能对新高波动品种不安全（点差 × 杠杆 超过强平线）。
-            // 这里自动降档到该品种的最大安全杠杆，避免玩家在不知情的情况下开出一个必死的仓位。
-            if (sel != null && !FxGameComponent.LeverageSafeFor(sel, orderLeverage))
+            // 这里自动降档到该品种的最大安全档位，避免玩家在不知情的情况下开出必死的仓位。
+            if (sel != null)
             {
-                float cap = FxGameComponent.MaxSafeLeverageFor(sel);
-                float best = 1f;
-                float[] all = { 1f, 5f, 10f, 20f, 50f, 100f };
-                for (int i = 0; i < all.Length; i++)
-                {
-                    if (all[i] <= cap) best = all[i];
-                }
-                orderLeverage = best;
+                int capIdx = MaxLadderIndex(FxGameComponent.MaxSafeLeverageFor(sel));
+                if (LadderIndexOf(orderLeverage) > capIdx) orderLeverage = LeverageLadder[capIdx];
             }
 
             // 能开 1 单位所需的最低保证金（含手续费）。数量框的最小值就是它。
@@ -1470,39 +1495,60 @@ namespace RimForex
             y += 29f;
 
             Widgets.Label(new Rect(left.x, y, 52f, 24f), "RimForex_Leverage".Translate());
-            float[] tiers = { 1f, 5f, 10f, 20f, 50f, 100f };
+
+            // ── 杠杆：滑块（2026-10-23 改，原来是一排按钮）──
+            //
+            // 为什么用**离散档位**而不是 1~100 连续：
+            // 线性滑轨上 1~10 只占 9%，低倍区根本点不准；而实际常用的正是低倍。
+            // 档位：1 · 2 · 3 · 5 · 8 · 10 · 15 · 20 · 30 · 50 · 75 · 100
+            //
+            // 滑块上限**夹到该品种的安全杠杆**：点差占保证金的比例不能超过强平线，
+            // 否则一解锁就会被强平。所以滑块拖到头就是"这个品种能用的最高档"，
+            // 拖不到 100x 时右侧会写明上限，免得玩家以为滑块坏了。
             float maxSafe = FxGameComponent.MaxSafeLeverageFor(sel);
-            float bx = left.x + 56f;
-            for (int i = 0; i < tiers.Length; i++)
+            int maxIdx = MaxLadderIndex(maxSafe);
+            int curIdx = Mathf.Clamp(LadderIndexOf(orderLeverage), 0, maxIdx);
+
+            float sliderW = Mathf.Clamp(left.width - 230f, 120f, 220f);
+            Rect sliderR = new Rect(left.x + 56f, y + 1f, sliderW, 22f);
+            // 防御：若某品种连 2x 都撑不住（正常参数下不会发生），
+            // 滑轨的 min==max 会让原版 Slider 里出现 0/0。给一个最小跨度避免 NaN。
+            int sliderMax = Mathf.Max(1, maxIdx);
+            int newIdx = Mathf.RoundToInt(Widgets.HorizontalSlider(
+                sliderR, curIdx, 0f, sliderMax, true, null, null, null, 1f));
+            if (newIdx != curIdx)
             {
-                float lv = tiers[i];
-                bool safe = FxGameComponent.LeverageSafeFor(sel, lv);
-
-                Rect br = new Rect(bx, y, 44f, 24f);
-                if (Mathf.Approximately(orderLeverage, lv)) Widgets.DrawHighlightSelected(br);
-
-                // 不安全的档位置灰且不可点。
-                // 原因：点差占保证金的冲击 = 点差 × 杠杆，超过强平线就会"解锁瞬间被强平"。
-                // 与其让玩家开出一个必死的仓位，不如直接禁用并说明原因。
-                if (!safe) GUI.color = new Color(0.45f, 0.45f, 0.45f);
-                if (Widgets.ButtonText(br, lv.ToString("F0") + "x") && safe)
+                newIdx = Mathf.Clamp(newIdx, 0, maxIdx);
+                orderLeverage = LeverageLadder[newIdx];
+                // 杠杆变了最低保证金也变，重算并把输入夹回合法范围
+                float newMin = MinMarginFor(ask, orderLeverage);
+                if (orderMargin < newMin)
                 {
-                    orderLeverage = lv;
-                    // 杠杆变了最低保证金也变，重算并把输入夹回合法范围
-                    float newMin = MinMarginFor(ask, orderLeverage);
-                    if (orderMargin < newMin)
-                    {
-                        orderMargin = Mathf.CeilToInt(newMin);
-                        marginBuffer = orderMargin.ToString();
-                    }
+                    orderMargin = Mathf.CeilToInt(newMin);
+                    marginBuffer = orderMargin.ToString();
                 }
-                GUI.color = Color.white;
-                TooltipHandler.TipRegion(br, safe
-                    ? "RimForex_TipLevSafe".Translate(lv.ToString("F0"))
-                    : "RimForex_TipLevUnsafe".Translate(
-                        (spreadPct * lv).ToString("0"), maxSafe.ToString("0")));
-                bx += 46f;
+                curIdx = newIdx;
             }
+
+            Widgets.Label(new Rect(sliderR.xMax + 6f, y, 54f, 24f),
+                LeverageLadder[curIdx].ToString("F0") + "x");
+
+            // 该品种撑不满 100x 时才写上限；能拉满就不加噪音。
+            if (maxIdx < LeverageLadder.Length - 1)
+            {
+                Text.Font = GameFont.Tiny;
+                GUI.color = new Color(0.72f, 0.72f, 0.72f);
+                Widgets.Label(new Rect(sliderR.xMax + 60f, y + 5f, left.width - sliderW - 118f, 18f),
+                    "RimForex_LevCap".Translate(maxSafe.ToString("0")));
+                GUI.color = Color.white;
+                Text.Font = GameFont.Small;
+            }
+
+            TooltipHandler.TipRegion(new Rect(left.x, y, left.width, 24f),
+                FxGameComponent.LeverageSafeFor(sel, orderLeverage)
+                    ? "RimForex_TipLevSafe".Translate(LeverageLadder[curIdx].ToString("F0"))
+                    : "RimForex_TipLevUnsafe".Translate(
+                        (spreadPct * orderLeverage).ToString("0"), maxSafe.ToString("0")));
             y += 30f;
 
             // ---- 杠杆风险提示 ----
