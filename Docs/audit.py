@@ -1327,6 +1327,15 @@ def main():
         fail += 1
         print("  !! 写了 <Minifiable> —— 原版没有这个字段，判定只看 minifiedDef")
 
+    # 可搬运 ⇒ 必须有质量。Def 校验原文：
+    #   "is haulable, but does not have an authored mass value"
+    # 加 minifiedDef 的当天就踩了这个坑（只在主菜单加载 Def 时报红字，跑脚本看不出来）。
+    if "<minifiedDef>" in bdef and re.search(r"<Mass>[\d.]+</Mass>", bdef):
+        print("  OK 可搬运建筑有质量（不会报 is haulable, but does not have an authored mass value）")
+    else:
+        fail += 1
+        print("  !! 可搬运但没有 <Mass> —— 主菜单会报红字：is haulable, but does not have an authored mass value")
+
     print()
     print("结果:", "全部通过" if fail == 0 else "%d 项失败" % fail)
     return 1 if fail else 0

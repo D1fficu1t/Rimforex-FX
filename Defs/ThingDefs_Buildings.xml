@@ -60,6 +60,12 @@
       <MaxHitPoints>250</MaxHitPoints>
       <Flammability>0.5</Flammability>
       <Beauty>-2</Beauty>
+      <!-- Mass 是【可搬运的强制项】（2026-10-23 补）：
+           可搬运 = 可被搬运，Def 校验会报
+           "is haulable, but does not have an authored mass value"。
+           取 30 —— 原版参考：ButcherSpot 20 / DeepDrill 35 / Bed 30。
+           一个默认小人（承载 75）扛得动，符合"搬走重装"的设计意图。 -->
+      <Mass>30</Mass>
     </statBases>
     <costList>
       <Steel>90</Steel>
