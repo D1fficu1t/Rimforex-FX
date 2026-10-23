@@ -1388,6 +1388,13 @@ def main():
         fail += 1
         print("  !! 悬浮窗的持仓明细 / 平仓按钮被删了")
 
+    # 悬浮窗平仓必须也受电力约束 —— 否则它是绕开 250W 的后门
+    if "HasUsableTerminal" in hud13 and re.search(r"hasPower && fx != null && fx\.CanClose", hud13):
+        print("  OK 悬浮窗平仓同样要求通电的终端（不是绕开电力的后门）")
+    else:
+        fail += 1
+        print("  !! 悬浮窗平仓不受电力约束 —— 终端断电也能平仓")
+
     if "marginAtMinimum" in win13 and re.search(r"if \(marginAtMinimum\)", win13):
         print("  OK 最小值跟随生效（按过最小值后改杠杆会重算，手动输入即解除）")
     else:

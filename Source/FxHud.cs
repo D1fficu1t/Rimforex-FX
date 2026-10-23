@@ -163,6 +163,16 @@ namespace RimForex
 
                 FxGameComponent fx = Find.World != null ? Find.World.GetComponent<FxGameComponent>() : null;
 
+                // ── 平仓同样要有"通电的终端"（2026-10-23 补）──
+                //
+                // 交易终端需要 250W 才允许交易，窗口在断电时会自动关闭（R11）。
+                // 但悬浮窗曾经是条后门：终端断电了，照样能从这里平仓 ——
+                // 等于绕过电力门槛。作者实测发现（"断电的情况下依然可以在悬浮窗口里平仓"）。
+                //
+                // 注意**只禁用平仓按钮，不隐藏悬浮窗**：
+                // 断电时玩家更需要盯着浮亏，看是应该修电还是认赔，只是不能操作。
+                bool hasPower = HasUsableTerminal(map);
+
                 for (int i = 0; i < acc.positions.Count; i++)
                 {
                     var p = acc.positions[i];
@@ -186,12 +196,12 @@ namespace RimForex
                     Widgets.Label(pnlR, pnlStr);
                     GUI.color = Color.white;
 
-                    // 平仓
+                    // 平仓：需要 ①通电的终端 ②跨过一次报价 ③组件在
                     Rect closeBtn = new Rect(box.xMax - CloseBtnW - 4f, rowY + 1f, CloseBtnW, RowH - 4f);
                     buttonRects.Add(closeBtn);
-                    bool closable = fx == null || fx.CanClose(p);
+                    bool closable = hasPower && fx != null && fx.CanClose(p);
                     if (!closable) GUI.color = new Color(0.5f, 0.5f, 0.5f);
-                    if (Widgets.ButtonText(closeBtn, "RimForex_HudClose".Translate()) && closable && fx != null)
+                    if (Widgets.ButtonText(closeBtn, "RimForex_HudClose".Translate()) && closable)
                     {
                         // 与终端完全同一套记账（手续费 / 点差 / 历史 / 心情）
                         fx.ClosePositionFromUi(acc, p);
@@ -199,9 +209,10 @@ namespace RimForex
                     }
                     GUI.color = Color.white;
 
-                    TooltipHandler.TipRegion(closeBtn, closable
-                        ? "RimForex_HudCloseTip".Translate()
-                        : "RimForex_HudCloseLocked".Translate());
+                    TooltipHandler.TipRegion(closeBtn, !hasPower
+                        ? "RimForex_HudCloseNoPower".Translate()
+                        : (closable ? "RimForex_HudCloseTip".Translate()
+                                    : "RimForex_HudCloseLocked".Translate()));
                 }
             }
             else
@@ -231,6 +242,23 @@ namespace RimForex
             {
                 // 这里只挑可用终端：断电 / 已拆除的直接跳过。
                 if (b != null && b.TryOpenTerminalWindow()) return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// 这张地图上有没有**通电可用**的终端。
+        ///
+        /// 悬浮窗的"平仓"按钮要用它把关：交易需要 250W，
+        /// 窗口断电会自动关闭（R11），悬浮窗也就不能变成绕开电力的后门。
+        /// </summary>
+        private static bool HasUsableTerminal(Map map)
+        {
+            if (map == null || map.listerBuildings == null) return false;
+
+            foreach (var b in map.listerBuildings.AllBuildingsColonistOfClass<Building_FXTradingTerminal>())
+            {
+                if (b != null && b.Usable) return true;
             }
             return false;
         }

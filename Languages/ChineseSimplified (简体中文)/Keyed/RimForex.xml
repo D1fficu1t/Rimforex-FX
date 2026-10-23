@@ -195,6 +195,7 @@
   <RimForex_HudClose>平仓</RimForex_HudClose>
   <RimForex_HudCloseTip>立即平掉这笔持仓（与终端里平仓完全同一套记账）</RimForex_HudCloseTip>
   <RimForex_HudCloseLocked>本报价步内还不能平仓，等下一次报价</RimForex_HudCloseLocked>
+  <RimForex_HudCloseNoPower>需要一台通电的 FX 交易终端才能平仓（交易要 250W）</RimForex_HudCloseNoPower>
   <RimForex_MsgNoTerminal>当前地图上没有可用的 FX 交易终端（需要已建造并通电）。</RimForex_MsgNoTerminal>
   <RimForex_Set_FloatingPnl>显示悬浮盈亏窗</RimForex_Set_FloatingPnl>
   <RimForex_Set_FloatingPnlTip>关掉交易终端去干别的时，在屏幕角落显示当前持仓的浮动盈亏。窗口可以用鼠标左键拖动，位置会记住。</RimForex_Set_FloatingPnlTip>
