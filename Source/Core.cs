@@ -760,8 +760,6 @@ namespace RimForex
         /// 现在直接数动作，语义更直白。
         /// </summary>
         public int activityToday;
-        /// <summary>累计已付手续费（开仓 + 平仓），仅用于展示成本。</summary>
-        public float lifetimeFees;
 
         /// <summary>
         /// 上一个结算时点的账户权益（余额 + 浮动盈亏）。
@@ -792,8 +790,6 @@ namespace RimForex
 
         /// <summary>已平仓交易记录，最新的在末尾。用于"交易历史"页面。</summary>
         public List<FxTradeRecord> history = new List<FxTradeRecord>();
-        /// <summary>连续平淡日计数，用于决定何时补发一封摘要信。</summary>
-        public int quietDays;
         /// <summary>历史记录上限，避免长存档无限增长。</summary>
         public const int MaxHistory = 200;
 
@@ -964,9 +960,7 @@ namespace RimForex
             Scribe_Values.Look(ref lastDayPnl, "lastDayPnl", 0f);
             Scribe_Values.Look(ref lastDayPositions, "lastDayPositions", 0);
             Scribe_Values.Look(ref activityToday, "activityToday", 0);
-            Scribe_Values.Look(ref lifetimeFees, "lifetimeFees", 0f);
             Scribe_Collections.Look(ref history, "history", LookMode.Deep);
-            Scribe_Values.Look(ref quietDays, "quietDays", 0);
             if (history == null) history = new List<FxTradeRecord>();
             if (positions == null) positions = new List<FxPosition>();
 
@@ -2666,22 +2660,19 @@ namespace RimForex
         public const int TicksPerRealSecond = 60;
 
         /// <summary>
-        /// 结算信件的绝对下限（白银）。当日盈亏的绝对值低于此值就算"平淡日"，不发信。
+        /// 结算发信规则（2026-10-23 改）。
         ///
-        /// 来历说明：Alpha 首版这里是一个裸的 40（`pnlLetterThreshold = 40f`），
-        /// 当时账户余额只有一万出头，40 大概是"看得见"的量级 —— 纯粹拍的，没有依据，
-        /// 更没随账户规模调整。后来账户涨到 16 万，一天的正常波动轻易几百银，
-        /// 于是几乎天天触发发信，玩起来像"怎么一直在结算"。
-        /// 现在改成"绝对下限 + 相对比例"取大者，避免再出现固定值跟不上规模的问题。
+        /// 旧规则是"当日盈亏绝对值 ≥ max(200, 净值 × 1%)，或者当天动过仓"，
+        /// 平淡日再累计 3 天补一封摘要。问题：
+        ///   · 门槛跟着账户规模涨，账户一大就天天触发，玩家感受是"怎么一直在结算"；
+        ///   · 真正让人想看的其实是"我有没有在动"，不是"今天浮动了多少"；
+        ///   · 摘要信还会和空账户叠在一起刷屏（见 AccountFor 的幽灵账户注释）。
+        ///
+        /// 新规则只有两条：
+        ///   ① 当天动过仓（开或平）→ 发；
+        ///   ② 收盘时还有持仓 → 发（有仓就有玩家关心的浮动盈亏）。
+        /// 空仓又没交易的日子**彻底静默**，摘要信一并取消。
         /// </summary>
-        private const float pnlLetterQuietFloor = 200f;
-        /// <summary>
-        /// 相对门槛：当日盈亏超过净值的这个比例才算重要日。
-        /// 16 万净值下约为 1600 白银，与一天 1.4% 的波动量级匹配。
-        /// </summary>
-        private const float pnlLetterEquityFraction = 0.01f;
-        /// <summary>连续多少个平淡日之后补发一封摘要信，避免完全没反馈。</summary>
-        private const int quietDaysBeforeDigest = 3;
 
         /// <summary>
         /// 平台手续费率：按名义规模收取。开仓和平仓各收一次。
@@ -3640,7 +3631,6 @@ namespace RimForex
                     float closeFee = FeeFor(Mathf.Abs(pos.units) * exitPrice);
                     float refund = eq - closeFee;
                     acc.balance += refund;
-                    acc.lifetimeFees += closeFee;
                     acc.feesSinceSettle += closeFee;
                     // 注意：穿仓判据用【扣费后的余额】，因为那才是账户的真实状态
                     bool blewUp = acc.balance < 0f;
@@ -3941,33 +3931,22 @@ namespace RimForex
             // 结算不再挂心情。心情已改为"按单笔平仓"实时记录（见 RecordCloseMood），
             // 每天结算只负责发一封事件通告信。
 
-            // 发信门槛：只有"真正值得看一眼"的日才算重要日。
-            // 早期用 |盈亏| >= 40，在 20 万级别的账户上几乎天天触发，
-            // 玩家的感受就是"怎么一直在结算" —— 其实结算确实每天一次，是信件太吵。
-            // 现在改成按账户规模取相对阈值，并且平淡日累计到一定天数才补一封。
-            float threshold = System.Math.Max(pnlLetterQuietFloor, acc.Equity * pnlLetterEquityFraction);
-
-            // 取走并清零当天的动作计数（结算每天只跑一次，这里读的就是"昨天那一段"）
+            // ── 发信条件（2026-10-23 改，只看"有没有在动"）──
+            //
+            //   ① 当天动过仓（开或平）      → 发
+            //   ② 收盘时还有持仓            → 发（有仓就有玩家关心的浮盈亏）
+            //
+            // 空仓又没交易的日子彻底静默。原来那种"平淡日累计 3 天补一封摘要"
+            // 也删掉了 —— 否则平淡日照样每 3 天冒一封，等于没改。
+            //
+            // 旧条件是 `|当日盈亏| >= max(200, 净值×1%) || 动过仓`，门槛跟着账户规模涨，
+            // 账户一大就天天触发，玩家的感受是"怎么一直在结算"。
             bool tradedToday = acc.activityToday > 0;
             acc.activityToday = 0;
 
-            // 发信条件：盈亏过了门槛，或者当天确实动过仓。
-            // 后者很重要 —— 玩家平了一笔小赚，若因为没过门槛就不吭声，会以为结算坏了。
-            bool notable = System.Math.Abs(dayPnl) >= threshold || tradedToday;
-
-            if (notable)
+            if (tradedToday || openCount > 0)
             {
                 PostSettlementLetter(acc, dayPnl, false, openCount);
-                acc.quietDays = 0;
-            }
-            else
-            {
-                acc.quietDays++;
-                if (acc.quietDays >= quietDaysBeforeDigest)
-                {
-                    PostSettlementLetter(acc, dayPnl, false, openCount);
-                    acc.quietDays = 0;
-                }
             }
 
             // 手续费按结算周期归零。必须放在所有 PostSettlementLetter 调用之后 ——

@@ -16,7 +16,9 @@
   <RimForex_FloatingPnl>Floating P/L</RimForex_FloatingPnl>
   <RimForex_Deposit>Deposit silver</RimForex_Deposit>
   <RimForex_Withdraw>Withdraw</RimForex_Withdraw>
-  <RimForex_StatusLine>Last settlement {0} silver / {1} position(s)   |   Fees paid to date {2} silver</RimForex_StatusLine>
+  <RimForex_StatusLine>Last settlement {0} silver / {1} position(s)</RimForex_StatusLine>
+  <RimForex_OpenSettings>Mod settings</RimForex_OpenSettings>
+  <RimForex_OpenSettingsTip>Open RimForex settings (display toggles, pacing sliders, mood multipliers, test buttons)</RimForex_OpenSettingsTip>
 
   <RimForex_TipMark>(?)</RimForex_TipMark>
   <RimForex_TipEquity>Free margin plus margin in use plus floating profit/loss. This is what you would walk away with if you closed everything now.</RimForex_TipEquity>

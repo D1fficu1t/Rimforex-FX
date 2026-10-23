@@ -156,11 +156,26 @@ namespace RimForex
                                     TimeControls.TimeButSize.x * 4f, TimeControls.TimeButSize.y);
             TimeControls.DoTimeControlsGUI(buttons);
 
+            // 右下角：「模组设置」快捷入口（2026-10-23 加）。
+            // 放在时间条上而不是账户区 —— 那里已经被标题、状态行、结算倒计时占满。
+            const float SettingsBtnW = 96f;
+            Rect settingsBtn = new Rect(zone.xMax - SettingsBtnW, zone.y + (zone.height - 24f) * 0.5f,
+                                        SettingsBtnW, 24f);
+            if (Widgets.ButtonText(settingsBtn, "RimForex_OpenSettings".Translate()))
+            {
+                if (RimForexMod.Instance != null)
+                {
+                    Find.WindowStack.Add(new Dialog_ModSettings(RimForexMod.Instance));
+                }
+            }
+            TooltipHandler.TipRegion(settingsBtn, "RimForex_OpenSettingsTip".Translate());
+
             Text.Font = GameFont.Tiny;
             GUI.color = Color.gray;
             if (RimForexMod.Settings == null || RimForexMod.Settings.showTimeSpeedHint)
             {
-                Widgets.Label(new Rect(buttons.xMax + Gap, zone.y + 8f, zone.width - buttons.width - Gap, 18f),
+                Widgets.Label(new Rect(buttons.xMax + Gap, zone.y + 8f,
+                        zone.width - buttons.width - Gap - SettingsBtnW - Gap, 18f),
                     "RimForex_TimeHint".Translate());
             }
             GUI.color = Color.white;
@@ -178,10 +193,11 @@ namespace RimForex
             Widgets.Label(new Rect(r.x, r.y, 200f, 26f), "RimForex_Title".Translate());
             Text.Font = GameFont.Small;
 
+            // 累计手续费已从这一行移除（2026-10-23，作者认为这个统计没有意义）。
+            // 交易历史里的手续费明细保留不动。
             string status = "RimForex_StatusLine".Translate(
                 account.lastDayPnl.ToString("F0"),
-                account.lastDayPositions,
-                account.lifetimeFees.ToString("F0"));
+                account.lastDayPositions);
             Widgets.Label(new Rect(r.x + 210f, r.y + 4f, r.width - 400f, 22f), status);
 
             // 距下次每日结算的倒计时 —— 便于验证"每天 0 时结算一次"。
@@ -1793,7 +1809,6 @@ namespace RimForex
             if (margin + fee > account.balance) return;
 
             account.balance -= margin + fee;
-            account.lifetimeFees += fee;
             account.feesSinceSettle += fee;   // 结算信要把手续费摊开给玩家看
 
             // 开仓也算"当天动过仓"。结算信件靠这个计数决定要不要吭声，
@@ -1879,7 +1894,6 @@ namespace RimForex
             if (!Fx.CanClose(pos))
             {
                 account.balance += pos.margin + pos.openFee;
-                account.lifetimeFees -= pos.openFee;
                 account.feesSinceSettle -= pos.openFee;   // 全额退款，手续费要回冲
                 account.positions.Remove(pos);
                 DropWarningFor(pos);
@@ -1901,7 +1915,6 @@ namespace RimForex
             float fee = FxGameComponent.FeeFor(notional);
 
             account.balance += equity - fee;
-            account.lifetimeFees += fee;
             account.feesSinceSettle += fee;   // 结算信要把手续费摊开给玩家看
             // 不钳到 0：主动平仓也可能在跳空后产生负余额（穿仓），需要玩家补银填平。
             account.positions.Remove(pos);

@@ -233,9 +233,17 @@ namespace RimForex
         private static readonly System.Collections.Generic.List<string> NameSamples
             = new System.Collections.Generic.List<string>();
 
+        /// <summary>
+        /// 本模组的 Mod 实例（2026-10-23 加）。
+        /// 供"从交易终端直接打开模组设置"用 —— `Dialog_ModSettings` 的构造函数要一个 Mod。
+        /// 原版不提供静态入口，只能在构造时自己存一份。
+        /// </summary>
+        public static RimForexMod Instance;
+
         public RimForexMod(ModContentPack content) : base(content)
         {
             Settings = GetSettings<RimForexSettings>();
+            Instance = this;
         }
 
         public override string SettingsCategory()

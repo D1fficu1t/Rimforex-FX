@@ -16,7 +16,9 @@
   <RimForex_FloatingPnl>浮动盈亏</RimForex_FloatingPnl>
   <RimForex_Deposit>存入白银</RimForex_Deposit>
   <RimForex_Withdraw>提取</RimForex_Withdraw>
-  <RimForex_StatusLine>上次结算 {0} 白银 / {1} 个持仓   |   累计手续费 {2} 白银</RimForex_StatusLine>
+  <RimForex_StatusLine>上次结算 {0} 白银 / {1} 个持仓</RimForex_StatusLine>
+  <RimForex_OpenSettings>模组设置</RimForex_OpenSettings>
+  <RimForex_OpenSettingsTip>打开 RimForex 的模组设置（显示开关、节奏滑块、心情倍率、测试按钮）</RimForex_OpenSettingsTip>
 
   <RimForex_TipMark>(?)</RimForex_TipMark>
   <RimForex_TipEquity>可用保证金 + 占用保证金 + 浮动盈亏。等于现在全部平仓能拿回的白银。</RimForex_TipEquity>

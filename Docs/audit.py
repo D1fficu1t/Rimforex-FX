@@ -420,11 +420,23 @@ def main():
         fail += 1
         print("  !! 强平退款未扣平仓费 —— 玩家被强平反而少付钱")
 
-    if re.search(r"acc\.lifetimeFees \+= closeFee;", core):
-        print("  OK 平仓费已计入累计手续费")
+    # 2026-10-23：账户上的"累计手续费"已删除（作者认为这个统计没有意义）。
+    # 但报告里的 totalFee 必须仍然准确 —— 它来自**逐笔记录**，不依赖那个累计字段。
+    # 这条检查守的是"报告口径"，不是"有没有累计器"。
+    hist_src = ""
+    hp = os.path.join(SRC, "Window_TradeHistory.cs")
+    if os.path.exists(hp):
+        hist_src = open(hp, encoding="utf-8").read()
+    if re.search(r"totalFee \+= t\.totalFee;", hist_src):
+        print("  OK 报告 totalFee 来自逐笔记录（不依赖账户累计字段）")
     else:
         fail += 1
-        print("  !! 平仓费未计入累计手续费（报告 totalFee 会偏低）")
+        print("  !! 报告的 totalFee 不再逐笔累加 —— 手续费合计会失真")
+    if "lifetimeFees" not in core:
+        print("  OK 账户累计手续费字段已彻底移除")
+    else:
+        fail += 1
+        print("  !! lifetimeFees 又回来了 —— 玩家认为这个统计没有意义，已要求删除")
 
     # ---- 4a10. 爆仓线（图表叠加）------------------------------------------
     if "DrawStopOutLine" in win:
@@ -1276,6 +1288,19 @@ def main():
     else:
         fail += 1
         print("  !! 这些地方又直接向地图要账户了: " + ", ".join(direct))
+
+    # ⑤ 结算发信只看"有没有动"，不再按盈亏金额（2026-10-23 改）
+    # 规则：动过仓 或 收盘还有持仓 → 发；空仓又没交易 → 彻底静默，没有摘要信。
+    if re.search(r"if \(tradedToday \|\| openCount > 0\)", core):
+        print("  OK 结算发信只看动没动仓 / 有没有持仓（空仓静默）")
+    else:
+        fail += 1
+        print("  !! 结算发信条件被改回按盈亏金额了 —— 空仓的日子又会刷信")
+    if "quietDays" not in core and "quietDaysBeforeDigest" not in core:
+        print("  OK 平淡日摘要信已彻底移除")
+    else:
+        fail += 1
+        print("  !! 平淡日摘要信复活了 —— 空仓也会每 N 天冒一封")
 
     print()
     print("结果:", "全部通过" if fail == 0 else "%d 项失败" % fail)
