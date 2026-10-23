@@ -1229,6 +1229,54 @@ def main():
         fail += 1
         print("  !! GetCandles 又变成每帧分配 —— 图表开着时会持续产生垃圾")
 
+    # ---- 10. 幽灵账户（2026-10-23 修「一次蹦出两三封结算信」）----
+    #
+    # 现象：结算时同时出现两三封「每日结算」，其中几封盈亏写 0。
+    # 根因：账户按 map.Parent.ID 建，而 HUD（每帧 Find.CurrentMap）与心情系统
+    #      （每 120 tick 的殖民者所在地图）会为任何地图建账户；账户从不删除，
+    #      结算又遍历全部账户，空账户的当日盈亏恒为 0，只能走平淡日摘要分支，
+    #      每 3 天各发一封 0 盈亏的信。
+    # 实测：主存档有 3 个账户，744 正常，920/904 全空且世界里已无对应对象。
+    core10 = re.sub(r"//[^\n]*", "", core)
+
+    # ① 只有玩家殖民地才建账户
+    if "IsPlayerHome" in core10 and re.search(r"if \(!map\.IsPlayerHome\) return null;", core10):
+        print("  OK 只为玩家殖民地建账户（不再产生幽灵账户）")
+    else:
+        fail += 1
+        print("  !! AccountFor 又会对任意地图建账户 —— 任务图/伏击图会留下幽灵账户")
+
+    # ② 结算时必须剪掉空账户
+    if "IsEmptyAccount" in core10 and "accounts.Remove(keys[k])" in core10:
+        print("  OK 结算时剪掉空账户（存量幽灵不再发信）")
+    else:
+        fail += 1
+        print("  !! 结算不再清理空账户 —— 老存档的幽灵账户会继续每 3 天发一封 0 盈亏的信")
+
+    # ③ 结算必须只处理还活着的殖民地
+    if "liveIds" in core10:
+        print("  OK 结算只处理存活的殖民地地图")
+    else:
+        fail += 1
+        print("  !! 结算没有按存活地图过滤")
+
+    # ④ 除 ColonyAccount 内部外，不允许直接调 AccountFor(某张图)
+    direct = []
+    for fname in ("Window_FxTerminal.cs", "FxMood.cs", "FxHud.cs", "Building_FXTradingTerminal.cs"):
+        fp = os.path.join(ROOT, "Source", fname)
+        if not os.path.exists(fp):
+            continue
+        with open(fp, encoding="utf-8") as fh:
+            src = re.sub(r"//[^\n]*", "", fh.read())
+        for i, line in enumerate(src.split("\n"), 1):
+            if ".AccountFor(" in line:
+                direct.append("%s:%d" % (fname, i))
+    if not direct:
+        print("  OK 外部一律走 ColonyAccount（没有直接 AccountFor(当前地图)）")
+    else:
+        fail += 1
+        print("  !! 这些地方又直接向地图要账户了: " + ", ".join(direct))
+
     print()
     print("结果:", "全部通过" if fail == 0 else "%d 项失败" % fail)
     return 1 if fail else 0

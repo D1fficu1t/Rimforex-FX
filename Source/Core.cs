@@ -2909,16 +2909,68 @@ namespace RimForex
         {
         }
 
+        /// <summary>
+        /// 某张地图对应殖民地的账户。**非玩家殖民地地图一律返回 null。**
+        ///
+        /// ── 2026-10-23 修「一次蹦出两三封结算信」──
+        ///
+        /// 原来这里对**任何**地图都会建账户（key = map.Parent.ID），而代码里有两处
+        /// 会无差别地向"当前这张图"索要账户：
+        ///   · 悬浮窗每帧向 Find.CurrentMap 索要
+        ///   · 心情系统每 120 tick 向"殖民者所在地图"索要
+        /// 于是**看一眼任务图、或者远行队走进一张伏击图**，就永久多一个账户。
+        /// 而账户从来不删（全代码零处 accounts.Remove），结算又遍历**全部**账户 ——
+        /// 空账户的当日盈亏恒为 0，永远进不了发信门槛，于是走"平淡日摘要"分支，
+        /// 每 3 天各发一封 **盈亏 0 的结算信**。玩家看到的就是
+        /// "结算时同时蹦出两三封，其中几封写着 +0"。
+        ///
+        /// 实测证据：主存档里有 3 个账户 —— 744（Settlement，正常）、
+        /// 920 与 904（余额 / 净值 / 持仓 / 历史全空，且世界里已找不到这两个 ID 的对象）。
+        ///
+        /// 修法分两层：① 这里不再为非殖民地建账户（堵源头，本条）；
+        /// ② DailySettlement 里剪掉空账户、只结算还活着的殖民地（清存量）。
+        ///
+        /// 要"这个殖民地的钱"时用 <see cref="ColonyAccount"/>：拿不到本地账户会
+        /// 回退到第一块殖民地，所以远行队、任务图、营地看到的仍是同一份账。
+        /// </summary>
         public FxAccount AccountFor(Map map)
         {
-            int id = (map != null && map.Parent != null) ? map.Parent.ID : 0;
+            if (map == null || map.Parent == null) return null;
+            if (!map.IsPlayerHome) return null;
+
+            int id = map.Parent.ID;
             FxAccount acc;
-            if (!accounts.TryGetValue(id, out acc))
+            if (!accounts.TryGetValue(id, out acc) || acc == null)
             {
                 acc = new FxAccount();
                 accounts[id] = acc;
             }
             return acc;
+        }
+
+        /// <summary>
+        /// 殖民地账户：优先用 <paramref name="preferred"/>（若它本身是玩家殖民地），
+        /// 否则回退到第一块玩家殖民地。
+        ///
+        /// 所有"我要看殖民地的钱"的地方都应该用它，而不是直接
+        /// <c>AccountFor(某张图)</c> —— 后者在任务图 / 伏击图 / 营地上会返回 null，
+        /// 而且早先会为那些图**建出幽灵账户**（见 <see cref="AccountFor"/>）。
+        /// </summary>
+        public FxAccount ColonyAccount(Map preferred = null)
+        {
+            FxAccount acc = AccountFor(preferred);
+            if (acc != null) return acc;
+
+            var maps = Find.Maps;
+            if (maps != null)
+            {
+                for (int i = 0; i < maps.Count; i++)
+                {
+                    acc = AccountFor(maps[i]);
+                    if (acc != null) return acc;
+                }
+            }
+            return null;
         }
 
         /// <summary>确保所有已知派系的货币都已生成。惰性调用，避免开局卡顿。</summary>
@@ -3147,7 +3199,9 @@ namespace RimForex
                     MessageTypeDefOf.RejectInput, false);
                 return;
             }
-            FxAccount acc = AccountFor(m);
+            // 走 ColonyAccount：测试按钮在任何地图上都该作用到殖民地账户，
+            // 而不是因为站在任务图上就静默失效。
+            FxAccount acc = ColonyAccount(m);
             if (acc == null) return;
             acc.RecordMoodTier(tier);
         }
@@ -3158,7 +3212,7 @@ namespace RimForex
             get
             {
                 Map m = Find.CurrentMap;
-                return m != null ? AccountFor(m) : null;
+                return ColonyAccount(m);
             }
         }
 
@@ -3735,7 +3789,9 @@ namespace RimForex
             Map hudMap = Find.CurrentMap;
             if (hudMap != null)
             {
-                FxHud.DrawFloatingPnl(AccountFor(hudMap));
+                // ColonyAccount：在任务图 / 伏击图上也能看到殖民地的浮动盈亏，
+                // 而不是为那张图新建一个空账户（幽灵账户的源头）。
+                FxHud.DrawFloatingPnl(ColonyAccount(hudMap));
             }
 
             if (pendingWarnings.Count == 0) return;
@@ -3765,13 +3821,59 @@ namespace RimForex
             market.AnchorDayOpen();
             MarkToMarket();
 
+            // 还活着的玩家殖民地（key = map.Parent.ID）。
+            //
+            // 已经不存在的地图**不再结算**：否则废弃殖民地 / 临时地图留下的账户
+            // 会跟着存档过一辈子，每天参与结算。
+            var liveIds = new HashSet<int>();
+            var maps = Find.Maps;
+            if (maps != null)
+            {
+                for (int i = 0; i < maps.Count; i++)
+                {
+                    var m = maps[i];
+                    if (m != null && m.Parent != null && m.IsPlayerHome) liveIds.Add(m.Parent.ID);
+                }
+            }
+
             var keys = new List<int>(accounts.Keys);
             for (int k = 0; k < keys.Count; k++)
             {
                 var acc = accounts[keys[k]];
-                if (acc == null) continue;
+                if (acc == null)
+                {
+                    accounts.Remove(keys[k]);
+                    continue;
+                }
+
+                // ① 完全空的账户直接剪掉 —— 历史遗留的幽灵账户走这条。
+                //    它们以前每 3 天会各发一封「盈亏 0」的结算信。
+                if (IsEmptyAccount(acc))
+                {
+                    accounts.Remove(keys[k]);
+                    continue;
+                }
+
+                // ② 只结算还活着的殖民地。非空但地图已消失的账户保留数据，
+                //    但不再发信、不再改状态（玩家哪天回来还能看到历史）。
+                if (!liveIds.Contains(keys[k])) continue;
+
                 ReportDaily(acc);
             }
+        }
+
+        /// <summary>
+        /// 账户是否"什么都没有"：没余额、没持仓、没交易记录、也没结算基线。
+        ///
+        /// 这种账户只可能来自旧版本为每张看过 / 停留过的地图建的幽灵账户。
+        /// 剪掉它们不影响任何玩家资产 —— 上面任意一条非零即视为非空，一律保留。
+        /// </summary>
+        private static bool IsEmptyAccount(FxAccount acc)
+        {
+            return acc.balance < 0.01f
+                && acc.positions.Count == 0
+                && acc.history.Count == 0
+                && System.Math.Abs(acc.equityAtLastSettle) < 0.01f;
         }
 
         private void ReportDaily(FxAccount acc)

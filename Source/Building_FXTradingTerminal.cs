@@ -17,7 +17,9 @@ namespace RimForex
                 var fx = Find.World.GetComponent<FxGameComponent>();
                 if (fx == null) return null;
                 fx.EnsureAllFactionCurrencies();
-                return fx.AccountFor(Map);
+                // 用 ColonyAccount：终端建在营地 / 临时地图上时回退到殖民地账户，
+                // 既不会为那张图建幽灵账户，也不会让窗口拿到 null。
+                return fx.ColonyAccount(Map);
             }
         }
 
@@ -71,7 +73,8 @@ namespace RimForex
             string s = base.GetInspectString();
             var fx = Find.World.GetComponent<FxGameComponent>();
             if (fx == null) return s;
-            var acc = fx.AccountFor(Map);
+            var acc = fx.ColonyAccount(Map);
+            if (acc == null) return s;
             string line = "RimForex_InspectAccount".Translate(acc.balance.ToString("F0"), acc.MarginUsed.ToString("F0"), acc.FloatingPnl.ToString("F0"));
             return s.NullOrEmpty() ? line : s + "\n" + line;
         }

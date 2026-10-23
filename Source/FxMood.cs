@@ -285,7 +285,7 @@ namespace RimForex
                 // 账户是按地图索引的，不判身份的话囚犯与访客也会中招。
                 if (!pawn.IsFreeColonist) return null;
                 var fx = Find.World.GetComponent<FxGameComponent>();
-                return fx != null ? fx.AccountFor(pawn.Map) : null;
+                return fx != null ? fx.ColonyAccount(pawn.Map) : null;
             }
         }
 
@@ -316,10 +316,10 @@ namespace RimForex
 
             // ── 必须先按身份过滤（2026-10-20 修）──
             //
-            // 账户是按【地图】索引的（AccountFor(Map)），而这里原来只判了 p.Map != null
-            // 就往下走 —— 于是**地图上任何有人形 ThoughtHandler 的角色**都会吃到
-            // 殖民地交易盈亏的心情：囚犯、访客、商队成员、任务寄宿者全都中招。
-            // 作者实测发现：殖民地亏钱，囚犯心情跟着掉。
+            // 账户现在只存在于**玩家殖民地**上（见 FxGameComponent.AccountFor），
+            // 但光靠这一点还不够：殖民地图上照样有囚犯、访客、商队成员、任务寄宿者，
+            // 只判 p.Map != null 就往下走的话，**地图上任何有人形 ThoughtHandler 的角色**
+            // 都会吃到殖民地交易盈亏的心情。作者实测发现：殖民地亏钱，囚犯心情跟着掉。
             //
             // 用 IsFreeColonist 而不是 IsColonist：
             //   IsColonist    = 玩家派系 + 人形 + (!IsSlave || guest.SlaveIsSecure)
@@ -333,7 +333,7 @@ namespace RimForex
             var fx = Find.World.GetComponent<FxGameComponent>();
             if (fx == null) return ThoughtState.Inactive;
 
-            var acc = fx.AccountFor(p.Map);
+            var acc = fx.ColonyAccount(p.Map);
             if (acc == null) return ThoughtState.Inactive;
 
             int tier = FxMoodSystem.TierOfDefName(def != null ? def.defName : null);
