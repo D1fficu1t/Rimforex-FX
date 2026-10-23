@@ -1,5 +1,73 @@
 # 更新记录 / Changelog
 
+## 0.2.4
+
+### 中文
+
+**新增**
+
+- **杠杆改成滑块**，档位更细：1 / 2 / 3 / 5 / 8 / 10 / 15 / 20 / 30 / 50 / 75 / 100 倍。
+  滑块拖到头就是这个货币能用的最高档。
+- **浮动盈亏窗可以展开了**：点一下显示每笔持仓的盈亏，行尾能直接**平仓**；
+  右上角 `>>` 打开交易终端。
+- 终端底部新增「模组设置」按钮，不用退出就能改设置。
+- **终端可以「重新安装」**：卸下来搬到别处装好，**不消耗材料**。
+  以前想换个位置只能拆掉重建、再出一整套料。
+
+**修复**
+
+- **结算时不再同时蹦出两三封「盈亏 +0」的信。**
+  以前看过一眼任务图、或远行队被伏击过，那张临时地图就会留下一个空账户，
+  之后每 3 天跟着发一封结算信。
+- **空仓又没交易的日子不再收到结算信**（以前每 3 天会补一封摘要）。
+  现在只有「当天动过仓」或「收盘还有持仓」才发。
+- **终端断电后不能再从浮动盈亏窗平仓。** 以前这是个后门：
+  窗口关了、电也断了，却还能从角落的小窗平仓，250W 的门槛形同虚设。
+- **点「最小值」后再改杠杆，保证金会跟着重算。**
+  以前在 1x 点最小值得到 80，拖到 100x 仍按 80 —— 于是"最小值"开出了 100 倍规模。
+  现在会跟着变成新杠杆下的最小值；手动改过金额后就不再跟随。
+- 终端改成可搬运之后，主菜单会报红字（可搬运建筑缺少质量值），已修。
+
+**其他**
+
+- 账户区移除「累计手续费」那一项统计（交易历史里的手续费明细保留不动）。
+
+### English
+
+**Added**
+
+- **Leverage is now a slider** with finer steps: 1 / 2 / 3 / 5 / 8 / 10 / 15 / 20 / 30 / 50 / 75 / 100x.
+  The slider caps at the highest step the selected currency can safely carry.
+- **The floating P/L panel expands**: click it to list each position with its own P/L and a
+  **Close** button; the `>>` button opens the terminal.
+- A "Mod settings" button in the terminal footer, so you can change settings without leaving it.
+- **The terminal can be reinstalled**: uninstall it, carry it, install it elsewhere —
+  **no materials spent**. Previously the only way to move it was to deconstruct and rebuild.
+
+**Fixed**
+
+- **Settlement no longer drops two or three "+0" letters at once.**
+  Viewing a quest map (or being ambushed on the road) used to leave an empty account behind,
+  which then mailed a settlement letter every three days.
+- **Flat days with no trades no longer send a settlement letter** (it used to send a digest
+  every three days). Now a letter only goes out if you traded that day or still hold a position.
+- **An unpowered terminal can no longer be bypassed through the floating panel.** It used to be
+  a back door: the window closed, the power was out, yet you could still close positions from
+  the corner widget.
+- **Changing leverage after pressing "Minimum" now re-applies the minimum.**
+  Previously you could press it at 1x (80 silver), drag to 100x, and still open 100x size from
+  80 — the button's promise was broken. It now follows the new minimum; typing a number yourself
+  stops the tracking.
+- Fixed a red error on the main menu after the terminal became reinstallable
+  (a haulable building without a mass value).
+
+**Other**
+
+- Removed the "fees paid to date" stat from the account header
+  (the per-trade fee detail in the trade history is unchanged).
+
+---
+
 ## 0.2.3
 
 ### 中文
