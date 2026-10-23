@@ -17,8 +17,30 @@
     <fillPercent>0.4</fillPercent>
     <pathCost>30</pathCost>
 
-    <!-- 不要写 thingCategories：本建筑不可搬运(minifiable=false)，
-         挂存储分类会触发 "is not minifiable yet has thing categories" 配置错误。 -->
+    <!-- ── 可搬运 / 可重新放置（2026-10-23 加）──
+         玩家要求能把这台终端"卸载 → 搬走 → 在别处重装"，而不是拆了重建
+         （拆了重建要重新出材料，而重装只是搬动）。
+
+         这两个字段**必须成对出现**，少一个就是配置错误：
+           · minifiedDef      —— 卸载后变成 MinifiedThing。
+                                 注意 `ThingDef.Minifiable` 的判定就是 `minifiedDef != null`，
+                                 写 `<Minifiable>true</Minifiable>` 是**无效的**。
+           · thingCategories  —— 可搬运但不在任何存储分类里会触发
+                                 "is minifiable but not in any thing category"。
+                                 本建筑在生产分类下，用 BuildingsProduction。
+
+         有了 minifiedDef 之后，原版 `Verse.Building.GetGizmos()` 会自动给出
+         「重新安装」（Reinstall at...）命令 —— 条件正是
+         `def.Minifiable && Faction == Faction.OfPlayer`。
+         本建筑的 GetGizmos 重写里已经 `foreach (var g in base.GetGizmos())`，
+         所以不需要额外代码。
+
+         另一个副作用是好的：卸载期间建筑不再 Spawned，
+         已打开的终端窗口会因为 `Usable` 为假自动关闭（见 Building_FXTradingTerminal.Usable）。 -->
+    <minifiedDef>MinifiedThing</minifiedDef>
+    <thingCategories>
+      <li>BuildingsProduction</li>
+    </thingCategories>
 
     <!-- 建筑必须自带 graphicData，否则 ThingDefGenerator_Buildings 生成蓝图/框架时
          GraphicData.CopyFrom 会拿到 null 直接崩溃整个 Def 加载阶段。 -->

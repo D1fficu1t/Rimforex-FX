@@ -1302,6 +1302,31 @@ def main():
         fail += 1
         print("  !! 平淡日摘要信复活了 —— 空仓也会每 N 天冒一封")
 
+    # ---- 11. 终端可搬运（2026-10-23 加）----
+    # 玩家要求能「卸载 → 搬走 → 在别处重装」，而不是拆了重建。
+    # 两个字段必须成对，少一个就出问题：
+    #   · minifiedDef     决定 Minifiable（ThingDef.Minifiable 就是 minifiedDef != null）
+    #   · thingCategories 可搬运却不在任何存储分类里 → 配置错误
+    bdef = ""
+    bp = os.path.join(ROOT, "Defs", "ThingDefs_Buildings.xml")
+    if os.path.exists(bp):
+        with open(bp, encoding="utf-8") as fh:
+            bdef = fh.read()
+        # 先剥掉 XML 注释：注释里可能写着"不要这样写"的反例
+        # （本文件里就有一条把 <Minifiable> 当反例写着），否则会误报。
+        bdef = re.sub(r"<!--.*?-->", "", bdef, flags=re.S)
+    if "<minifiedDef>MinifiedThing</minifiedDef>" in bdef:
+        print("  OK 终端可搬运（有 minifiedDef，原版会给出「重新安装」命令）")
+    else:
+        fail += 1
+        print("  !! 终端又变回不可搬运 —— 玩家只能拆了重建")
+    if "<minifiedDef>" in bdef and "<thingCategories>" not in bdef:
+        fail += 1
+        print("  !! 可搬运但缺 thingCategories —— 会触发 is minifiable but not in any thing category")
+    if "<Minifiable>" in bdef:
+        fail += 1
+        print("  !! 写了 <Minifiable> —— 原版没有这个字段，判定只看 minifiedDef")
+
     print()
     print("结果:", "全部通过" if fail == 0 else "%d 项失败" % fail)
     return 1 if fail else 0
