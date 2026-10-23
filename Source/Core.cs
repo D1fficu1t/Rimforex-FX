@@ -3401,6 +3401,82 @@ namespace RimForex
         }
 
         /// <summary>
+        /// 玩家主动平仓。**终端窗口与悬浮窗共用这一套记账**（2026-10-23 下沉）。
+        ///
+        /// 原来这段逻辑在 `Window_FxTerminal.ClosePosition` 里。悬浮窗要加平仓按钮时，
+        /// 如果照抄一份，两处只要有一处改漏（手续费、点差成本、穿仓时不钳零、心情档、
+        /// 交易历史字段……）就会出现"从终端平"和"从 HUD 平"结果不一样。
+        /// 所以整段搬到这里，窗口那边只剩一行转发。
+        /// </summary>
+        public void ClosePositionFromUi(FxAccount acc, FxPosition pos)
+        {
+            if (acc == null || pos == null) return;
+
+            // ---- 同一报价步内开仓又平仓 = 交易作废 ----
+            // 覆盖两种情况：
+            //   1. 游戏暂停时 TicksGame 不前进，所有操作落在同一个 tick
+            //   2. 时间流动但还没跨过下一次报价 —— 价格未变，瞬时往返没有依据
+            // 真实平台对超短线往返也有惩罚；这里直接作废并全额退款，
+            // 让它不可能成为任何形式刷钱循环的一环。
+            if (!CanClose(pos))
+            {
+                acc.balance += pos.margin + pos.openFee;
+                acc.feesSinceSettle -= pos.openFee;   // 全额退款，手续费要回冲
+                acc.positions.Remove(pos);
+                pendingWarnings.Remove(pos);
+
+                Messages.Message("RimForex_MsgTooSoon".Translate(pos.currencyName),
+                    MessageTypeDefOf.RejectInput, false);
+                return;
+            }
+
+            float equity = pos.Equity;
+            // 平仓成交价：做多卖出吃 bid、做空买回吃 ask，MarkToMarket 已把它写在 markRate 里
+            // 平仓即记心情档（按本笔盈亏）。改成实时记录而不是等每日结算，
+            // 是因为玩家在意的是"这一笔亏得有多惨"，一天结算一次体现不出来。
+            acc.RecordCloseMood(pos.Pnl);
+
+            float exitPrice = pos.markRate > 0f
+                ? pos.markRate
+                : market.ExitPriceOf(pos.currencyFactionLoadID, pos.isLong);
+            float notional = Mathf.Abs(pos.units) * exitPrice;
+            float fee = FeeFor(notional);
+
+            acc.balance += equity - fee;
+            acc.feesSinceSettle += fee;   // 结算信要把手续费摊开给玩家看
+            // 不钳到 0：主动平仓也可能在跳空后产生负余额（穿仓），需要玩家补银填平。
+            acc.positions.Remove(pos);
+            pendingWarnings.Remove(pos);
+
+            acc.RecordTrade(new FxTradeRecord
+            {
+                currencyName = pos.currencyName,
+                pairLabel = pos.symbol,
+                isLong = pos.isLong,
+                units = pos.units,
+                entryRate = pos.entryRate,
+                exitRate = exitPrice,
+                // 保证金按"原始投入 + 追加"记账，历史的"保证金"列才有意义
+                margin = pos.margin,
+                // 必须用 pos.Pnl（已按方向翻转），不能写 equity - margin：
+                // equity = margin + Pnl，所以 equity - margin 只在没追加过保证金时等于 Pnl，
+                // 追加过就会把 addedMargin 也算进盈亏里（曾经导致"做空涨了反而盈利"）。
+                pnl = pos.Pnl,
+                totalFee = pos.openFee + fee,
+                // 点差成本 = 开仓时记录的每单位点差 × 数量。
+                // 不能用 (entry - exit) 算，那里面混着行情波动，是盈亏而不是成本。
+                spreadCost = Mathf.Abs(pos.units) * pos.spreadAtOpen,
+                spreadRateAtClose = market.SpreadRateFor(pos.currencyFactionLoadID),
+                closedTick = GenTicks.TicksGame,
+                wasLiquidation = false
+            });
+
+            Messages.Message("RimForex_MsgClosed".Translate(
+                pos.currencyName, pos.Pnl.ToString("F0"), fee.ToString("F2")),
+                MessageTypeDefOf.NeutralEvent, false);
+        }
+
+        /// <summary>
         /// 距离可以平仓还差多少 tick（0 = 现在就能平）。
         /// 用于按钮上的实时倒计时，避免玩家以为按钮坏了。
         /// </summary>
@@ -3781,7 +3857,7 @@ namespace RimForex
             {
                 // ColonyAccount：在任务图 / 伏击图上也能看到殖民地的浮动盈亏，
                 // 而不是为那张图新建一个空账户（幽灵账户的源头）。
-                FxHud.DrawFloatingPnl(ColonyAccount(hudMap));
+                FxHud.DrawFloatingPnl(ColonyAccount(hudMap), hudMap);
             }
 
             if (pendingWarnings.Count == 0) return;

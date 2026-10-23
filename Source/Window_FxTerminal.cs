@@ -24,6 +24,16 @@ namespace RimForex
         private int selectedFactionId = -1;
         /// <summary>玩家希望投入的保证金金额（白银）。0 = 尚未初始化，首次绘制时夹到合法下限。</summary>
         private int orderMargin;
+        /// <summary>
+        /// 保证金是否还停在「最小值」上（2026-10-23 加）。
+        ///
+        /// 解决的问题：在 1x 点「最小值」得到 80，再拖到 100x，输入框仍停在 80 ——
+        /// 而 100x 下开 1 个单位只要 3。玩家按的是「最小值」，却开出了 100 倍规模。
+        ///
+        /// 现在记住这个意图：只要没手动改过金额，改杠杆时**双向重算**最小值；
+        /// 一旦玩家自己输入或点了加减档 / 梭哈，标记清除，恢复「只托底不干涉」。
+        /// </summary>
+        private bool marginAtMinimum;
         private float orderLeverage = 1f;
         private string marginBuffer = "";
 
@@ -1423,7 +1433,10 @@ namespace RimForex
                 orderMargin = Mathf.CeilToInt(minMargin);
                 marginBuffer = orderMargin.ToString();
             }
+            int marginBeforeEdit = orderMargin;
             Widgets.TextFieldNumeric(marginRect, ref orderMargin, ref marginBuffer, minMargin, 100000000f);
+            // 玩家自己改了数字 —— 不再替他跟随最小值
+            if (orderMargin != marginBeforeEdit) marginAtMinimum = false;
             y += 27f;
 
             // 加减档 + 梭哈 + 归零（单位：白银）
@@ -1457,6 +1470,7 @@ namespace RimForex
                 {
                     orderMargin = Mathf.Max(Mathf.CeilToInt(minMargin), orderMargin + d);
                     marginBuffer = orderMargin.ToString();
+                    marginAtMinimum = false;
                 }
                 sx += stepW + stepGap;
             }
@@ -1481,6 +1495,7 @@ namespace RimForex
                 float feeForMax = FxGameComponent.FeeFor(maxUnits * askForMax);
                 orderMargin = Mathf.Max(Mathf.CeilToInt(minMargin), Mathf.CeilToInt(m + feeForMax));
                 marginBuffer = orderMargin.ToString();
+                marginAtMinimum = false;
             }
             GUI.color = Color.white;
             TooltipHandler.TipRegion(allIn, "RimForex_AllInTip".Translate());
@@ -1490,6 +1505,7 @@ namespace RimForex
             {
                 orderMargin = Mathf.CeilToInt(minMargin);
                 marginBuffer = orderMargin.ToString();
+                marginAtMinimum = true;   // 记住"我要的就是最小值"，改杠杆时跟过去
             }
             TooltipHandler.TipRegion(zeroBtn, "RimForex_ZeroTip".Translate());
             y += 29f;
@@ -1520,10 +1536,16 @@ namespace RimForex
             {
                 newIdx = Mathf.Clamp(newIdx, 0, maxIdx);
                 orderLeverage = LeverageLadder[newIdx];
-                // 杠杆变了最低保证金也变，重算并把输入夹回合法范围
                 float newMin = MinMarginFor(ask, orderLeverage);
-                if (orderMargin < newMin)
+                if (marginAtMinimum)
                 {
+                    // 上次按的就是「最小值」→ 跟着新杠杆重算（高杠杆会变小，低杠杆会变大）
+                    orderMargin = Mathf.CeilToInt(newMin);
+                    marginBuffer = orderMargin.ToString();
+                }
+                else if (orderMargin < newMin)
+                {
+                    // 只托底：降到低杠杆时旧金额可能连 1 单位都开不出
                     orderMargin = Mathf.CeilToInt(newMin);
                     marginBuffer = orderMargin.ToString();
                 }
@@ -1919,78 +1941,13 @@ namespace RimForex
         ///
         /// 队列本身是运行时对象、不进存档，所以这里只是内存清理，不影响任何账目。
         /// </summary>
-        private void DropWarningFor(FxPosition pos)
-        {
-            if (pos == null) return;
-            FxGameComponent fx = Fx;
-            if (fx == null) return;
-            fx.pendingWarnings.Remove(pos);
-        }
-
         private void ClosePosition(FxPosition pos)
         {
-            if (pos == null) return;
-
-            // ---- 同一报价步内开仓又平仓 = 交易作废 ----
-            // 覆盖两种情况：
-            //   1. 游戏暂停时 TicksGame 不前进，所有操作落在同一个 tick
-            //   2. 时间流动但还没跨过下一次报价 —— 价格未变，瞬时往返没有依据
-            // 真实平台对超短线往返也有惩罚；这里直接作废并全额退款，
-            // 让它不可能成为任何形式刷钱循环的一环。
-            if (!Fx.CanClose(pos))
-            {
-                account.balance += pos.margin + pos.openFee;
-                account.feesSinceSettle -= pos.openFee;   // 全额退款，手续费要回冲
-                account.positions.Remove(pos);
-                DropWarningFor(pos);
-
-                Messages.Message("RimForex_MsgTooSoon".Translate(pos.currencyName),
-                    MessageTypeDefOf.RejectInput, false);
-                return;
-            }
-
-            float equity = pos.Equity;
-            FxMarket market = Fx.market;
-            // 平仓成交价：做多卖出吃 bid、做空买回吃 ask，MarkToMarket 已把它写在 markRate 里
-            // 平仓即记心情档（按本笔盈亏）。改成实时记录而不是等每日结算，
-            // 是因为玩家在意的是"这一笔亏得有多惨"，一天结算一次体现不出来。
-            account.RecordCloseMood(pos.Pnl);
-
-            float exitPrice = pos.markRate > 0f ? pos.markRate : market.ExitPriceOf(pos.currencyFactionLoadID, pos.isLong);
-            float notional = Mathf.Abs(pos.units) * exitPrice;
-            float fee = FxGameComponent.FeeFor(notional);
-
-            account.balance += equity - fee;
-            account.feesSinceSettle += fee;   // 结算信要把手续费摊开给玩家看
-            // 不钳到 0：主动平仓也可能在跳空后产生负余额（穿仓），需要玩家补银填平。
-            account.positions.Remove(pos);
-            DropWarningFor(pos);
-
-            account.RecordTrade(new FxTradeRecord
-            {
-                currencyName = pos.currencyName,
-                pairLabel = pos.symbol,
-                isLong = pos.isLong,
-                units = pos.units,
-                entryRate = pos.entryRate,
-                exitRate = exitPrice,
-                // 保证金按"原始投入 + 追加"记账，历史的"保证金"列才有意义
-                margin = pos.margin,
-                // 必须用 pos.Pnl（已按方向翻转），不能写 equity - margin：
-                // equity = margin + Pnl，所以 equity - margin 只在没追加过保证金时等于 Pnl，
-                // 追加过就会把 addedMargin 也算进盈亏里（曾经导致"做空涨了反而盈利"）。
-                pnl = pos.Pnl,
-                totalFee = pos.openFee + fee,
-                // 点差成本 = 开仓时记录的每单位点差 × 数量。
-                // 不能用 (entry - exit) 算，那里面混着行情波动，是盈亏而不是成本。
-                spreadCost = Mathf.Abs(pos.units) * pos.spreadAtOpen,
-                spreadRateAtClose = market.SpreadRateFor(pos.currencyFactionLoadID),
-                closedTick = GenTicks.TicksGame,
-                wasLiquidation = false
-            });
-
-            Messages.Message("RimForex_MsgClosed".Translate(
-                pos.currencyName, pos.Pnl.ToString("F0"), fee.ToString("F2")), MessageTypeDefOf.NeutralEvent, false);
+            // 记账逻辑已下沉到 FxGameComponent.ClosePositionFromUi ——
+            // 悬浮窗的"平仓"按钮走的是同一段代码，两处不会算出不同结果。
+            FxGameComponent fx = Fx;
+            if (fx == null) return;
+            fx.ClosePositionFromUi(account, pos);
         }
 
         private void OpenHistory()

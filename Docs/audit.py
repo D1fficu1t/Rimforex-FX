@@ -846,13 +846,15 @@ def main():
     # 从列表移除、对象引用仍被 MarginWarning 持有，所以判据不成立、窗口不会自动关。
     # 那个窗口是 forcePause = true —— 游戏被暂停，玩家必须点掉一个
     # "关于已经平掉的仓位"的预警才能继续玩。
-    if "DropWarningFor(pos);" in win:
-        n_drop = win.count("DropWarningFor(pos);")
+    # 2026-10-23：平仓逻辑从窗口下沉到 FxGameComponent.ClosePositionFromUi
+    # （悬浮窗的"平仓"按钮要和终端共用同一套记账），所以检查目标改成 core。
+    if "pendingWarnings.Remove(pos);" in core:
+        n_drop = core.count("pendingWarnings.Remove(pos);")
         if n_drop >= 2:
             print("  OK 平仓的两条路径都会摘掉预警（%d 处调用）" % n_drop)
         else:
             fail += 1
-            print("  !! 只有 %d 处调用 DropWarningFor —— 有一条平仓路径没清理" % n_drop)
+            print("  !! 只有 %d 处摘除预警 —— 有一条平仓路径没清理" % n_drop)
     else:
         fail += 1
         print("  !! 平仓不清理 pendingWarnings —— 会为已平仓位弹出必须手动关闭的暂停窗")
@@ -1352,6 +1354,45 @@ def main():
     if re.search(r"float\[\]\s+tiers", win12) or re.search(r"float\[\]\s+all\s*=\s*\{", win12):
         fail += 1
         print("  !! 又出现硬编码的杠杆档位数组（应该统一用 LeverageLadder）")
+
+    # ---- 13. 悬浮窗三件事 + 最小值跟随（2026-10-23 轮 3）----
+    hudp = os.path.join(SRC, "FxHud.cs")
+    hud = ""
+    if os.path.exists(hudp):
+        with open(hudp, encoding="utf-8") as fh:
+            hud = fh.read()
+    bp2 = os.path.join(SRC, "Building_FXTradingTerminal.cs")
+    bsrc = ""
+    if os.path.exists(bp2):
+        with open(bp2, encoding="utf-8") as fh:
+            bsrc = fh.read()
+    hud13 = re.sub(r"//[^\n]*", "", hud)
+    win13 = re.sub(r"//[^\n]*", "", win)
+    core13 = re.sub(r"//[^\n]*", "", core)
+
+    if "ClosePositionFromUi" in core13 and "ClosePositionFromUi" in win13 and "ClosePositionFromUi" in hud13:
+        print("  OK 平仓记账只有一份（终端与悬浮窗共用 ClosePositionFromUi）")
+    else:
+        fail += 1
+        print("  !! 悬浮窗平仓没走共用逻辑 —— 两处记账迟早会分叉")
+
+    if "TryOpenTerminalWindow" in hud13 and "TryOpenTerminalWindow" in re.sub(r"//[^\n]*", "", bsrc):
+        print("  OK 悬浮窗可以一键打开终端")
+    else:
+        fail += 1
+        print("  !! 悬浮窗打不开终端了")
+
+    if "expanded" in hud13 and "RimForex_HudClose" in hud13:
+        print("  OK 悬浮窗可展开持仓明细并逐笔平仓")
+    else:
+        fail += 1
+        print("  !! 悬浮窗的持仓明细 / 平仓按钮被删了")
+
+    if "marginAtMinimum" in win13 and re.search(r"if \(marginAtMinimum\)", win13):
+        print("  OK 最小值跟随生效（按过最小值后改杠杆会重算，手动输入即解除）")
+    else:
+        fail += 1
+        print("  !! 最小值跟随被删了 —— 1x 点最小值再拉到 100x 会保留旧金额")
 
     print()
     print("结果:", "全部通过" if fail == 0 else "%d 项失败" % fail)

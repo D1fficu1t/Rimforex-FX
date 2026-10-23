@@ -61,11 +61,25 @@ namespace RimForex
             }
         }
 
+        /// <summary>
+        /// 打开交易窗口；成功返回 true。
+        ///
+        /// 公开这个是为了让**悬浮窗（HUD）**也能"找一台可用终端并打开" ——
+        /// 窗口构造依赖 `Account`，而那个属性是 private，这些细节应该留在这里，
+        /// 而不是让 UI 代码去够 private 成员。
+        /// </summary>
+        public bool TryOpenTerminalWindow()
+        {
+            if (!Usable) return false;
+            var account = Account;
+            if (account == null) return false;
+            Find.WindowStack.Add(new Window_FxTerminal(this, account));
+            return true;
+        }
+
         private void OpenTerminal()
         {
-            var account = Account;
-            if (account == null) return;
-            Find.WindowStack.Add(new Window_FxTerminal(this, account));
+            TryOpenTerminalWindow();
         }
 
         public override string GetInspectString()

@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using RimWorld;
 using UnityEngine;
 using Verse;
 
@@ -15,10 +17,15 @@ namespace RimForex
     /// Core.cs 已经三千多行，再往里塞 UI 绘制会越来越难找。
     /// 而且这块逻辑和行情/账户完全无关，只是"读一个数字然后画出来"。
     ///
-    /// ── 尺寸为什么要动态算（2026-10-20 修）──
-    /// 第一版把窗口写死成 132×30，结果标签和数字挤在一起、
-    /// 数字下半截被框底切掉（作者实测截图）。
-    /// 现在宽高都按实际文字量算：标签一行、数字一行，互不重叠。
+    /// ── 三个交互（2026-10-23 加）──
+    /// 1. **点击头部**展开 / 收起持仓明细（默认收起，只显示总浮盈）
+    /// 2. 右上角小箭头 **▶** 直接打开交易终端
+    /// 3. 展开后每行右侧有「平仓」按钮，走的是和终端完全相同的记账
+    ///    （`FxGameComponent.ClosePositionFromUi`）
+    ///
+    /// 为什么"展开"和"打开终端"要分成两个热区：如果点一下就弹出一个大窗口，
+    /// 玩家只想瞄一眼持仓时会很烦；反过来，只显示总数又不够用。
+    /// 所以头部负责展开，箭头负责开窗。
     /// </summary>
     public static class FxHud
     {
@@ -37,13 +44,42 @@ namespace RimForex
         /// </summary>
         private const float MaxW = 420f;
 
+        /// <summary>展开后每一行的高度（含间隔）。</summary>
+        private const float RowH = 22f;
+
+        /// <summary>头部右上角"打开终端"按钮的宽度。</summary>
+        private const float OpenBtnW = 26f;
+
+        /// <summary>每行"平仓"按钮的宽度。</summary>
+        private const float CloseBtnW = 44f;
+
+        /// <summary>展开状态。静态的 —— 它是 UI 偏好，不需要进存档。</summary>
+        private static bool expanded;
+
+        /// <summary>拖动中标记。静态的，因为拖拽状态天然跨帧。</summary>
+        private static bool dragging;
+
+        /// <summary>按下时鼠标相对窗口左上角的偏移，避免拖起来"跳一下"。</summary>
+        private static Vector2 dragOffset;
+
+        /// <summary>本次按下的位置，用来区分"点击"和"拖动"。</summary>
+        private static Vector2 pressPos;
+
+        /// <summary>本帧画过的按钮，拖动/点击判定要避开它们。</summary>
+        private static readonly List<Rect> buttonRects = new List<Rect>();
+
         /// <summary>
         /// 画悬浮窗。
         /// </summary>
-        /// <param name="acc">当前地图的账户；null 则不画。</param>
-        public static void DrawFloatingPnl(FxAccount acc)
+        /// <param name="acc">殖民地账户；null 则不画。</param>
+        /// <param name="map">当前地图，用于找终端建筑。</param>
+        public static void DrawFloatingPnl(FxAccount acc, Map map)
         {
-            if (acc == null || acc.positions.Count == 0) return;
+            if (acc == null || acc.positions == null || acc.positions.Count == 0)
+            {
+                expanded = false;
+                return;
+            }
 
             RimForexSettings cfg = RimForexMod.Settings;
             if (cfg == null || !cfg.showFloatingPnl) return;
@@ -51,8 +87,7 @@ namespace RimForex
             // 终端开着的时候不画 —— 那里面有同样的数字，重复显示只是碍事。
             if (Find.WindowStack != null && Find.WindowStack.IsOpen(typeof(Window_FxTerminal))) return;
 
-            string label = "RimForex_HudFloat".Translate();
-            string value = acc.FloatingPnl.ToString("+0;-0;0");
+            buttonRects.Clear();
 
             // ── 中文标签不能用 GameFont.Tiny（2026-10-20 二次修）──
             //
@@ -61,17 +96,37 @@ namespace RimForex
             // 数字倒是完整的 —— 说明不是宽度不够，而是中文字形在 Tiny 下
             // 超出该字号的标称行高，被 Rect 裁掉了。
             //
-            // 改成【单行布局】+ 全部 GameFont.Small 来彻底绕开这类行高问题：
-            // 只有一行字，就没有"上下两行挤在一起/行高不够"的可能。
-            // 高度直接取 Text.LineHeight，而不是写死的数字。
+            // 改成【单行布局】+ 全部 GameFont.Small 来彻底绕开这类行高问题。
             Text.Font = GameFont.Small;
+
+            string label = "RimForex_HudFloat".Translate();
+            string value = acc.FloatingPnl.ToString("+0;-0;0");
+
             float labelW = Text.CalcSize(label).x;
             float valueW = Text.CalcSize(value).x;
             float lineH = Text.LineHeight;
 
-            // 标签 + 间隔 + 数字 + 两侧内边距
-            float w = Mathf.Clamp(labelW + 8f + valueW + PadX * 2f, MinW, MaxW);
-            float h = lineH + 12f;
+            float headerH = lineH + 12f;
+
+            // 收起时宽度沿用原来的紧凑算法；展开时按行内容算，并留出平仓按钮的位置。
+            float w = Mathf.Clamp(labelW + 8f + valueW + PadX * 2f + OpenBtnW + 4f, MinW, MaxW);
+
+            if (expanded)
+            {
+                float widest = 0f;
+                for (int i = 0; i < acc.positions.Count; i++)
+                {
+                    var p = acc.positions[i];
+                    if (p == null) continue;
+                    string rowLabel = RowLabel(p);
+                    float rw = Text.CalcSize(rowLabel).x + 6f + Text.CalcSize(p.Pnl.ToString("+0;-0;0")).x;
+                    if (rw > widest) widest = rw;
+                }
+                float need = widest + CloseBtnW + PadX * 2f + 8f;
+                if (need > w) w = Mathf.Clamp(need, MinW, MaxW);
+            }
+
+            float h = headerH + (expanded ? acc.positions.Count * RowH + 4f : 0f);
 
             Rect box = CurrentRect(cfg, w, h);
 
@@ -81,6 +136,7 @@ namespace RimForex
 
             Text.Font = GameFont.Small;
 
+            // ---- 头部：标签 + 总浮盈 ----
             GUI.color = new Color(0.72f, 0.76f, 0.82f);
             Widgets.Label(new Rect(box.x + PadX, box.y + 6f, labelW + 2f, lineH), label);
             GUI.color = Color.white;
@@ -88,9 +144,95 @@ namespace RimForex
             GUI.color = Window_FxTerminal.PnlGuiColor(acc.FloatingPnl);
             Widgets.Label(new Rect(box.x + PadX + labelW + 8f, box.y + 6f, valueW + 2f, lineH), value);
             GUI.color = Color.white;
+
+            // ---- 右上角：打开终端 ----
+            Rect openBtn = new Rect(box.xMax - OpenBtnW - 4f, box.y + 3f, OpenBtnW, lineH + 2f);
+            buttonRects.Add(openBtn);
+            if (Widgets.ButtonText(openBtn, ">>"))
+            {
+                if (!OpenTerminal(map)) Messages.Message("RimForex_MsgNoTerminal".Translate(),
+                    MessageTypeDefOf.RejectInput, false);
+            }
+            TooltipHandler.TipRegion(openBtn, "RimForex_OpenTerminal".Translate());
+
+            // ---- 持仓明细 ----
+            if (expanded)
+            {
+                float y = box.y + headerH;
+                Widgets.DrawLineHorizontal(box.x + 4f, y - 2f, box.width - 8f);
+
+                FxGameComponent fx = Find.World != null ? Find.World.GetComponent<FxGameComponent>() : null;
+
+                for (int i = 0; i < acc.positions.Count; i++)
+                {
+                    var p = acc.positions[i];
+                    if (p == null) continue;
+
+                    float rowY = y + i * RowH;
+
+                    // 名称 + 方向
+                    GUI.color = p.isLong
+                        ? new Color(0.62f, 0.86f, 0.62f)
+                        : new Color(0.92f, 0.62f, 0.62f);
+                    Widgets.Label(new Rect(box.x + PadX, rowY + 2f, box.width - CloseBtnW - PadX * 2f - 60f, lineH),
+                        RowLabel(p));
+                    GUI.color = Color.white;
+
+                    // 该笔盈亏（右对齐，压住平仓按钮左侧）
+                    string pnlStr = p.Pnl.ToString("+0;-0;0");
+                    float pw = Text.CalcSize(pnlStr).x;
+                    Rect pnlR = new Rect(box.xMax - CloseBtnW - 8f - pw, rowY + 2f, pw, lineH);
+                    GUI.color = Window_FxTerminal.PnlGuiColor(p.Pnl);
+                    Widgets.Label(pnlR, pnlStr);
+                    GUI.color = Color.white;
+
+                    // 平仓
+                    Rect closeBtn = new Rect(box.xMax - CloseBtnW - 4f, rowY + 1f, CloseBtnW, RowH - 4f);
+                    buttonRects.Add(closeBtn);
+                    bool closable = fx == null || fx.CanClose(p);
+                    if (!closable) GUI.color = new Color(0.5f, 0.5f, 0.5f);
+                    if (Widgets.ButtonText(closeBtn, "RimForex_HudClose".Translate()) && closable && fx != null)
+                    {
+                        // 与终端完全同一套记账（手续费 / 点差 / 历史 / 心情）
+                        fx.ClosePositionFromUi(acc, p);
+                        break;   // 列表已被修改，本帧不再继续画
+                    }
+                    GUI.color = Color.white;
+
+                    TooltipHandler.TipRegion(closeBtn, closable
+                        ? "RimForex_HudCloseTip".Translate()
+                        : "RimForex_HudCloseLocked".Translate());
+                }
+            }
+            else
+            {
+                // 收起状态下整块头部都能点开
+                TooltipHandler.TipRegion(box, "RimForex_HudExpandTip".Translate());
+            }
+
             Text.Font = GameFont.Small;
 
-            HandleDrag(box, cfg, w, h);
+            HandleInput(box, cfg, w, h, headerH);
+        }
+
+        /// <summary>一行里显示的文字：货币名 + 多/空。</summary>
+        private static string RowLabel(FxPosition p)
+        {
+            return p.currencyName + " " +
+                (p.isLong ? "RimForex_Long".Translate() : "RimForex_Short".Translate());
+        }
+
+        /// <summary>找当前地图上第一台可用的终端并打开。返回是否成功。</summary>
+        private static bool OpenTerminal(Map map)
+        {
+            if (map == null) return false;
+
+            foreach (var b in map.listerBuildings.AllBuildingsColonistOfClass<Building_FXTradingTerminal>())
+            {
+                // 这里只挑可用终端：断电 / 已拆除的直接跳过。
+                if (b != null && b.TryOpenTerminalWindow()) return true;
+            }
+            return false;
         }
 
         /// <summary>
@@ -118,29 +260,38 @@ namespace RimForex
         }
 
         /// <summary>
-        /// 拖动。用 IMGUI 的原生事件，不依赖任何输入库。
+        /// 拖动 + 点击。
         ///
         /// 只响应左键：右键在 RimWorld 里是"取消"，中键则被各种 mod
         /// 抢得很厉害（本项目里还因此删掉过图表的中键平移）。
+        ///
+        /// 按钮自己的点击由 IMGUI 处理，这里在开始拖动前会跳过按钮矩形，
+        /// 否则"点平仓"会同时把窗口拖走。
         /// </summary>
-        private static void HandleDrag(Rect box, RimForexSettings cfg, float w, float h)
+        private static void HandleInput(Rect box, RimForexSettings cfg, float w, float h, float headerH)
         {
             Event e = Event.current;
             if (e == null) return;
 
+            bool OverButton(Vector2 p)
+            {
+                for (int i = 0; i < buttonRects.Count; i++)
+                    if (buttonRects[i].Contains(p)) return true;
+                return false;
+            }
+
             switch (e.type)
             {
                 case EventType.MouseDown:
-                    if (e.button == 0 && box.Contains(e.mousePosition))
-                    {
-                        dragging = true;
-                        dragOffset = e.mousePosition - new Vector2(box.x, box.y);
-                        e.Use();
-                    }
+                    if (e.button != 0 || !box.Contains(e.mousePosition) || OverButton(e.mousePosition)) break;
+                    dragging = true;
+                    pressPos = e.mousePosition;
+                    dragOffset = e.mousePosition - new Vector2(box.x, box.y);
+                    e.Use();
                     break;
 
                 case EventType.MouseDrag:
-                    if (dragging)
+                    if (!dragging) break;
                     {
                         Vector2 pos = e.mousePosition - dragOffset;
                         cfg.floatPnlX = Mathf.Clamp(pos.x, 0f, Mathf.Max(0f, UI.screenWidth - w));
@@ -150,19 +301,18 @@ namespace RimForex
                     break;
 
                 case EventType.MouseUp:
-                    if (dragging)
+                    if (!dragging) break;
+                    dragging = false;
+                    // 位移很小 = 点击，而不是拖动。
+                    // 只有点在头部（不展开时是整块）才切换展开状态。
+                    if ((e.mousePosition - pressPos).sqrMagnitude < 25f
+                        && pressPos.y <= box.y + headerH)
                     {
-                        dragging = false;
-                        e.Use();
+                        expanded = !expanded;
                     }
+                    e.Use();
                     break;
             }
         }
-
-        /// <summary>拖动中标记。静态的，因为拖拽状态天然跨帧。</summary>
-        private static bool dragging;
-
-        /// <summary>按下时鼠标相对窗口左上角的偏移，避免拖起来"跳一下"。</summary>
-        private static Vector2 dragOffset;
     }
 }

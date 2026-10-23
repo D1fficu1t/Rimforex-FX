@@ -191,6 +191,11 @@
   <RimForex_Set_CostBreakdown>下单成本明细</RimForex_Set_CostBreakdown>
   <RimForex_Set_CostBreakdownTip>关闭后，逐行的成本明细会压缩成一行，鼠标悬停可查看详情。</RimForex_Set_CostBreakdownTip>
   <RimForex_HudFloat>浮动盈亏</RimForex_HudFloat>
+  <RimForex_HudExpandTip>点击展开 / 收起持仓明细；右侧 &gt;&gt; 打开交易终端</RimForex_HudExpandTip>
+  <RimForex_HudClose>平仓</RimForex_HudClose>
+  <RimForex_HudCloseTip>立即平掉这笔持仓（与终端里平仓完全同一套记账）</RimForex_HudCloseTip>
+  <RimForex_HudCloseLocked>本报价步内还不能平仓，等下一次报价</RimForex_HudCloseLocked>
+  <RimForex_MsgNoTerminal>当前地图上没有可用的 FX 交易终端（需要已建造并通电）。</RimForex_MsgNoTerminal>
   <RimForex_Set_FloatingPnl>显示悬浮盈亏窗</RimForex_Set_FloatingPnl>
   <RimForex_Set_FloatingPnlTip>关掉交易终端去干别的时，在屏幕角落显示当前持仓的浮动盈亏。窗口可以用鼠标左键拖动，位置会记住。</RimForex_Set_FloatingPnlTip>
   <RimForex_Set_TimeSpeed>游戏速度提示</RimForex_Set_TimeSpeed>

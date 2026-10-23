@@ -180,6 +180,11 @@ A normal gap cannot push a position into negative balance; use the extreme gap b
   <RimForex_Set_CostBreakdown>Order cost breakdown</RimForex_Set_CostBreakdown>
   <RimForex_Set_CostBreakdownTip>When off, the per-line cost details collapse into one compact line with a tooltip.</RimForex_Set_CostBreakdownTip>
   <RimForex_HudFloat>floating P/L</RimForex_HudFloat>
+  <RimForex_HudExpandTip>Click to expand / collapse positions; the &gt;&gt; button opens the terminal</RimForex_HudExpandTip>
+  <RimForex_HudClose>Close</RimForex_HudClose>
+  <RimForex_HudCloseTip>Close this position now (exactly the same bookkeeping as closing it in the terminal)</RimForex_HudCloseTip>
+  <RimForex_HudCloseLocked>Cannot close within the same quote step; wait for the next quote</RimForex_HudCloseLocked>
+  <RimForex_MsgNoTerminal>No powered FX trading terminal on this map.</RimForex_MsgNoTerminal>
   <RimForex_Set_FloatingPnl>Show floating P/L window</RimForex_Set_FloatingPnl>
   <RimForex_Set_FloatingPnlTip>Shows the floating P/L of your open positions in a screen corner while the terminal is closed. Drag it with the left mouse button; the position is remembered.</RimForex_Set_FloatingPnlTip>
   <RimForex_Set_TimeSpeed>Game speed hint</RimForex_Set_TimeSpeed>
