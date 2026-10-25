@@ -3100,6 +3100,10 @@ namespace RimForex
         /// <summary>历史最高的 |z|。</summary>
         public float diagPeakZ;
         public float diagPeakPct;
+        /// <summary>当前能派陆路商队的派系数量（诊断）。</summary>
+        public int diagCaravanFactions;
+        /// <summary>当前能派轨道贸易船的派系数量（诊断）。</summary>
+        public int diagOrbitalFactions;
         /// <summary>待判定的难民（存 thingIDNumber，不存 Pawn 引用）。</summary>
         public List<int> refugeePawnIds = new List<int>();
         /// <summary>E2-B 被削弱的据点。</summary>
@@ -4324,40 +4328,92 @@ namespace RimForex
             Map map = Find.AnyPlayerHomeMap;
             if (map == null) return false;
 
-            // ── 为什么回到结构检查（2026-10-25 第二次修）──
-            // 上一版改成问 CanFireNow，结果帝国/轨道贸易联盟**它照样返回 true**，
-            // 于是信件仍然写"商队"，两天后 TryFire 照样失败。
-            // CanFireNow 只能回答"此刻允不允许"，回答不了"这个派系有没有商队"。
-            // 有商队 = caravanTraderKinds 非空，这是结构事实，不会骗人。
-            // 真的发不出去时由 DispatchPendingEvent 兜底改发贸易船 / 明说失败。
-            return f.def.caravanTraderKinds != null && f.def.caravanTraderKinds.Count > 0;
+            // ── 用原版那道完整的门，而不是自己拼条件 ──
+            //
+            // IncidentWorker_TraderCaravanArrival.FactionCanBeGroupSource 就是
+            // TryResolveParms 实际调用的判据，包含：
+            //   · 基础：非玩家 / 未灭亡 / 非临时 / 气温区间 / 地形层白黑名单
+            //   · 中性组：非 Hidden、非敌对、有 Trader 组的 pawnGroupMakers、
+            //             没有敌意领主占场、neutralArrivalLayer 白黑名单
+            //   · 商队：caravanTraderKinds 里至少有一种 commonality > 0，
+            //           **而 commonality 里包含「皇家许可」判定**
+            //
+            // 帝国的 Empire_Caravan_TraderGeneral 要求 permitRequiredForTrading =
+            // TradeCaravan —— 玩家没有这个皇家许可时 commonality 恒为 0，
+            // 商队永远来不了。这就是作者实测"帝国商队未能成行"的真正原因。
+            //
+            // 注意：不能用 CanFireNow 代替。CanFireNow 只查"此刻允不允许"
+            // （难度开关、冷却、目标合法性），faction 传进去时**不查 FactionCanBeGroupSource**，
+            // 所以它对帝国照样返回 true。
+            var worker = IncidentDefOf.TraderCaravanArrival.Worker as IncidentWorker_TraderCaravanArrival;
+            if (worker == null) return false;
+
+            var parms = new IncidentParms { target = map, faction = f };
+            return worker.FactionCanBeGroupSource(f, parms);
+        }
+
+        /// <summary>该派系此刻能派出的轨道商人种类（没有则 null）。</summary>
+        public static TraderKindDef PickOrbitalKind(Faction f)
+        {
+            if (f == null || f.IsPlayer || f.temporary || f.defeated) return null;
+            if (f.HostileTo(Faction.OfPlayer)) return null;
+
+            Map map = Find.AnyPlayerHomeMap;
+            if (map == null) return null;
+            if (map.passingShipManager != null && map.passingShipManager.passingShips.Count >= 5) return null;
+
+            var kinds = f.def.orbitalTraderKinds;
+            if (kinds == null) return null;
+
+            for (int i = 0; i < kinds.Count; i++)
+            {
+                var k = kinds[i];
+                if (k == null || !k.orbital) continue;
+                if (k.faction != null && k.faction != f.def) continue;
+                if (k.CalculatedCommonality <= 0f) continue;
+                if (!HasTradePermit(f, k, map)) continue;
+                return k;
+            }
+            return null;
+        }
+
+        /// <summary>玩家是否有该商人种类要求的皇家许可（无要求视为有）。</summary>
+        private static bool HasTradePermit(Faction f, TraderKindDef kind, Map map)
+        {
+            if (kind.permitRequiredForTrading == null) return true;
+            var colonists = map.mapPawns.FreeColonists;
+            for (int i = 0; i < colonists.Count; i++)
+            {
+                var p = colonists[i];
+                if (p != null && p.royalty != null
+                    && p.royalty.HasPermit(kind.permitRequiredForTrading, f)) return true;
+            }
+            return false;
+        }
+
+        /// <summary>该派系能不能派轨道贸易船。</summary>
+        public static bool CanSendOrbitalTrade(Faction f)
+        {
+            return PickOrbitalKind(f) != null;
         }
 
         /// <summary>
-        /// 这个派系能不能派**轨道贸易船**。
+        /// 发起一艘轨道贸易船。
         ///
-        /// 帝国（Royalty）与轨道贸易联盟（Odyssey）没有陆路商队，
-        /// 但它们的 orbitalTraderKinds 是有内容的 —— 事件改走贸易船。
+        /// ⚠️ 必须**显式指定 traderKind**：
+        /// IncidentWorker_OrbitalTraderArrival.TryExecuteWorker 只看 parms.traderKind，
+        /// 为 null 时从**全库**里随机挑一个能生成的轨道商人种类，
+        /// 完全无视 parms.faction —— 那样挑出来的船可能压根不是这个派系的。
         /// </summary>
-        public static bool CanSendOrbitalTrade(Faction f)
-        {
-            if (f == null || f.IsPlayer || f.temporary || f.defeated) return false;
-            if (f.HostileTo(Faction.OfPlayer)) return false;
-
-            Map map = Find.AnyPlayerHomeMap;
-            if (map == null) return false;
-
-            return f.def.orbitalTraderKinds != null && f.def.orbitalTraderKinds.Count > 0;
-        }
-
-        /// <summary>发起一艘轨道贸易船。成功返回 true。</summary>
         public bool TryFireOrbitalTrader(Faction f)
         {
-            if (f == null) return false;
+            var kind = PickOrbitalKind(f);
+            if (kind == null) return false;
+
             Map map = Find.AnyPlayerHomeMap;
             if (map == null) return false;
 
-            var parms = new IncidentParms { target = map, faction = f };
+            var parms = new IncidentParms { target = map, faction = f, traderKind = kind };
             return Find.Storyteller.TryFire(
                 new FiringIncident(IncidentDefOf.OrbitalTraderArrival, null, parms));
         }
@@ -4365,19 +4421,18 @@ namespace RimForex
         /// <summary>
         /// 把一次贸易访问送到玩家殖民地：优先陆路商队，发不出去就改轨道贸易船。
         ///
-        /// 为什么需要兜底：CanFireNow 回答的是"此刻允不允许"，
-        /// 回答不了"这个派系有没有商队"。帝国/轨道贸易联盟就是这种情况 ——
-        /// 它在商队判定那边返回 true，TryFire 却永远失败。
-        /// 与其反复猜，不如**两条都试一遍**，哪条成功就用哪条的文案。
+        /// 两条路都按原版判据预检过（见 CanSendCaravan / PickOrbitalKind），
+        /// 所以正常不会出现"信里写了、结果没来"。
+        /// 万一还是失败（比如 storyteller 全局冷却），发一条中性提示。
         /// </summary>
         private bool DeliverTradeVisit(Faction faction, bool sellOff)
         {
             if (faction == null) return false;
 
-            bool fired = TryFireCaravan(faction);
+            bool fired = CanSendCaravan(faction) && TryFireCaravan(faction);
             bool orbital = false;
 
-            if (!fired)
+            if (!fired && CanSendOrbitalTrade(faction))
             {
                 orbital = TryFireOrbitalTrader(faction);
                 fired = orbital;
@@ -4513,6 +4568,19 @@ namespace RimForex
             diagMaxAbsZ = maxAbsZ;
             diagMaxPct = maxPct;
             diagSettleDays++;
+
+            // 诊断：到底哪些派系能做贸易（帝国没有皇家许可时会一直是 0）
+            int caravanCount = 0, orbitalCount = 0;
+            var factions = Find.FactionManager.AllFactionsListForReading;
+            for (int i = 0; i < factions.Count; i++)
+            {
+                var ff = factions[i];
+                if (ff == null || ff.IsPlayer || ff.temporary) continue;
+                if (CanSendCaravan(ff)) caravanCount++;
+                else if (CanSendOrbitalTrade(ff)) orbitalCount++;
+            }
+            diagCaravanFactions = caravanCount;
+            diagOrbitalFactions = orbitalCount;
             if (maxAbsZ > diagPeakZ)
             {
                 diagPeakZ = maxAbsZ;

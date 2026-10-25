@@ -409,4 +409,5 @@ A probability, not a promise.</RimForex_Ev4Letter>
   <RimForex_FeeLoan>Loan interest</RimForex_FeeLoan>
   <RimForex_HistoryFeeRow>charged automatically each day</RimForex_HistoryFeeRow>
   <RimForex_EvNoTrader>{0}'s trade could not be arranged.</RimForex_EvNoTrader>
+  <RimForex_DiagFactions>Factions able to send caravans: {0} | orbital only: {1}</RimForex_DiagFactions>
 </LanguageData>

@@ -420,4 +420,5 @@
   <RimForex_FeeLoan>贷款利息</RimForex_FeeLoan>
   <RimForex_HistoryFeeRow>每日自动扣除</RimForex_HistoryFeeRow>
   <RimForex_EvNoTrader>{0} 的贸易没能安排过来。</RimForex_EvNoTrader>
+  <RimForex_DiagFactions>可派陆路商队的派系：{0} 家｜只能派轨道贸易船的：{1} 家</RimForex_DiagFactions>
 </LanguageData>
