@@ -58,6 +58,15 @@ namespace RimForex
         public float newsDriftLog;
         /// <summary>新闻漂移的到期 tick。</summary>
         public int newsDriftUntilTick;
+        /// <summary>
+        /// 本步是否包含跳空（运行时，不存盘）。
+        ///
+        /// 跳空必须是"一瞬间"的事：价格在整步内保持不动，只在最后一个子步砸到位。
+        /// 否则会被 16 个子步摊平，价格一格一格走过强平线 ——
+        /// 第一个越线的子步就把仓位平掉了，永远走不到负余额（穿仓）。
+        /// </summary>
+        public bool stepIsGap;
+
         /// <summary>当前空头名义仓位缓存（E6 检测用）。</summary>
         public float shortNotional;
         /// <summary>空头仓位首次超过门槛的 tick（0 = 当前没超）。</summary>
@@ -1841,6 +1850,7 @@ namespace RimForex
                 {
                     if (Rand.Chance(0.5f)) mult = -mult;
                 }
+                c.stepIsGap = mult != 0f;
 
                 float sigma = DailyVol * c.volatility / Mathf.Sqrt(StepsPerDay);
 
@@ -1949,6 +1959,16 @@ namespace RimForex
 
             float sigma = DailyVol * c.volatility / Mathf.Sqrt(StepsPerDay);
             float t = c.subStep / (float)SubSteps;
+
+            // ── 跳空步：整步不动，最后一个子步一次到位 ──
+            // 见 stepIsGap 的说明：插值会让强平在跳空"途中"触发，
+            // 结果是普通爆仓而不是穿仓，极端跳空的测试价值就没了。
+            if (c.stepIsGap)
+            {
+                float logJump = t >= 1f ? c.stepLogTarget : c.stepLogStart;
+                c.rate = Clamp(Exp(logJump), MinRate, MaxRate);
+                return;
+            }
 
             float logMid = c.stepLogStart + (c.stepLogTarget - c.stepLogStart) * t;
 
