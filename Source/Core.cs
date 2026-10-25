@@ -4272,6 +4272,24 @@ namespace RimForex
             return Find.Storyteller.TryFire(new FiringIncident(IncidentDefOf.RaidEnemy, null, parms));
         }
 
+        /// <summary>
+        /// 这个派系现在能不能派商队。
+        ///
+        /// ── 为什么要先问（2026-10-25 作者实测）──
+        /// E2 连点三次都是"商队未能成行"。原因是随机挑到的派系**没有商队可派**：
+        /// 已灭亡的派系、或 caravanTraderKinds 为空的派系，原版的
+        /// IncidentWorker_TraderCaravanArrival.CanFireNow 一律返回 false：
+        ///     !FactionCanBeGroupSource(...) || f.def.caravanTraderKinds.Count == 0
+        /// 这种情况下发信说"商队两天后到"就是在骗玩家，所以要在**挑事件时**先筛掉。
+        /// </summary>
+        public static bool CanSendCaravan(Faction f)
+        {
+            if (f == null || f.IsPlayer || f.temporary || f.defeated) return false;
+            if (f.HostileTo(Faction.OfPlayer)) return false;
+            if (f.def.caravanTraderKinds == null || f.def.caravanTraderKinds.Count == 0) return false;
+            return true;
+        }
+
         /// <summary>发起一次商队。成功返回 true。</summary>
         public bool TryFireCaravan(Faction f)
         {
@@ -4355,6 +4373,9 @@ namespace RimForex
             var faction = FactionByID(best.factionLoadID);
             if (faction == null || faction.temporary || faction.IsPlayer) return;
 
+            // 非敌对却派不出商队 —— 这个事件对它没有任何可观察效果，跳过。
+            if (!faction.HostileTo(Faction.OfPlayer) && !CanSendCaravan(faction)) return;
+
             best.lastEventTick = now;
             lastWorldEventTick = now;
 
@@ -4385,7 +4406,9 @@ namespace RimForex
                         "RimForex_Ev2bLetter".Translate(
                             faction.Name, settlement.Name, pct.ToString("0.0"),
                             (E2WeakenWindow / TicksPerDay).ToString()),
-                        LetterDefOf.PositiveEvent);
+                        LetterDefOf.PositiveEvent,
+                        // 直接给"跳转到该据点"，省得玩家在世界地图上手动找
+                        new LookTargets(settlement));
                 }
                 else
                 {
@@ -4725,6 +4748,7 @@ namespace RimForex
                 if (c.factionLoadID == Faction.OfPlayer.loadID) continue;
                 var f = FactionByID(c.factionLoadID);
                 if (f == null || f.temporary || f.IsPlayer) continue;
+                if (!f.HostileTo(Faction.OfPlayer) && !CanSendCaravan(f)) continue;
 
                 c.lastEventTick = GenTicks.TicksGame;
                 lastWorldEventTick = GenTicks.TicksGame;
@@ -4765,6 +4789,7 @@ namespace RimForex
                 if (c.factionLoadID == Faction.OfPlayer.loadID) continue;
                 var f = FactionByID(c.factionLoadID);
                 if (f == null || f.temporary || f.IsPlayer) continue;
+                if (!f.HostileTo(Faction.OfPlayer) && !CanSendCaravan(f)) continue;
 
                 c.lastEventTick = GenTicks.TicksGame;
                 lastWorldEventTick = GenTicks.TicksGame;

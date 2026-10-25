@@ -1427,6 +1427,14 @@ def main():
         fail += 1
         print("  !! 借款没进 cashFlowSinceSettle —— 结算会把借款当盈利")
 
+    # 事件必须先筛"这个派系能不能产生可观察效果"
+    # （2026-10-25 实测：E2 连点三次都是"商队未能成行"，因为挑到了已灭亡/无商队的派系）
+    if "CanSendCaravan" in core14 and "caravanTraderKinds" in core14:
+        print("  OK 派商队前先判断 CanSendCaravan（不会对灭亡派系许诺商队）")
+    else:
+        fail += 1
+        print("  !! 没有 CanSendCaravan 过滤 —— 会对发不出商队的派系发信")
+
     # 上限必须走缩放函数，且净值必须扣掉负债
     if "LenderLimit(" in core14 and "TryBorrow" in core14:
         print("  OK 借款上限经过 LenderLimit（随净值缩放）")
