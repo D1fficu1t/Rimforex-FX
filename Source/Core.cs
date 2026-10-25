@@ -3360,6 +3360,10 @@ namespace RimForex
                 // 任务临时派系：结论上不是真实交易对手，任务结束就会被原版删除
                 if (f.temporary) continue;
 
+                // 已灭亡的派系不再建货币（E6 的"名存实亡"会主动删掉它的货币，
+                // 这里不加判断的话下一次结算又会被重新建出来）
+                if (f.defeated) continue;
+
                 market.EnsureCurrency(f);
             }
 
@@ -5417,10 +5421,18 @@ namespace RimForex
             r.raidCount = 0;
             r.crisisCount++;
 
-            // 货币永久贬值。rate 与 previousRate 一起乘，
-            // 否则第二天会显示一个假的 -10% 涨跌幅。
+            // 货币永久贬值。
+            //
+            // ⚠️ 必须同时平移 stepLogStart / stepLogTarget（2026-10-25 修）：
+            // 价格是 `Exp(在 stepLogStart→stepLogTarget 之间插值)` 算出来的。
+            // 只乘 rate 的话，下一个子步会按**旧的**对数预算重新插值，
+            // 价格当场弹回去 —— 作者实测就是"暂停时掉下去、恢复速度后弹回来"。
+            // 平移这两个端点，整条路径才真的下移。
+            float delta = Mathf.Log(E6CrisisFactor);
             cur.rate *= E6CrisisFactor;
             cur.previousRate *= E6CrisisFactor;
+            cur.stepLogStart += delta;
+            cur.stepLogTarget += delta;
 
             int count = Rand.Range(E6RefugeeMin, E6RefugeeMax + 1);
             SpawnRefugees(count);
@@ -5443,12 +5455,69 @@ namespace RimForex
                 LetterDefOf.ThreatBig);
         }
 
-        /// <summary>名存实亡：不再参与政治、不再袭击或派商队，但据点保留。</summary>
+        /// <summary>
+        /// 名存实亡：不再参与政治、不再袭击或派商队，但据点保留。
+        ///
+        /// 同时把该派系的货币**下架**（作者 2026-10-25 要求）：
+        /// 一个名存实亡的派系，其货币不该还能继续交易。
+        /// 先按市价强制平掉所有相关持仓（净值退还给玩家），
+        /// 再把货币从市场里删掉；EnsureAllFactionCurrencies 之后也不会再建回来
+        /// （它现在会跳过 defeated 派系）。
+        /// </summary>
         private void DefeatFaction(Faction f)
         {
             if (f == null) return;
+
             f.defeated = true;
             f.deactivated = true;
+
+            ForceCloseAllOn(f);
+
+            if (market != null)
+            {
+                market.RemoveCurrency(f.loadID);
+            }
+        }
+
+        /// <summary>按当前市价强制平掉某个派系货币上的全部持仓。</summary>
+        private void ForceCloseAllOn(Faction f)
+        {
+            if (f == null || accounts == null) return;
+
+            var accKeys = new List<int>(accounts.Keys);
+            for (int k = 0; k < accKeys.Count; k++)
+            {
+                var acc = accounts[accKeys[k]];
+                if (acc == null || acc.positions == null) continue;
+
+                for (int i = acc.positions.Count - 1; i >= 0; i--)
+                {
+                    var pos = acc.positions[i];
+                    if (pos == null || pos.currencyFactionLoadID != f.loadID) continue;
+
+                    float equity = pos.Equity;   // margin + 浮动盈亏
+                    float pnl = pos.Pnl;
+                    acc.balance += equity;
+                    acc.positions.RemoveAt(i);
+
+                    acc.RecordTrade(new FxTradeRecord
+                    {
+                        currencyName = pos.currencyName,
+                        pairLabel = pos.currencyName + "/" + FxCurrency.QuoteCode,
+                        isLong = pos.isLong,
+                        units = pos.units,
+                        entryRate = pos.entryRate,
+                        exitRate = pos.markRate > 0f ? pos.markRate : pos.entryRate,
+                        margin = pos.margin,
+                        pnl = pnl,
+                        totalFee = 0f,
+                        spreadCost = 0f,
+                        spreadRateAtClose = pos.entrySpreadRate,
+                        closedTick = GenTicks.TicksGame,
+                        wasLiquidation = true
+                    });
+                }
+            }
         }
 
         /// <summary>
