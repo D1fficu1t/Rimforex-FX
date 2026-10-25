@@ -406,4 +406,5 @@
   <RimForex_TestNewsTip>立刻触发一次 E4/E5：两个敌对派系打了一仗，六成概率让双方汇率走出三天的漂移。</RimForex_TestNewsTip>
   <RimForex_MsgTestNews>已触发一次战争新闻</RimForex_MsgTestNews>
   <RimForex_MsgTestNewsFail>没有可用的敌对派系对</RimForex_MsgTestNewsFail>
+  <RimForex_DiagEventStats>诊断：最近结算最大波动 {0}%（{1}σ）｜历史峰值 {2}%（{3}σ）｜已统计 {4} 天｜当前触发阈值 {5}σ</RimForex_DiagEventStats>
 </LanguageData>

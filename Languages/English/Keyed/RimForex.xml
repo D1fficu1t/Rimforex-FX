@@ -395,4 +395,5 @@ A probability, not a promise.</RimForex_Ev4Letter>
   <RimForex_TestNewsTip>Fire E4/E5 now: two hostile factions fight, with a 60% chance of a three-day drift in both currencies.</RimForex_TestNewsTip>
   <RimForex_MsgTestNews>Fired a war news event</RimForex_MsgTestNews>
   <RimForex_MsgTestNewsFail>No hostile faction pair available</RimForex_MsgTestNewsFail>
+  <RimForex_DiagEventStats>Diagnostics: last settlement peak {0}% ({1} sigma) | all-time peak {2}% ({3} sigma) | {4} days sampled | trigger threshold {5} sigma</RimForex_DiagEventStats>
 </LanguageData>

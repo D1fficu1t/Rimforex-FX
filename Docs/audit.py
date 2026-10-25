@@ -1429,8 +1429,8 @@ def main():
 
     # 事件必须先筛"这个派系能不能产生可观察效果"
     # （2026-10-25 实测：E2 连点三次都是"商队未能成行"，因为挑到了已灭亡/无商队的派系）
-    if "CanSendCaravan" in core14 and "caravanTraderKinds" in core14:
-        print("  OK 派商队前先判断 CanSendCaravan（不会对灭亡派系许诺商队）")
+    if "CanSendCaravan" in core14 and "CanFireNow" in core14:
+        print("  OK 派商队前先问原版 CanFireNow（不会对发不出商队的派系许诺）")
     else:
         fail += 1
         print("  !! 没有 CanSendCaravan 过滤 —— 会对发不出商队的派系发信")

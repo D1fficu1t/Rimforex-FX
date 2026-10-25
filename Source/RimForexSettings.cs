@@ -454,6 +454,21 @@ namespace RimForex
             }
             Hint(l, "RimForex_TestNewsTip".Translate());
 
+            // ── 诊断：世界事件的真实波动读数（用来校准 σ 阈值）──
+            l.Gap(8f);
+            FxGameComponent diagFx = Find.World != null
+                ? Find.World.GetComponent<FxGameComponent>() : null;
+            if (diagFx != null)
+            {
+                Hint(l, "RimForex_DiagEventStats".Translate(
+                    diagFx.diagMaxPct.ToString("0.00"),
+                    diagFx.diagMaxAbsZ.ToString("0.00"),
+                    diagFx.diagPeakPct.ToString("0.00"),
+                    diagFx.diagPeakZ.ToString("0.00"),
+                    diagFx.diagSettleDays.ToString(),
+                    FxGameComponent.EventSigma.ToString("0.0")));
+            }
+
             l.Gap(6f);
             if (l.ButtonText("RimForex_TestBlowUp".Translate()))
             {

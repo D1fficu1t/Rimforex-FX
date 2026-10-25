@@ -3052,17 +3052,35 @@ namespace RimForex
         public int nextNewsTick;
         /// <summary>上次 E3（暴赚）触发的 tick。</summary>
         public int lastWealthEventTick;
+
+        // ── 诊断读数（运行时，不存盘）：用来校准 σ 阈值 ──
+        /// <summary>最近一次结算里最大的 |单日收益 / σ|。</summary>
+        public float diagMaxAbsZ;
+        /// <summary>最近一次结算里最大的单日涨跌幅（%）。</summary>
+        public float diagMaxPct;
+        /// <summary>累计统计过多少次结算。</summary>
+        public int diagSettleDays;
+        /// <summary>历史最高的 |z|。</summary>
+        public float diagPeakZ;
+        public float diagPeakPct;
         /// <summary>待判定的难民（存 thingIDNumber，不存 Pawn 引用）。</summary>
         public List<int> refugeePawnIds = new List<int>();
         /// <summary>E2-B 被削弱的据点。</summary>
         public List<FxWeakenedSettlement> weakenedSettlements = new List<FxWeakenedSettlement>();
 
-        /// <summary>全局事件冷却：两次世界事件之间至少 5 游戏日。</summary>
-        public const int GlobalEventCooldown = 5 * TicksPerDay;
+        /// <summary>全局事件冷却：两次世界事件之间至少 3 游戏日。</summary>
+        public const int GlobalEventCooldown = 3 * TicksPerDay;
 
         // ── E1 / E3 参数（作者已拍板）──
-        /// <summary>触发阈值：2.5 倍单日 σ。</summary>
-        public const float EventSigma = 2.5f;
+        /// <summary>
+        /// 触发阈值：**2.0 倍**单日 σ。
+        ///
+        /// 原来定的是 2.5σ，实测（作者 2026-10-25）6 个游戏日一次事件都没出。
+        /// σ_day = 0.014 × vol，袭击者档 σ ≈ 0.49%（2.5σ 要 1.2% 的单日涨幅），
+        /// 太空档 σ ≈ 1.75%（2.5σ 要 4.4%，实际几乎见不到）。
+        /// 2.0σ 后门槛降到 0.98% ~ 3.5%，配合全局冷却下调，频率才合理。
+        /// </summary>
+        public const float EventSigma = 2.0f;
         /// <summary>每货币的事件冷却。</summary>
         public const int EventCooldownPerCurrency = 20 * TicksPerDay;
         /// <summary>E1 商队延迟。</summary>
@@ -4286,8 +4304,19 @@ namespace RimForex
         {
             if (f == null || f.IsPlayer || f.temporary || f.defeated) return false;
             if (f.HostileTo(Faction.OfPlayer)) return false;
-            if (f.def.caravanTraderKinds == null || f.def.caravanTraderKinds.Count == 0) return false;
-            return true;
+
+            Map map = Find.AnyPlayerHomeMap;
+            if (map == null) return false;
+
+            // ── 别再靠"caravanTraderKinds 非空"猜（2026-10-25 修）──
+            // 作者实测：帝国（Royalty 的赤色大帝国）有 caravanTraderKinds，
+            // 但 CanFireNow 内部还会因为 TraderKindCommonality == 0 而返回 false。
+            // 与其一条条复刻那些判定，不如直接问原版工人 —— 它说能发才是真能发。
+            var worker = IncidentDefOf.TraderCaravanArrival.Worker;
+            if (worker == null) return false;
+
+            var parms = new IncidentParms { target = map, faction = f };
+            return worker.CanFireNow(parms);
         }
 
         /// <summary>发起一次商队。成功返回 true。</summary>
@@ -4346,28 +4375,48 @@ namespace RimForex
         {
             RimForexSettings cfg = RimForexMod.Settings;
             if (cfg != null && !cfg.enableWorldEvents) return;
-            if (!WorldEventAllowed()) return;
 
             int now = GenTicks.TicksGame;
             FxCurrency best = null;
             float bestZ = 0f;
+
+            // ── 诊断：无论触没触发，都记录当天最大波动 ──
+            // 用来校准 EventSigma。作者 2026-10-25 反馈 6 天零事件，
+            // 需要真实数据判断是"运气"还是"阈值根本够不到"。
+            float maxAbsZ = 0f;
+            float maxPct = 0f;
 
             var keys = new List<int>(market.currencies.Keys);
             for (int i = 0; i < keys.Count; i++)
             {
                 var c = market.currencies[keys[i]];
                 if (c == null) continue;
-                int f = c.factionLoadID;
-                if (f == Faction.OfPlayer.loadID) continue;
-                if (now - c.lastEventTick < EventCooldownPerCurrency) continue;
+                if (c.factionLoadID == Faction.OfPlayer.loadID) continue;
 
+                float pct = DailyReturnOf(c) * 100f;
                 float sigma = SigmaDayOf(c);
                 if (sigma <= 0f) continue;
                 float z = DailyReturnOf(c) / sigma;
-                if (Mathf.Abs(z) < EventSigma) continue;
-                if (Mathf.Abs(z) > Mathf.Abs(bestZ)) { best = c; bestZ = z; }
+
+                float absZ = Mathf.Abs(z);
+                if (absZ > maxAbsZ) { maxAbsZ = absZ; maxPct = pct; }
+
+                // 冷却中的货币不参与触发，但**参与诊断**（否则峰值会偏小）
+                if (now - c.lastEventTick < EventCooldownPerCurrency) continue;
+                if (absZ < EventSigma) continue;
+                if (absZ > Mathf.Abs(bestZ)) { best = c; bestZ = z; }
             }
 
+            diagMaxAbsZ = maxAbsZ;
+            diagMaxPct = maxPct;
+            diagSettleDays++;
+            if (maxAbsZ > diagPeakZ)
+            {
+                diagPeakZ = maxAbsZ;
+                diagPeakPct = maxPct;
+            }
+
+            if (!WorldEventAllowed()) return;
             if (best == null) return;
 
             var faction = FactionByID(best.factionLoadID);
@@ -4564,6 +4613,25 @@ namespace RimForex
             if (def == null) return;
             int life = E2TradeBonusDays * TicksPerDay;
 
+            // 作者 2026-10-25：这个 buff 只在商队还在图上时存在。
+            // 商队走了要立刻消失，否则玩家会以为自己一直有议价优势。
+            // 另外保留 5 天上限兜底，防止商队卡住不走。
+            bool caravanPresent = false;
+            for (int m = 0; m < Find.Maps.Count && !caravanPresent; m++)
+            {
+                var map = Find.Maps[m];
+                if (map == null || !map.IsPlayerHome || map.lordManager == null) continue;
+                var lords = map.lordManager.lords;
+                for (int i = 0; i < lords.Count; i++)
+                {
+                    if (lords[i] != null && lords[i].LordJob is LordJob_TradeWithColony)
+                    {
+                        caravanPresent = true;
+                        break;
+                    }
+                }
+            }
+
             for (int m = 0; m < Find.Maps.Count; m++)
             {
                 var map = Find.Maps[m];
@@ -4574,7 +4642,8 @@ namespace RimForex
                     var pawn = pawns[i];
                     if (pawn == null || pawn.health == null) continue;
                     var h = pawn.health.hediffSet.GetFirstHediffOfDef(def);
-                    if (h != null && h.ageTicks > life) pawn.health.RemoveHediff(h);
+                    if (h == null) continue;
+                    if (!caravanPresent || h.ageTicks > life) pawn.health.RemoveHediff(h);
                 }
             }
         }
