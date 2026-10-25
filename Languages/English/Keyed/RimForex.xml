@@ -302,10 +302,8 @@ This is a blow-up: the debt must be covered. Deposit silver at the terminal to b
   <RimForex_LetterCarry>Overnight interest −{0} silver</RimForex_LetterCarry>
 
   <!-- 0.3.0 settings -->
-  <RimForex_Set_CarryHeader>Overnight interest (holding cost)</RimForex_Set_CarryHeader>
   <RimForex_Set_EventsHeader>World events</RimForex_Set_EventsHeader>
 
-  <RimForex_Set_CarryFixed>Fixed rate {0}%/day (on notional, not adjustable)</RimForex_Set_CarryFixed>
   <RimForex_Set_EnableEvents>Enable world events</RimForex_Set_EnableEvents>
   <RimForex_Set_EnableEventsTip>When disabled, trading affects only your own colony: no caravans or raids from currency swings, no war news, no short-squeeze retaliation, no debt collection.</RimForex_Set_EnableEventsTip>
   <RimForex_LetterLoanInterest>Loan interest −{0} silver</RimForex_LetterLoanInterest>
@@ -320,13 +318,13 @@ This is a blow-up: the debt must be covered. Deposit silver at the terminal to b
   <RimForex_GuideShortTitle>2. When to sell (going short)</RimForex_GuideShortTitle>
   <RimForex_GuideShort>The other way round: sell first, buy back after it falls, keep the difference.\n\n· News says it will fall. Sell.\n· They just lost a war or their economy collapsed. Sell.\n· It has fallen for a long time. Sell, the trend continues.\n\nOne note: a short caps at 100% profit, but losses have no ceiling. We reserve the right to collect.</RimForex_GuideShort>
   <RimForex_GuideLiquidationTitle>3. Margin calls and blow-ups</RimForex_GuideLiquidationTitle>
-  <RimForex_GuideLiquidation>Leverage magnifies gains and losses. They come as a package.\n\n· At 45% margin left, we pause the game and warn you. That is our service.\n· At 30%, we close the position for you. That is a margin call.\n· If a gap is brutal enough that losses exceed your margin, the balance goes negative. That is a blow-up.\n\nAfter a blow-up you cannot open positions or withdraw. Deposit silver to clear it.\nOur collections department is available 24 hours and has no feelings.</RimForex_GuideLiquidation>
+  <RimForex_GuideLiquidation>Leverage magnifies gains and losses. They come as a package.\n\n· At 45% margin left, we thoughtfully pop up a free window to warn you.\n· At 30%, we close the position for you. That is a margin call.\n· If a gap is brutal enough that losses exceed your margin, the balance goes negative. That is a blow-up.\n\nAfter a blow-up you cannot open positions or withdraw. Deposit silver to clear it.\nOur collections department is available 24 hours and has no feelings.</RimForex_GuideLiquidation>
   <RimForex_GuideCandleTitle>4. Reading candles</RimForex_GuideCandleTitle>
   <RimForex_GuideCandle>Each candle records four prices over a period: open, high, low, close.\n\n· Body: the distance from open to close. Green up, red down.\n· Wicks: the thin lines above and below, the high and low reached.\n\nLong wicks mean price pushed up and got pushed back. Someone is fighting. Who wins is unclear.\n\nCandles report the past. They do not promise the future. Platforms that promise the future are a different kind of platform.</RimForex_GuideCandle>
   <RimForex_GuideProfitTitle>5. How beginners make money</RimForex_GuideProfitTitle>
   <RimForex_GuideProfit>Leverage up! Go all in! Bet on the rise!\n\nPost 100 silver as margin at 100x and your notional is 10,000 silver. A 1% move earns you 100 silver, double your money. 3% and you have tripled it.\n\nOur backend data shows the phrase our users say most is "one more trade and I'm even".\n\n(Veterans tell you to use low leverage and go slow. That is the veteran way. You are a beginner. You have plenty of time to lose.)</RimForex_GuideProfit>
   <RimForex_GuideLoanTitle>6. Borrowing</RimForex_GuideLoanTitle>
-  <RimForex_GuideLoan>With the terminal selected, the "Official lending service" gizmo offers four lenders with different rates and terms.\n\nBorrowed silver is debt, not income. If it is not cleared by the term, it is taken from your balance at once, which can push it negative.\n\nWe wish you a pleasant borrowing experience.</RimForex_GuideLoan>
+  <RimForex_GuideLoan>With the terminal selected, the Official lending service gizmo offers four upstanding institutions working closely with us, each with its own rates and terms.\n\nBorrowed silver is debt, not income. If it is not cleared by the term, it is taken from your balance at once, which can push it negative.\n\nWe wish you a pleasant borrowing experience.</RimForex_GuideLoan>
   <RimForex_GuideGlossaryTitle>Glossary</RimForex_GuideGlossaryTitle>
   <RimForex_GuideGlossary>Margin: the silver you post.\nNotional: margin times leverage.\nSpread: the gap between buy and sell, paid on open and close.\nFee: 0.02% per trade, minimum 2 silver.\nStop-out line: the price where a position is closed at 30% margin.\nMargin call: being forcibly closed.\nBlow-up: losses exceed margin, balance goes negative.\nLock-in: you must cross one quote before you can close.</RimForex_GuideGlossary>
 
@@ -447,11 +445,11 @@ Their settlements remain on the world as independent places that still fly the o
   <RimForex_TestCrisisTip>Force the active retaliation loop into a crisis: currency -10% permanently, 3-5 refugees. Press 5 times to finish a faction off.</RimForex_TestCrisisTip>
   <RimForex_MsgTestCrisis>Financial crisis triggered</RimForex_MsgTestCrisis>
   <RimForex_MsgTestCrisisFail>No retaliation loop is active</RimForex_MsgTestCrisisFail>
-  <RimForex_Ev6Crisis1>{0}'s exchange opened and immediately collapsed. Traders queued on the rooftops, companies dissolved overnight, and small investors traded their funeral money for wallpaper.\n\n{1} citizens lost their assets and citizenship, seized a drop pod, and tried to start over somewhere else. The navigation failed. They landed outside your colony.\n\nYou can save them, or wait for them to stop breathing and harvest the organs. Nobody will press charges.</RimForex_Ev6Crisis1>
+  <RimForex_Ev6Crisis1>{0}'s exchange opened and immediately collapsed. Traders queued on the rooftops, companies dissolved overnight, and small investors traded their funeral money for wallpaper.\n\n{1} citizens lost their assets and citizenship, seized a drop pod, and tried to start over somewhere else. The navigation failed. They landed outside your colony.\n\nYou can save them, or harvest the organs while they are still breathing. Nobody will press charges.</RimForex_Ev6Crisis1>
   <RimForex_Ev6Crisis2>{0}'s central bank announced that everything was fine, then locked the doors and left. Bank run, empty shelves, and a second wave of rooftop queues finished before lunch.\n\n{1} refugees crammed into one pod. The overload alarm sounded for twelve minutes. They landed outside your colony, still breathing.\n\nWhether that is good news is up to you.</RimForex_Ev6Crisis2>
   <RimForex_Ev6Crisis3>{0}'s currency no longer buys bread. The army is looting its own depots, officials are burning their badges, and the rich are lighting cigars with gold bars - which they have just discovered are also worthless.\n\n{1} refugees drifted in vacuum for three days before landing outside your colony. They may still be alive.\n\nRescuing them is an investment. Harvesting them is cash on delivery.</RimForex_Ev6Crisis3>
   <RimForex_Ev6Crisis4>Nothing is left of {0} but the name. The cities are burning, the emergency broadcast keeps repeating "please remain calm", and then the broadcast station burned too.\n\n{1} refugees stuffed themselves into escape pods without entering a destination. They landed outside your colony, in unflattering positions.\n\nThey still have usable parts.</RimForex_Ev6Crisis4>
-  <RimForex_Ev6Crisis5>{0} is gone from the star map. No government, no currency, no survivor organization - only drifting debris and a few lifeboats flying in circles.\n\n{1} refugees came down outside your colony. This is their last landing.\n\nSave them or take them apart. Your call.</RimForex_Ev6Crisis5>
+  <RimForex_Ev6Crisis5>{0} barely exists anymore. The cities are burning, refugees are scattered, and the faction could vanish at any moment.\n\nTheir settlements have all declared independence - but the world outside is dangerous, so these newborn city-states chose to keep flying the old flag and huddle together.\n\n{1} refugees came down outside your colony. This is their last landing.\n\nSave them or take them apart. Your call.</RimForex_Ev6Crisis5>
   <!-- 0.3.0 E7 debt collection -->
   <RimForex_PlatformName>FX Exchange Collections</RimForex_PlatformName>
   <RimForex_Ev7LetterLabel>The collector has arrived</RimForex_Ev7LetterLabel>
@@ -495,4 +493,5 @@ We wish you a pleasant week.</RimForex_Ev7Attack>
 Let him reach the map edge, or put him down here. Either way, Collections will write back.</RimForex_Ev7Flee>
   <RimForex_Set_ShowTest>Show test options</RimForex_Set_ShowTest>
   <RimForex_Set_ShowTestTip>Debug buttons. Not needed for normal play.</RimForex_Set_ShowTestTip>
+  <RimForex_CarryRateInline>Overnight interest {0}%/day</RimForex_CarryRateInline>
 </LanguageData>

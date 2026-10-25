@@ -247,9 +247,12 @@ namespace RimForex
 
             // 累计手续费已从这一行移除（2026-10-23，作者认为这个统计没有意义）。
             // 交易历史里的手续费明细保留不动。
+            // 隔夜利息费率原来放在设置页，作者要求挪到终端这一行后面
             string status = "RimForex_StatusLine".Translate(
                 account.lastDayPnl.ToString("F0"),
-                account.lastDayPositions);
+                account.lastDayPositions)
+                + "　·　" + "RimForex_CarryRateInline".Translate(
+                    (FxGameComponent.DefaultCarryRate * 100f).ToString("0.##"));
             Widgets.Label(new Rect(r.x + 210f, r.y + 4f, r.width - 400f, 22f), status);
 
             // 距下次每日结算的倒计时 —— 便于验证"每天 0 时结算一次"。

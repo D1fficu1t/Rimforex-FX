@@ -775,11 +775,8 @@ namespace RimForex
             l.CheckboxLabeled("RimForex_Set_FloatingPnl".Translate(), ref Settings.showFloatingPnl,
                 "RimForex_Set_FloatingPnlTip".Translate());
 
-            // ── 0.3.0：隔夜利息（固定，不可调）──
+            // 隔夜利息的说明已移到交易终端的状态行，这里不再重复
             l.GapLine();
-            l.Label("RimForex_Set_CarryHeader".Translate());
-            l.Label("RimForex_Set_CarryFixed".Translate(
-                (FxGameComponent.DefaultCarryRate * 100f).ToString("0.00")));
 
             // ── 0.3.0：世界事件（只有开关）──
             l.Label("RimForex_Set_EventsHeader".Translate());
