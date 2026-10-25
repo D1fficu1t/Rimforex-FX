@@ -10,6 +10,7 @@
 
 - **世界事件：货币暴跌。** 某个派系的货币单日跌幅超过 2.5σ 时：
   - 中立/友好派系：两天后派**清库存的商队**，谈价更容易（议价优势持续 5 天）
+  - 帝国：派**征收队**（帝国正常商队要皇家许可，征收队不要）
   - 敌对派系：挑它一个据点，**10 天内去打，守军少一半**
 - **世界事件：战争新闻。** 每 8~12 天，两个敌对派系之间会打一仗。
   有六成概率这变成趋势：赢家的货币走强，输家的货币走弱，持续 3 天。
@@ -26,6 +27,8 @@
 - **World event: currency crash.** When a faction's currency falls more than 2.5 sigma in a day:
   - Non-hostile factions send a **clearance caravan** two days later; you get a bargaining edge
     for 5 days.
+  - The Empire sends a **tribute collector** instead (Imperial caravans need a royal permit;
+    tribute collectors do not).
   - Hostile factions: pick one of their settlements. **Attack within 10 days and half the
     defenders are gone.**
 - **World event: war news.** Every 8-12 days two hostile factions fight. There is a 60% chance

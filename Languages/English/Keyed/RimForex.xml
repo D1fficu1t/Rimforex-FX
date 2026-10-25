@@ -409,5 +409,18 @@ A probability, not a promise.</RimForex_Ev4Letter>
   <RimForex_FeeLoan>Loan interest</RimForex_FeeLoan>
   <RimForex_HistoryFeeRow>charged automatically each day</RimForex_HistoryFeeRow>
   <RimForex_EvNoTrader>{0}'s trade could not be arranged.</RimForex_EvNoTrader>
-  <RimForex_DiagFactions>Factions able to send caravans: {0} | orbital only: {1}</RimForex_DiagFactions>
+  <RimForex_DiagFactions>Caravan-capable: {0} | orbital only: {1} | Imperial tribute: {2}</RimForex_DiagFactions>
+  <!-- 0.3.0 Imperial tribute collector (Royalty: the only Empire visit not gated by permits) -->
+  <RimForex_EvTributeLetterLabel>{0}: tribute collector</RimForex_EvTributeLetterLabel>
+  <RimForex_Ev1TributeLetter>The Empire noticed the movement in {0}'s currency and has sent a tribute collector to "verify the situation".
+
+They do not sell anything. If you want them satisfied, silver buys goodwill.
+
+(The Empire's regular caravans require a royal permit. Tribute collectors do not.)</RimForex_Ev1TributeLetter>
+  <RimForex_Ev2TributeLetter>{0}'s currency fell {1}% in a single day. The Empire has taken an interest in your solvency and sent a tribute collector.
+
+They do not sell anything. If you want them satisfied, silver buys goodwill.</RimForex_Ev2TributeLetter>
+  <RimForex_EvTributeArrivedLabel>{0}: tribute collector arrived</RimForex_EvTributeArrivedLabel>
+  <RimForex_EvTributeArrived>The Imperial tribute collector has arrived. They sell nothing; they only collect.</RimForex_EvTributeArrived>
+  <RimForex_EvTributeNoShow>The Imperial tribute collector could not be arranged.</RimForex_EvTributeNoShow>
 </LanguageData>

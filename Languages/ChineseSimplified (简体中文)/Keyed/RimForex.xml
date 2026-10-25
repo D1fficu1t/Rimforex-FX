@@ -420,5 +420,18 @@
   <RimForex_FeeLoan>贷款利息</RimForex_FeeLoan>
   <RimForex_HistoryFeeRow>每日自动扣除</RimForex_HistoryFeeRow>
   <RimForex_EvNoTrader>{0} 的贸易没能安排过来。</RimForex_EvNoTrader>
-  <RimForex_DiagFactions>可派陆路商队的派系：{0} 家｜只能派轨道贸易船的：{1} 家</RimForex_DiagFactions>
+  <RimForex_DiagFactions>可派陆路商队：{0} 家｜只能派轨道贸易船：{1} 家｜帝国征收队：{2} 家</RimForex_DiagFactions>
+  <!-- 0.3.0 帝国征收队（Royalty：唯一不受皇家许可限制的帝国来访）-->
+  <RimForex_EvTributeLetterLabel>{0}：征收队</RimForex_EvTributeLetterLabel>
+  <RimForex_Ev1TributeLetter>帝国注意到了 {0} 货币的异动，派了一支征收队前来「核实情况」。
+
+他们不卖东西。想让他们满意，就用白银换好感。
+
+（帝国的正常商队需要皇家许可，征收队不需要。）</RimForex_Ev1TributeLetter>
+  <RimForex_Ev2TributeLetter>{0} 的货币一天之内跌了 {1}%。帝国对你的偿付能力产生了兴趣，派了一支征收队过来。
+
+他们不卖东西。想让他们满意，就用白银换好感。</RimForex_Ev2TributeLetter>
+  <RimForex_EvTributeArrivedLabel>{0}：征收队抵达</RimForex_EvTributeArrivedLabel>
+  <RimForex_EvTributeArrived>帝国征收队抵达了殖民地。他们不卖货，只收礼。</RimForex_EvTributeArrived>
+  <RimForex_EvTributeNoShow>帝国征收队没能安排过来。</RimForex_EvTributeNoShow>
 </LanguageData>

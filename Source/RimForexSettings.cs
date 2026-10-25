@@ -469,7 +469,8 @@ namespace RimForex
                     FxGameComponent.EventSigma.ToString("0.0")));
                 Hint(l, "RimForex_DiagFactions".Translate(
                     diagFx.diagCaravanFactions.ToString(),
-                    diagFx.diagOrbitalFactions.ToString()));
+                    diagFx.diagOrbitalFactions.ToString(),
+                    diagFx.diagTributeFactions.ToString()));
             }
 
             l.Gap(6f);
