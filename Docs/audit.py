@@ -1427,12 +1427,20 @@ def main():
         fail += 1
         print("  !! 借款没进 cashFlowSinceSettle —— 结算会把借款当盈利")
 
-    # 上限必须走缩放函数
+    # 上限必须走缩放函数，且净值必须扣掉负债
     if "LenderLimit(" in core14 and "TryBorrow" in core14:
         print("  OK 借款上限经过 LenderLimit（随净值缩放）")
     else:
         fail += 1
         print("  !! 借款上限没有走缩放函数")
+
+    # 净值必须扣掉负债，否则"借钱→净值涨→上限涨→再借"会成为正反馈
+    # （2026-10-25 实测：连点 8 次，借款额从 1 涨到 14123）
+    if re.search(r"Equity - TotalOwed\(acc\)", core14):
+        print("  OK 借款上限用「净值 − 负债」（借款不会抬高自己的上限）")
+    else:
+        fail += 1
+        print("  !! 借款上限没扣负债 —— 借得越多上限越高，可以无限借")
 
     # 违约必须打进余额
     if re.search(r"acc\.balance -= owed;", core14):

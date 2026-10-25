@@ -164,7 +164,7 @@ namespace RimForex
                 ? "RimForex_LoanTerm".Translate(FxGameComponent.LenderTermDays[idx].ToString())
                 : "RimForex_LoanTermNone".Translate();
             Widgets.Label(new Rect(tx, r.y + 38f, tw, 16f), "RimForex_LoanRate".Translate(
-                (FxGameComponent.LenderRate[idx] * 100f).ToString("0"), term));
+                (FxGameComponent.LenderDailyRate(idx) * 100f).ToString("0.00"), term));
 
             GUI.color = dailyInterest >= 0.5f ? new Color(1f, 0.78f, 0.55f) : Color.white;
             Widgets.Label(new Rect(tx, r.y + 54f, tw, 16f),

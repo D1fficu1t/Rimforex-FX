@@ -4225,7 +4225,13 @@ namespace RimForex
         {
             if (lender < 0 || lender >= LenderCount) return 0f;
             float cap = LenderCap[lender];
-            float equity = acc != null ? Mathf.Max(0f, acc.Equity) : 0f;
+            // ⚠️ 净值必须**扣掉已欠的钱**（2026-10-25 修正反馈）
+            //
+            // 原来直接用 Equity：借 1000 → 余额 +1000 → 净值 +1000 → 上限 +250
+            // → 又能借更多 → 上限再涨……实测连点 8 次，借款额从 1 涨到 14123。
+            // 扣掉负债之后，"借"只是把自有权益换成负债，净值不变，上限也不变。
+            float net = acc != null ? acc.Equity - TotalOwed(acc) : 0f;
+            float equity = Mathf.Max(0f, net);
             return Mathf.Min(cap * 3f, cap + equity * 0.25f);
         }
 

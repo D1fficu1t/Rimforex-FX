@@ -261,7 +261,7 @@ Free margin is now {2} silver.</RimForex_LetterMarginCallText>
 Equity was {0} silver; after the {2} silver closing fee the account balance was pushed to {1} silver.
 
 This is a blow-up: the debt must be covered. Deposit silver at the terminal to bring the balance back above zero, otherwise you can neither open new positions nor withdraw.</RimForex_LetterBlowUpText>
-  <RimForex_DebtWarning>BLOW-UP: you owe {-0} silver - deposit silver to clear it, or you cannot open or withdraw</RimForex_DebtWarning>
+  <RimForex_DebtWarning>You owe {-0} silver - deposit silver to clear it, or you cannot open positions or withdraw</RimForex_DebtWarning>
   <RimForex_HistoryN>Last {0}</RimForex_HistoryN>
   <RimForex_HistoryAll>All {0}</RimForex_HistoryAll>
   <RimForex_HistoryTipN>Show only the {0} most recent trades.</RimForex_HistoryTipN>
@@ -271,11 +271,11 @@ This is a blow-up: the debt must be covered. Deposit silver at the terminal to b
   <RimForex_HistoryCopyHint>plain text, tab separated, exporting {0} trades</RimForex_HistoryCopyHint>
   <!-- ================= 0.3.0 loans ================= -->
   <RimForex_LoanGizmo>Official lending service</RimForex_LoanGizmo>
-  <RimForex_LoanGizmoDesc>Four institutions offer margin loans. Interest is simple interest, charged per season (15 days). Each lender handles overdue accounts in its own way.</RimForex_LoanGizmoDesc>
+  <RimForex_LoanGizmoDesc>Four institutions offer margin loans. Interest accrues daily as simple interest; each lender sets its own repayment term and handles overdue accounts in its own way.</RimForex_LoanGizmoDesc>
   <RimForex_LoanTitle>Official lending service</RimForex_LoanTitle>
   <RimForex_LoanSummary>Balance {0} silver   ·   Total debt {1} silver   ·   Net worth {2} silver</RimForex_LoanSummary>
   <RimForex_LoanLimit>Limit {0} silver (borrowed {1}, available {2})</RimForex_LoanLimit>
-  <RimForex_LoanRate>Season interest {0}%   ·   {1}</RimForex_LoanRate>
+  <RimForex_LoanRate>Daily interest {0}%/day   ·   {1}</RimForex_LoanRate>
   <RimForex_LoanTerm>{0} day(s)</RimForex_LoanTerm>
   <RimForex_LoanTermNone>No fixed term</RimForex_LoanTermNone>
   <RimForex_LoanDailyDue>Daily interest: {0} silver</RimForex_LoanDailyDue>
@@ -292,7 +292,7 @@ This is a blow-up: the debt must be covered. Deposit silver at the terminal to b
   <RimForex_LoanLimitReached>This lender's limit is reached</RimForex_LoanLimitReached>
   <RimForex_LoanTooSmall>Amount too small</RimForex_LoanTooSmall>
   <RimForex_LoanDefault>{0} declares you in default: {1} silver has been charged to your account</RimForex_LoanDefault>
-  <RimForex_LoanFooter>Simple interest: a fixed share of the principal each season; interest never compounds. If the loan is not cleared by its term, or two consecutive seasons of interest go unpaid, you are in default — the debt is charged to your balance at once (and may push it negative).</RimForex_LoanFooter>
+  <RimForex_LoanFooter>Simple interest: accrued daily (daily rate = season rate / 15) on the original principal, so it never compounds. If the loan is not cleared by its term, or three consecutive days of interest go unpaid, you are in default — the debt is charged to your balance at once (and may push it negative).</RimForex_LoanFooter>
   <RimForex_Loan0Name>Tomorrow-or-Else Bank</RimForex_Loan0Name>
   <RimForex_Loan0Desc>Short-term liquidity with a deadline strictly defined as "tomorrow". Overdue accounts enter the Doomsday Rocket Collection Procedure: no support desk, no appeals, no grace period — only the impact point.</RimForex_Loan0Desc>
   <RimForex_Loan1Name>Organ Futures Micro-Loan</RimForex_Loan1Name>
