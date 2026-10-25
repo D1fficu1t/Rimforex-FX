@@ -675,7 +675,9 @@ namespace RimForex
 
             Settings.ClampAll();
 
-            // ---- 货币名字 ----
+            // ---- 货币名字 / 图表维护：归入测试选项，默认隐藏 ----
+            if (Settings.showTestOptions)
+            {
             l.Gap(12f);
             Text.Font = GameFont.Medium;
             l.Label("RimForex_SettingsNameTest".Translate());
@@ -742,6 +744,7 @@ namespace RimForex
             }
             Hint(l, "RimForex_ClearCandlesTip".Translate());
 
+            }   // end of 货币名字 / 图表维护
             l.Gap(12f);
             // ---- 界面提示开关 ----
             Text.Font = GameFont.Medium;
