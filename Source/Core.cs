@@ -740,8 +740,21 @@ namespace RimForex
         /// </summary>
         public bool wasBlowUp;
 
+        /// <summary>
+        /// 这是一条"费用凭证"而不是一笔交易。
+        ///
+        /// 作者 2026-10-25：托管费/隔夜利息/贷款利息每天都在扣，
+        /// 但一天没交易就查不到任何记录，等于没有凭证。
+        /// 所以把这些扣款也写进交易历史，只是不参与胜率/交易笔数统计。
+        /// </summary>
+        public bool isFee;
+        /// <summary>费用名（"托管费" / "隔夜利息" / "贷款利息"）。</summary>
+        public string feeLabel = "";
+
         public void ExposeData()
         {
+            Scribe_Values.Look(ref isFee, "isFee", false);
+            Scribe_Values.Look(ref feeLabel, "feeLabel");
             Scribe_Values.Look(ref currencyName, "currencyName");
             Scribe_Values.Look(ref pairLabel, "pairLabel");
             Scribe_Values.Look(ref isLong, "isLong", true);
@@ -933,6 +946,24 @@ namespace RimForex
         public List<FxTradeRecord> history = new List<FxTradeRecord>();
         /// <summary>历史记录上限，避免长存档无限增长。</summary>
         public const int MaxHistory = 200;
+
+        /// <summary>
+        /// 记一条费用凭证。<paramref name="amount"/> 传正数，内部记成负的盈亏。
+        /// </summary>
+        public void RecordFee(string label, float amount)
+        {
+            if (amount < 0.01f) return;
+            RecordTrade(new FxTradeRecord
+            {
+                isFee = true,
+                feeLabel = label,
+                currencyName = label,
+                pairLabel = label,
+                units = 0,
+                pnl = -amount,
+                closedTick = GenTicks.TicksGame
+            });
+        }
 
         public void RecordTrade(FxTradeRecord rec)
         {
@@ -4199,35 +4230,14 @@ namespace RimForex
             switch (e.kind)
             {
                 case FxPendingKind.CaravanArrive:
+                case FxPendingKind.OrbitalArrive:
                 {
-                    bool sellOff = e.payload == 1;   // E2 的甩卖商队
-
-                    // 商队真的来了才算数；被 storyteller 拦下来就只留一条消息
-                    if (TryFireCaravan(faction))
+                    // 两条路都试：陆路商队 → 轨道贸易船。
+                    // 哪条成功就用哪条的文案，绝不出现"信里写商队、结果来了贸易船"。
+                    if (!DeliverTradeVisit(faction, e.payload == 1))
                     {
-                        if (sellOff)
-                        {
-                            ApplyTradeBonus();
-                            Find.LetterStack.ReceiveLetter(
-                                "RimForex_Ev2ArrivedLabel".Translate(faction.Name),
-                                "RimForex_Ev2Arrived".Translate(
-                                    faction.Name, E2TradeBonusDays.ToString()),
-                                LetterDefOf.PositiveEvent);
-                        }
-                        else
-                        {
-                            float amount = Mathf.Max(2000f, TotalEquity() * 0.02f);
-                            TryInjectCaravanSilver(faction, amount);
-                            Find.LetterStack.ReceiveLetter(
-                                "RimForex_Ev1ArrivedLabel".Translate(faction.Name),
-                                "RimForex_Ev1Arrived".Translate(faction.Name),
-                                LetterDefOf.PositiveEvent);
-                        }
-                    }
-                    else
-                    {
-                        Messages.Message((sellOff ? "RimForex_Ev2NoCaravan" : "RimForex_Ev1NoCaravan")
-                            .Translate(faction.Name), MessageTypeDefOf.NeutralEvent, false);
+                        Messages.Message("RimForex_EvNoTrader".Translate(faction.Name),
+                            MessageTypeDefOf.NeutralEvent, false);
                     }
                     break;
                 }
@@ -4257,27 +4267,6 @@ namespace RimForex
                     }
                     Messages.Message("RimForex_Ev1bQuiet".Translate(faction.Name),
                         MessageTypeDefOf.NeutralEvent, false);
-                    break;
-                }
-
-                case FxPendingKind.OrbitalArrive:
-                {
-                    bool sellOff = e.payload == 1;
-                    if (TryFireOrbitalTrader(faction))
-                    {
-                        if (sellOff) ApplyTradeBonus();
-                        Find.LetterStack.ReceiveLetter(
-                            (sellOff ? "RimForex_Ev2OrbitalArrivedLabel" : "RimForex_Ev1OrbitalArrivedLabel")
-                                .Translate(faction.Name),
-                            (sellOff ? "RimForex_Ev2OrbitalArrived" : "RimForex_Ev1OrbitalArrived")
-                                .Translate(faction.Name),
-                            LetterDefOf.PositiveEvent);
-                    }
-                    else
-                    {
-                        Messages.Message("RimForex_EvOrbitalNoShip".Translate(faction.Name),
-                            MessageTypeDefOf.NeutralEvent, false);
-                    }
                     break;
                 }
 
@@ -4335,15 +4324,13 @@ namespace RimForex
             Map map = Find.AnyPlayerHomeMap;
             if (map == null) return false;
 
-            // ── 别再靠"caravanTraderKinds 非空"猜（2026-10-25 修）──
-            // 作者实测：帝国（Royalty 的赤色大帝国）有 caravanTraderKinds，
-            // 但 CanFireNow 内部还会因为 TraderKindCommonality == 0 而返回 false。
-            // 与其一条条复刻那些判定，不如直接问原版工人 —— 它说能发才是真能发。
-            var worker = IncidentDefOf.TraderCaravanArrival.Worker;
-            if (worker == null) return false;
-
-            var parms = new IncidentParms { target = map, faction = f };
-            return worker.CanFireNow(parms);
+            // ── 为什么回到结构检查（2026-10-25 第二次修）──
+            // 上一版改成问 CanFireNow，结果帝国/轨道贸易联盟**它照样返回 true**，
+            // 于是信件仍然写"商队"，两天后 TryFire 照样失败。
+            // CanFireNow 只能回答"此刻允不允许"，回答不了"这个派系有没有商队"。
+            // 有商队 = caravanTraderKinds 非空，这是结构事实，不会骗人。
+            // 真的发不出去时由 DispatchPendingEvent 兜底改发贸易船 / 明说失败。
+            return f.def.caravanTraderKinds != null && f.def.caravanTraderKinds.Count > 0;
         }
 
         /// <summary>
@@ -4360,11 +4347,7 @@ namespace RimForex
             Map map = Find.AnyPlayerHomeMap;
             if (map == null) return false;
 
-            var worker = IncidentDefOf.OrbitalTraderArrival.Worker;
-            if (worker == null) return false;
-
-            var parms = new IncidentParms { target = map, faction = f };
-            return worker.CanFireNow(parms);
+            return f.def.orbitalTraderKinds != null && f.def.orbitalTraderKinds.Count > 0;
         }
 
         /// <summary>发起一艘轨道贸易船。成功返回 true。</summary>
@@ -4377,6 +4360,57 @@ namespace RimForex
             var parms = new IncidentParms { target = map, faction = f };
             return Find.Storyteller.TryFire(
                 new FiringIncident(IncidentDefOf.OrbitalTraderArrival, null, parms));
+        }
+
+        /// <summary>
+        /// 把一次贸易访问送到玩家殖民地：优先陆路商队，发不出去就改轨道贸易船。
+        ///
+        /// 为什么需要兜底：CanFireNow 回答的是"此刻允不允许"，
+        /// 回答不了"这个派系有没有商队"。帝国/轨道贸易联盟就是这种情况 ——
+        /// 它在商队判定那边返回 true，TryFire 却永远失败。
+        /// 与其反复猜，不如**两条都试一遍**，哪条成功就用哪条的文案。
+        /// </summary>
+        private bool DeliverTradeVisit(Faction faction, bool sellOff)
+        {
+            if (faction == null) return false;
+
+            bool fired = TryFireCaravan(faction);
+            bool orbital = false;
+
+            if (!fired)
+            {
+                orbital = TryFireOrbitalTrader(faction);
+                fired = orbital;
+            }
+            if (!fired) return false;
+
+            if (sellOff)
+            {
+                ApplyTradeBonus();
+            }
+            else
+            {
+                float amount = Mathf.Max(2000f, TotalEquity() * 0.02f);
+                TryInjectCaravanSilver(faction, amount);
+            }
+
+            string labelKey, textKey;
+            if (orbital)
+            {
+                labelKey = sellOff ? "RimForex_Ev2OrbitalArrivedLabel" : "RimForex_Ev1OrbitalArrivedLabel";
+                textKey = sellOff ? "RimForex_Ev2OrbitalArrived" : "RimForex_Ev1OrbitalArrived";
+            }
+            else
+            {
+                labelKey = sellOff ? "RimForex_Ev2ArrivedLabel" : "RimForex_Ev1ArrivedLabel";
+                textKey = sellOff ? "RimForex_Ev2Arrived" : "RimForex_Ev1Arrived";
+            }
+
+            Find.LetterStack.ReceiveLetter(
+                labelKey.Translate(faction.Name),
+                textKey.Translate(faction.Name, E2TradeBonusDays.ToString()),
+                LetterDefOf.PositiveEvent);
+            return true;
         }
 
         /// <summary>发起一次商队。成功返回 true。</summary>
@@ -5062,6 +5096,7 @@ namespace RimForex
 
             acc.balance -= total;
             acc.carrySinceSettle += total;
+            acc.RecordFee("RimForex_FeeCarry".Translate(), total);
         }
 
         /// <summary>所有账户的权益之和（用于 E1 商队白银量的量级）。</summary>
@@ -5096,6 +5131,7 @@ namespace RimForex
 
             acc.balance -= fee;
             acc.custodySinceSettle += fee;
+            acc.RecordFee("RimForex_FeeCustody".Translate(), fee);
         }
 
         // ══════════════════════════════════════════════════════════════
@@ -5290,6 +5326,7 @@ namespace RimForex
                             acc.balance -= pay;
                             loan.unpaidInterest -= pay;
                             acc.loanInterestSinceSettle += pay;
+                            acc.RecordFee("RimForex_FeeLoan".Translate(), pay);
                             loan.unpaidDays = 0;
                         }
                         else

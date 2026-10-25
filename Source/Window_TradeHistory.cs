@@ -65,6 +65,7 @@ namespace RimForex
                 FxTradeRecord t = all[i];
                 if (t == null) continue;
                 totalPnl += t.pnl;
+                if (t.isFee) continue;      // 费用凭证不计入交易笔数与胜率
                 totalFee += t.totalFee;
                 totalSpread += t.spreadCost;
                 if (t.pnl > 0.5f) wins++;
@@ -207,6 +208,27 @@ namespace RimForex
 
                 Rect row = new Rect(0f, y, viewRect.width, RowH);
                 if (n % 2 == 1) Widgets.DrawLightHighlight(row);
+
+                // ── 费用凭证（0.3.0）：没有方向/数量/开平价，只显示名称与金额 ──
+                if (t.isFee)
+                {
+                    GUI.color = new Color(0.92f, 0.78f, 0.55f);
+                    Widgets.Label(new Rect(row.x + 2f, row.y + 6f, 240f, 20f), t.feeLabel);
+                    GUI.color = Color.white;
+
+                    Text.Font = GameFont.Tiny;
+                    GUI.color = new Color(0.62f, 0.64f, 0.66f);
+                    Widgets.Label(new Rect(row.x + 136f, row.y + 7f, 300f, 20f),
+                        "RimForex_HistoryFeeRow".Translate());
+                    GUI.color = Color.white;
+                    Text.Font = GameFont.Small;
+
+                    Widgets.Label(new Rect(row.x + 636f, row.y + 6f, 90f, 20f),
+                        ColorizeBySign(t.pnl.ToString("+0;-0;0"), t.pnl));
+
+                    y += RowH;
+                    continue;
+                }
 
                 string dir = t.isLong ? "RimForex_Long".Translate() : "RimForex_Short".Translate();
                 if (t.wasLiquidation)
