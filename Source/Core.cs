@@ -829,8 +829,8 @@ namespace RimForex
         public float unpaidInterest;
         public int startTick;
         public int quarters;
-        /// <summary>期限（季）。0 = 无期限。</summary>
-        public int termQuarters;
+        /// <summary>期限（游戏日）。0 = 无期限。</summary>
+        public int termDays;
         public int unpaidQuarters;
 
         public float Owed => principal + unpaidInterest;
@@ -842,7 +842,14 @@ namespace RimForex
             Scribe_Values.Look(ref unpaidInterest, "unpaidInterest", 0f);
             Scribe_Values.Look(ref startTick, "startTick", 0);
             Scribe_Values.Look(ref quarters, "quarters", 0);
-            Scribe_Values.Look(ref termQuarters, "termQuarters", 0);
+            Scribe_Values.Look(ref termDays, "termDays", 0);
+            // 兼容 preview1 的旧字段（当时期限按"季"存）
+            int legacyTermQuarters = 0;
+            Scribe_Values.Look(ref legacyTermQuarters, "termQuarters", 0);
+            if (Scribe.mode == LoadSaveMode.PostLoadInit && termDays == 0 && legacyTermQuarters > 0)
+            {
+                termDays = legacyTermQuarters * 15;
+            }
             Scribe_Values.Look(ref unpaidQuarters, "unpaidQuarters", 0);
         }
     }
@@ -4098,8 +4105,13 @@ namespace RimForex
         //  0.3.0 隔夜利息（swap）
         // ══════════════════════════════════════════════════════════════
 
-        /// <summary>默认隔夜利息率：按名义仓位每天 0.02%。</summary>
-        public const float DefaultCarryRate = 0.0002f;
+        /// <summary>
+        /// 默认隔夜利息率：按名义仓位每天 0.2%。
+        ///
+        /// 0.02% 实测太温和（作者 2026-10-25 反馈），调到 0.2%。
+        /// 换算：1x = 12%/游戏年，20x = 4%/日保证金，100x = 20%/日保证金。
+        /// </summary>
+        public const float DefaultCarryRate = 0.002f;
 
         /// <summary>
         /// 每日结算时收取隔夜利息：<c>Σ |units| × 现价 × 费率</c>。
@@ -4117,7 +4129,6 @@ namespace RimForex
             if (acc == null || acc.positions == null || acc.positions.Count == 0) return;
 
             RimForexSettings cfg = RimForexMod.Settings;
-            if (cfg != null && !cfg.enableCarry) return;
             float rate = cfg != null ? cfg.carryRate : DefaultCarryRate;
             if (rate <= 0f) return;
 
@@ -4143,8 +4154,15 @@ namespace RimForex
         public static readonly float[] LenderCap = { 2000f, 8000f, 10000f, 20000f };
         /// <summary>四家借贷方的季利息率（单利，按本金）。</summary>
         public static readonly float[] LenderRate = { 0.05f, 0.10f, 0.20f, 0.30f };
-        /// <summary>四家借贷方的期限（季）。0 = 无期限。</summary>
-        public static readonly int[] LenderTerm = { 1, 2, 3, 0 };
+        /// <summary>
+        /// 四家借贷方的期限（**游戏日**）。0 = 无期限。
+        ///
+        /// ── 为什么从"季"改成"天"（2026-10-25 作者反馈）──
+        /// 一季 = 15 日，对"周转"来说太长：原版玩法里 15 天足够凑齐还款，
+        /// 期限就失去了约束力。改成 3/6/10 日后，"借了要还"才有紧迫感。
+        /// 利息仍然按季（15 日）结算，期限与计息周期是两件事，不要混。
+        /// </summary>
+        public static readonly int[] LenderTermDays = { 3, 6, 10, 0 };
         public const int LenderCount = 4;
 
         /// <summary>
@@ -4234,7 +4252,7 @@ namespace RimForex
                 unpaidInterest = 0f,
                 startTick = GenTicks.TicksGame,
                 quarters = 0,
-                termQuarters = LenderTerm[lender],
+                termDays = LenderTermDays[lender],
                 unpaidQuarters = 0,
                 // 第一季利息在整整一季后到期
                 // （nextDueTick 用 startTick + 一季，见 ProcessLoans）
@@ -4301,8 +4319,8 @@ namespace RimForex
                     }
 
                     // ── 违约：到期未清 / 连续两季付不出利息 ──
-                    bool overdue = loan.termQuarters > 0
-                                   && loan.quarters >= loan.termQuarters
+                    bool overdue = loan.termDays > 0
+                                   && GenTicks.TicksGame - loan.startTick >= loan.termDays * TicksPerDay
                                    && loan.Owed > 0.01f;
                     bool broke = loan.unpaidQuarters >= 2;
 

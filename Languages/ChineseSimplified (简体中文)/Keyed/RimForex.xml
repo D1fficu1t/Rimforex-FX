@@ -287,7 +287,7 @@
   <RimForex_LoanSummary>账户余额 {0} 银　·　总负债 {1} 银　·　净资产 {2} 银</RimForex_LoanSummary>
   <RimForex_LoanLimit>上限 {0} 银（已借 {1}，可借 {2}）</RimForex_LoanLimit>
   <RimForex_LoanRate>季利息 {0}%　·　{1}</RimForex_LoanRate>
-  <RimForex_LoanTerm>期限 {0} 季</RimForex_LoanTerm>
+  <RimForex_LoanTerm>期限 {0} 日</RimForex_LoanTerm>
   <RimForex_LoanTermNone>无固定期限</RimForex_LoanTermNone>
   <RimForex_LoanQuarterDue>本季应付利息：{0} 银</RimForex_LoanQuarterDue>
   <RimForex_LoanOwed>当前欠款：{0} 银</RimForex_LoanOwed>
@@ -316,13 +316,9 @@
 
   <!-- 0.3.0 设置 -->
   <RimForex_Set_CarryHeader>隔夜利息（持仓成本）</RimForex_Set_CarryHeader>
-  <RimForex_Set_EnableCarry>收取隔夜利息</RimForex_Set_EnableCarry>
-  <RimForex_Set_EnableCarryTip>按名义仓位每天收取。关掉后"死扛等回本"又变成免费期权。</RimForex_Set_EnableCarryTip>
   <RimForex_Set_CarryRate>费率 {0}%/日</RimForex_Set_CarryRate>
   <RimForex_Set_CarryRateTip>作用在名义仓位上：1x 时等于本金的费率，20x 时是 20 倍，100x 时是 100 倍。</RimForex_Set_CarryRateTip>
   <RimForex_Set_EventsHeader>世界事件</RimForex_Set_EventsHeader>
-  <RimForex_Set_EnableEvents>启用世界事件</RimForex_Set_EnableEvents>
-  <RimForex_Set_EnableEventsTip>货币暴涨暴跌、战争新闻、做空报复、穿仓收债等。</RimForex_Set_EnableEventsTip>
   <RimForex_Set_EventFreq>频率 ×{0}</RimForex_Set_EventFreq>
   <RimForex_Set_EventFreqTip>缩放的是触发阈值（以 σ 为单位），不是概率：数值越大越频繁。</RimForex_Set_EventFreqTip>
 

@@ -104,7 +104,7 @@ namespace RimForex
             if (fx == null) return;
             var acc = fx.ColonyAccount(Map);
             if (acc == null) return;
-            Find.WindowStack.Add(new Window_FxLoans(fx, acc));
+            Find.WindowStack.Add(new Window_FxLoans(fx, acc, this));
         }
 
         public override string GetInspectString()

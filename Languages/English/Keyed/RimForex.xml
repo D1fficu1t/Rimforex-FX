@@ -276,7 +276,7 @@ This is a blow-up: the debt must be covered. Deposit silver at the terminal to b
   <RimForex_LoanSummary>Balance {0} silver   ·   Total debt {1} silver   ·   Net worth {2} silver</RimForex_LoanSummary>
   <RimForex_LoanLimit>Limit {0} silver (borrowed {1}, available {2})</RimForex_LoanLimit>
   <RimForex_LoanRate>Season interest {0}%   ·   {1}</RimForex_LoanRate>
-  <RimForex_LoanTerm>{0} season(s)</RimForex_LoanTerm>
+  <RimForex_LoanTerm>{0} day(s)</RimForex_LoanTerm>
   <RimForex_LoanTermNone>No fixed term</RimForex_LoanTermNone>
   <RimForex_LoanQuarterDue>Interest due this season: {0} silver</RimForex_LoanQuarterDue>
   <RimForex_LoanOwed>Currently owed: {0} silver</RimForex_LoanOwed>
@@ -305,13 +305,9 @@ This is a blow-up: the debt must be covered. Deposit silver at the terminal to b
 
   <!-- 0.3.0 settings -->
   <RimForex_Set_CarryHeader>Overnight interest (holding cost)</RimForex_Set_CarryHeader>
-  <RimForex_Set_EnableCarry>Charge overnight interest</RimForex_Set_EnableCarry>
-  <RimForex_Set_EnableCarryTip>Charged daily on notional. Disabling it makes "hold and wait" a free option again.</RimForex_Set_EnableCarryTip>
   <RimForex_Set_CarryRate>Rate {0}%/day</RimForex_Set_CarryRate>
   <RimForex_Set_CarryRateTip>Applied to notional: at 1x it equals the rate on your capital, at 20x it is 20 times that, at 100x a hundred times.</RimForex_Set_CarryRateTip>
   <RimForex_Set_EventsHeader>World events</RimForex_Set_EventsHeader>
-  <RimForex_Set_EnableEvents>Enable world events</RimForex_Set_EnableEvents>
-  <RimForex_Set_EnableEventsTip>Currency spikes and crashes, war news, short-squeeze retaliation, debt collection.</RimForex_Set_EnableEventsTip>
   <RimForex_Set_EventFreq>Frequency x{0}</RimForex_Set_EventFreq>
   <RimForex_Set_EventFreqTip>Scales the trigger threshold (in sigma), not a probability: higher means more frequent.</RimForex_Set_EventFreqTip>
 

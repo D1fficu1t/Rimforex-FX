@@ -21,6 +21,7 @@ namespace RimForex
     {
         private readonly FxGameComponent fx;
         private readonly FxAccount account;
+        private readonly Building_FXTradingTerminal terminal;
 
         /// <summary>四家的借款输入。用缓冲字符串是因为 TextFieldNumeric 需要它。</summary>
         private readonly int[] amount = new int[FxGameComponent.LenderCount];
@@ -28,10 +29,11 @@ namespace RimForex
 
         private const float Gap = 8f;
 
-        public Window_FxLoans(FxGameComponent fx, FxAccount account)
+        public Window_FxLoans(FxGameComponent fx, FxAccount account, Building_FXTradingTerminal terminal)
         {
             this.fx = fx;
             this.account = account;
+            this.terminal = terminal;
 
             doCloseX = true;
             doCloseButton = false;
@@ -50,6 +52,13 @@ namespace RimForex
 
         public override void DoWindowContents(Rect inRect)
         {
+            // 与交易终端一致：断电 / 拆除后自动关窗（作者 2026-10-25 反馈）
+            if (terminal == null || !terminal.Usable)
+            {
+                Close();
+                return;
+            }
+
             if (fx == null || account == null)
             {
                 Widgets.Label(inRect, "RimForex_NoMarket".Translate());
@@ -143,8 +152,8 @@ namespace RimForex
             Widgets.Label(new Rect(tx, r.y + 22f, tw, 16f), "RimForex_LoanLimit".Translate(
                 cap.ToString("F0"), borrowed.ToString("F0"), available.ToString("F0")));
 
-            string term = FxGameComponent.LenderTerm[idx] > 0
-                ? "RimForex_LoanTerm".Translate(FxGameComponent.LenderTerm[idx].ToString())
+            string term = FxGameComponent.LenderTermDays[idx] > 0
+                ? "RimForex_LoanTerm".Translate(FxGameComponent.LenderTermDays[idx].ToString())
                 : "RimForex_LoanTermNone".Translate();
             Widgets.Label(new Rect(tx, r.y + 38f, tw, 16f), "RimForex_LoanRate".Translate(
                 (FxGameComponent.LenderRate[idx] * 100f).ToString("0"), term));
