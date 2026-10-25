@@ -5356,6 +5356,40 @@ namespace RimForex
             }
         }
 
+        /// <summary>
+        /// 五档危机文案的键。
+        ///
+        /// 写成字面量数组而不是运行时拼接：audit 是逐字面量扫源码的，
+        /// 拼接出来的键它认不出，会把五档文案当成"XML 里残留、代码里没用"。
+        /// </summary>
+        private static readonly string[] CrisisTextKeys =
+        {
+            "RimForex_Ev6Crisis1", "RimForex_Ev6Crisis2", "RimForex_Ev6Crisis3",
+            "RimForex_Ev6Crisis4", "RimForex_Ev6Crisis5"
+        };
+
+        /// <summary>实时统计某个货币的空头名义仓位（不依赖每日结算的缓存）。</summary>
+        private float ShortNotionalFor(int factionLoadID)
+        {
+            if (accounts == null) return 0f;
+            float sum = 0f;
+            var accKeys = new List<int>(accounts.Keys);
+            for (int i = 0; i < accKeys.Count; i++)
+            {
+                var acc = accounts[accKeys[i]];
+                if (acc == null || acc.positions == null) continue;
+                for (int j = 0; j < acc.positions.Count; j++)
+                {
+                    var pos = acc.positions[j];
+                    if (pos == null || pos.isLong) continue;
+                    if (pos.currencyFactionLoadID != factionLoadID) continue;
+                    float px = pos.markRate > 0f ? pos.markRate : pos.entryRate;
+                    sum += Mathf.Abs(pos.units) * px;
+                }
+            }
+            return sum;
+        }
+
         private void StartRetaliation(FxCurrency c, float notional)
         {
             var f = FactionByID(c.factionLoadID);
@@ -5396,8 +5430,12 @@ namespace RimForex
 
                 var cur = market.Get(r.currencyFaction);
 
-                // 放弃操盘：空头几乎清零 → 停止报复
-                if (cur == null || cur.shortNotional < E6ShortNotionalMin * 0.25f)
+                // 放弃操盘：空头几乎清零 → 停止报复。
+                // ⚠️ 这里**实时重算**，不能读 cur.shortNotional ——
+                // 那是每日结算时刷新的缓存。玩家在两次结算之间平掉空单，
+                // 缓存还是旧值，循环会多打一次袭击。
+                float liveShort = ShortNotionalFor(r.currencyFaction);
+                if (cur == null || liveShort < E6ShortNotionalMin * 0.25f)
                 {
                     retaliations.RemoveAt(i);
                     Find.LetterStack.ReceiveLetter(
@@ -5449,9 +5487,11 @@ namespace RimForex
                 return;
             }
 
+            // 五次危机的文案各写各的，一次比一次绝望（作者 2026-10-25 要求）
+            int tier = Mathf.Clamp(r.crisisCount, 1, E6CrisesToDefeat);
             Find.LetterStack.ReceiveLetter(
-                "RimForex_Ev6CrisisLabel".Translate(fname),
-                "RimForex_Ev6Crisis".Translate(fname, count.ToString(), r.crisisCount.ToString()),
+                "RimForex_Ev6CrisisLabel".Translate(fname, tier.ToString()),
+                CrisisTextKeys[tier - 1].Translate(fname, count.ToString()),
                 LetterDefOf.ThreatBig);
         }
 

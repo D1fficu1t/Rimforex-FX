@@ -443,10 +443,7 @@
 只要你还挂着空单，他们就会不断派人过来。</RimForex_Ev6Letter>
   <RimForex_Ev6StopLabel>{0}：报复中止</RimForex_Ev6StopLabel>
   <RimForex_Ev6Stop>你已经把空头仓位平掉了。{0} 的袭击者陆续撤回。</RimForex_Ev6Stop>
-  <RimForex_Ev6CrisisLabel>{0}：金融危机</RimForex_Ev6CrisisLabel>
-  <RimForex_Ev6Crisis>第 {2} 次危机。{0} 的货币信用崩塌，汇率永久下跌 10%。
-
-{1} 名难民流落到你的殖民地边缘，倒在地上。救不救，你自己决定。</RimForex_Ev6Crisis>
+  <RimForex_Ev6CrisisLabel>{0}：金融危机（第 {1} 次）</RimForex_Ev6CrisisLabel>
   <RimForex_Ev6Defeat>{0} 名存实亡。
 
 他们不再参与世界政治，不再发起袭击，也不会再派商队。
@@ -463,4 +460,9 @@
   <RimForex_TestCrisisTip>让当前报复循环立刻进一次危机：货币永久 -10%，刷 3~5 个难民。连点 5 次可以让该派系名存实亡。</RimForex_TestCrisisTip>
   <RimForex_MsgTestCrisis>已触发一次金融危机</RimForex_MsgTestCrisis>
   <RimForex_MsgTestCrisisFail>当前没有进行中的报复循环</RimForex_MsgTestCrisisFail>
+  <RimForex_Ev6Crisis1>{0} 的交易所今天开盘即崩盘。股民从楼顶排队，企业连夜注销，散户把棺材本换成了废纸。\n\n{1} 名公民失去资产和国籍，抢了一艘空投仓想换个地方重新开始。导航系统坏了，他们摔在你的殖民地外面。\n\n你可以救，也可以等他们咽气再收割器官。法律上没人会追究。</RimForex_Ev6Crisis1>
+  <RimForex_Ev6Crisis2>{0} 的央行宣布「一切正常」，然后关门跑路。银行挤兑，超市被搬空，第二波跳楼潮赶在午休前完成。\n\n{1} 名难民挤进同一艘空投仓，超载警报响了十二分钟。他们摔在你的殖民地外面，还有气。\n\n救不救，看你今天心情。</RimForex_Ev6Crisis2>
+  <RimForex_Ev6Crisis3>{0} 的货币已经买不到面包。军队开始抢劫自己的补给站，公务员烧掉工牌，富人用金条点烟，然后发现金条也不值钱了。\n\n{1} 名难民在真空里飘了三天才落到你的殖民地外面。他们可能还活着。\n\n救人是笔投资，收割是笔现货。</RimForex_Ev6Crisis3>
+  <RimForex_Ev6Crisis4>{0} 只剩下一个名字。城市在烧，广播在循环播放「请保持冷静」，然后广播站也烧了。\n\n{1} 名难民把自己塞进逃生舱，没填目的地。他们落在你的殖民地外面，姿势不太好看。\n\n他们身上还有能用的零件。</RimForex_Ev6Crisis4>
+  <RimForex_Ev6Crisis5>{0} 从星图上消失了。没有政府，没有货币，没有幸存者组织，只剩一些还在飘的碎片和几艘没头苍蝇一样的救生舱。\n\n{1} 名难民落在你的殖民地外面。这是他们最后一次降落。\n\n救，还是拆，随你。</RimForex_Ev6Crisis5>
 </LanguageData>

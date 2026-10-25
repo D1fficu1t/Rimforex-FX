@@ -432,10 +432,7 @@ They do not sell anything. If you want them satisfied, silver buys goodwill.</Ri
 As long as you hold that short, they will keep coming.</RimForex_Ev6Letter>
   <RimForex_Ev6StopLabel>{0}: retaliation ended</RimForex_Ev6StopLabel>
   <RimForex_Ev6Stop>You have closed your short position. {0}'s raiders are pulling back.</RimForex_Ev6Stop>
-  <RimForex_Ev6CrisisLabel>{0}: financial crisis</RimForex_Ev6CrisisLabel>
-  <RimForex_Ev6Crisis>Crisis number {2}. {0}'s currency has lost credibility, and the rate drops 10% permanently.
-
-{1} refugees have fallen near the edge of your colony. Whether to save them is up to you.</RimForex_Ev6Crisis>
+  <RimForex_Ev6CrisisLabel>{0}: financial crisis (no. {1})</RimForex_Ev6CrisisLabel>
   <RimForex_Ev6Defeat>{0} is finished.
 
 They no longer take part in world politics, no longer raid, and no longer send caravans.
@@ -452,4 +449,9 @@ Their settlements remain on the world as independent places that still fly the o
   <RimForex_TestCrisisTip>Force the active retaliation loop into a crisis: currency -10% permanently, 3-5 refugees. Press 5 times to finish a faction off.</RimForex_TestCrisisTip>
   <RimForex_MsgTestCrisis>Financial crisis triggered</RimForex_MsgTestCrisis>
   <RimForex_MsgTestCrisisFail>No retaliation loop is active</RimForex_MsgTestCrisisFail>
+  <RimForex_Ev6Crisis1>{0}'s exchange opened and immediately collapsed. Traders queued on the rooftops, companies dissolved overnight, and small investors traded their funeral money for wallpaper.\n\n{1} citizens lost their assets and citizenship, seized a drop pod, and tried to start over somewhere else. The navigation failed. They landed outside your colony.\n\nYou can save them, or wait for them to stop breathing and harvest the organs. Nobody will press charges.</RimForex_Ev6Crisis1>
+  <RimForex_Ev6Crisis2>{0}'s central bank announced that everything was fine, then locked the doors and left. Bank run, empty shelves, and a second wave of rooftop queues finished before lunch.\n\n{1} refugees crammed into one pod. The overload alarm sounded for twelve minutes. They landed outside your colony, still breathing.\n\nWhether that is good news is up to you.</RimForex_Ev6Crisis2>
+  <RimForex_Ev6Crisis3>{0}'s currency no longer buys bread. The army is looting its own depots, officials are burning their badges, and the rich are lighting cigars with gold bars - which they have just discovered are also worthless.\n\n{1} refugees drifted in vacuum for three days before landing outside your colony. They may still be alive.\n\nRescuing them is an investment. Harvesting them is cash on delivery.</RimForex_Ev6Crisis3>
+  <RimForex_Ev6Crisis4>Nothing is left of {0} but the name. The cities are burning, the emergency broadcast keeps repeating "please remain calm", and then the broadcast station burned too.\n\n{1} refugees stuffed themselves into escape pods without entering a destination. They landed outside your colony, in unflattering positions.\n\nThey still have usable parts.</RimForex_Ev6Crisis4>
+  <RimForex_Ev6Crisis5>{0} is gone from the star map. No government, no currency, no survivor organization - only drifting debris and a few lifeboats flying in circles.\n\n{1} refugees came down outside your colony. This is their last landing.\n\nSave them or take them apart. Your call.</RimForex_Ev6Crisis5>
 </LanguageData>
