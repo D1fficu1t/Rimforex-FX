@@ -323,4 +323,82 @@
   <RimForex_Set_EnableEventsTip>关闭后，交易只影响你自己的殖民地，不会对世界上的其他派系产生任何影响：没有暴涨暴跌带来的商队或袭击、没有战争新闻、没有做空报复、没有穿仓收债。</RimForex_Set_EnableEventsTip>
   <RimForex_LetterLoanInterest>贷款利息 −{0} 银</RimForex_LetterLoanInterest>
   <RimForex_LoanDefaultLabel>{0}：贷款违约</RimForex_LoanDefaultLabel>
+  <!-- ================= 0.3.0 新手教程 ================= -->
+  <RimForex_GuideButton>新手教程</RimForex_GuideButton>
+  <RimForex_GuideButtonTip>随时可以重新打开。讲怎么判断方向、为什么会爆仓、K 线怎么看。</RimForex_GuideButtonTip>
+  <RimForex_GuideTitle>新手教程</RimForex_GuideTitle>
+  <RimForex_GuideIntro>外汇交易就三件事：押方向、加杠杆、别被打爆。下面五节读完就够用了，剩下的边玩边学。</RimForex_GuideIntro>
+  <RimForex_GuideLongTitle>一、什么时候做多</RimForex_GuideLongTitle>
+  <RimForex_GuideLong>做多就是"买入"，你赌它涨。
+
+什么时候涨？看两件事：
+· 消息面：某派系打了胜仗、经济向好，它的货币通常会涨。
+· 走势：跌了很久之后开始回升，往往是转折点。
+
+盈利 = 数量 × 涨幅。涨得越多赚得越多，跌了就亏。</RimForex_GuideLong>
+  <RimForex_GuideShortTitle>二、什么时候做空</RimForex_GuideShortTitle>
+  <RimForex_GuideShort>做空就是"先卖后买"，你赌它跌。
+
+什么时候跌？
+· 该派系刚吃了败仗、经济崩盘、货币被大量抛售
+· 涨了很久之后涨不动了
+
+盈利 = 数量 × 跌幅。注意方向反了：价格涨，做空就亏。</RimForex_GuideShort>
+  <RimForex_GuideLiquidationTitle>三、为什么会爆仓、穿仓</RimForex_GuideLiquidationTitle>
+  <RimForex_GuideLiquidation>杠杆会放大盈亏，也会放大亏损。
+
+· 保证金亏到 45%，终端会预警并暂停游戏，你可以追加保证金。
+· 亏到 30%，强制平仓 —— 这就是爆仓。
+· 如果行情跳空直接越过强平线，亏损会超过保证金，余额变成负数 —— 这就是穿仓。此时不能开仓、不能提款，必须存银填平。
+
+杠杆越高，强平线离你越近。100 倍下只要反向 0.7% 就没了。</RimForex_GuideLiquidation>
+  <RimForex_GuideCandleTitle>四、K 线怎么看</RimForex_GuideCandleTitle>
+  <RimForex_GuideCandle>一根 K 线记录一段时间里的四个价格：开盘、最高、最低、收盘。
+
+· 实体：开盘到收盘之间的距离。上涨是绿色，下跌是红色。
+· 影线：实体上方和下方的细线，代表那段时间摸到的最高价和最低价。
+
+影线长，说明价格冲高又被打回来，买卖双方在打架。
+
+K 线只描述过去发生过什么，不预测未来。</RimForex_GuideCandle>
+  <RimForex_GuideProfitTitle>五、新手怎么盈利</RimForex_GuideProfitTitle>
+  <RimForex_GuideProfit>先说清楚：没有稳赚的策略。做错方向就是亏，任何杠杆都一样。
+
+三个能提高胜率的习惯：
+
+1. 先用低杠杆。1 到 5 倍能扛住正常波动；100 倍一波噪音就没了。
+2. 别频繁进出。点差和手续费每次都要付，来回做就是在给平台送钱。
+3. 看消息面。战争、崩盘这类事件的预期，比盯着 K 线看更有用。
+
+还要记住：持仓每天要付隔夜利息，借钱要付贷款利息 —— 拿得越久，成本越高。</RimForex_GuideProfit>
+  <RimForex_GuideLoanTitle>借贷</RimForex_GuideLoanTitle>
+  <RimForex_GuideLoan>选中终端后，命令栏里有「官方借贷服务」，四家机构利息和期限各不相同。
+
+借来的钱是欠款，不是收入。到期没还清，欠款会被一次性从账户划走，余额可能变成负数。</RimForex_GuideLoan>
+  <RimForex_GuideGlossaryTitle>术语表</RimForex_GuideGlossaryTitle>
+  <RimForex_GuideGlossary>保证金：你押上去的钱。
+名义仓位：保证金 × 杠杆。
+点差：买入价和卖出价的差，开平各付一次。
+手续费：每笔 0.02%，最少 2 银。
+强平线：保证金亏到 30% 时强制平仓。
+爆仓：被强制平仓。
+穿仓：亏损超过保证金，余额变成负数。
+锁定期：开仓后要跨过一次报价才能平仓。</RimForex_GuideGlossary>
+
+  <!-- ================= 0.3.0 世界事件（preview2：E1 / E3）================= -->
+  <RimForex_Ev1LetterLabel>{0}：货币暴涨</RimForex_Ev1LetterLabel>
+  <RimForex_Ev1Letter>{0} 的货币一天之内涨了 {1}%。这样的涨幅让市场很兴奋，他们的商队已经在路上了——预计两天后抵达你的殖民地。</RimForex_Ev1Letter>
+  <RimForex_Ev1ArrivedLabel>{0}：商队抵达</RimForex_Ev1ArrivedLabel>
+  <RimForex_Ev1Arrived>{0} 的商队抵达了殖民地边缘。他们带的白银比平时多，收购意愿很强。</RimForex_Ev1Arrived>
+  <RimForex_Ev1NoCaravan>{0} 的商队最终没能成行。</RimForex_Ev1NoCaravan>
+  <RimForex_Ev1bLetterLabel>{0}：货币暴涨</RimForex_Ev1bLetterLabel>
+  <RimForex_Ev1bLetter>{0} 的货币一天之内涨了 {1}%。他们注意到了你在市场上的动作——这几天可能会有人来找你。</RimForex_Ev1bLetter>
+  <RimForex_Ev1bRaidLabel>{0}：突袭</RimForex_Ev1bRaidLabel>
+  <RimForex_Ev1bRaid>{0} 的部队出现在殖民地附近。他们想趁着这波行情捞一笔。</RimForex_Ev1bRaid>
+  <RimForex_Ev1bQuiet>{0} 的人在附近转了一圈，没有动手。</RimForex_Ev1bQuiet>
+  <RimForex_Ev3LetterLabel>外汇奇才</RimForex_Ev3LetterLabel>
+  <RimForex_Ev3Letter>你一天之内在外汇市场上赚了 {0} 银，这件事传遍了整个星球。各派系对你的眼光刮目相看，好感 +{1}。</RimForex_Ev3Letter>
+  <RimForex_Ev3Raid>不过有钱的人总引人注意。有人在打听你的财富——这几天可能会有不速之客。</RimForex_Ev3Raid>
+  <RimForex_LetterCustody>账户托管费 −{0} 银</RimForex_LetterCustody>
+
 </LanguageData>

@@ -312,4 +312,82 @@ This is a blow-up: the debt must be covered. Deposit silver at the terminal to b
   <RimForex_Set_EnableEventsTip>When disabled, trading affects only your own colony: no caravans or raids from currency swings, no war news, no short-squeeze retaliation, no debt collection.</RimForex_Set_EnableEventsTip>
   <RimForex_LetterLoanInterest>Loan interest −{0} silver</RimForex_LetterLoanInterest>
   <RimForex_LoanDefaultLabel>{0}: loan default</RimForex_LoanDefaultLabel>
+  <!-- ================= 0.3.0 guide ================= -->
+  <RimForex_GuideButton>Beginner's guide</RimForex_GuideButton>
+  <RimForex_GuideButtonTip>Reopen any time. Covers picking a direction, why positions get liquidated, and reading candles.</RimForex_GuideButtonTip>
+  <RimForex_GuideTitle>Beginner's guide</RimForex_GuideTitle>
+  <RimForex_GuideIntro>FX trading is three things: pick a direction, add leverage, don't get wiped out. These five short sections cover the rest.</RimForex_GuideIntro>
+  <RimForex_GuideLongTitle>1. When to go long</RimForex_GuideLongTitle>
+  <RimForex_GuideLong>Going long means buying: you're betting the rate goes up.
+
+What makes it go up?
+· News: a faction wins a war or its economy improves, and its currency usually rises.
+· Price action: after a long slide, a turn back up is often the reversal.
+
+Profit = units × the rise. Higher is better; if it falls, you lose.</RimForex_GuideLong>
+  <RimForex_GuideShortTitle>2. When to go short</RimForex_GuideShortTitle>
+  <RimForex_GuideShort>Going short means selling first and buying back later: you're betting the rate goes down.
+
+What makes it fall?
+· The faction just lost a war, its economy collapsed, or its currency is being dumped.
+· A long rally that has stalled.
+
+Profit = units × the fall. Mind the direction: if the rate rises, a short loses.</RimForex_GuideShort>
+  <RimForex_GuideLiquidationTitle>3. Why you get liquidated</RimForex_GuideLiquidationTitle>
+  <RimForex_GuideLiquidation>Leverage magnifies profits and losses alike.
+
+· At 45% margin health the terminal warns you and pauses the game; you can add margin.
+· At 30% the position is closed for you — that's a margin call.
+· If a gap jumps past the stop-out line, losses exceed your margin and the balance goes negative — that's a blow-up. You cannot open positions or withdraw until you deposit silver.
+
+The higher the leverage, the closer the stop-out: at 100x, a 0.7% move against you is enough.</RimForex_GuideLiquidation>
+  <RimForex_GuideCandleTitle>4. Reading candles</RimForex_GuideCandleTitle>
+  <RimForex_GuideCandle>Each candle records four prices over a period: open, high, low, close.
+
+· Body: the distance from open to close. Green when it rose, red when it fell.
+· Wicks: the thin lines above and below, marking the high and low reached.
+
+Long wicks mean price pushed and got pushed back — buyers and sellers are fighting.
+
+Candles describe what already happened. They do not predict the future.</RimForex_GuideCandle>
+  <RimForex_GuideProfitTitle>5. How beginners actually make money</RimForex_GuideProfitTitle>
+  <RimForex_GuideProfit>First, the honest part: there is no sure-win strategy. Get the direction wrong and you lose, at any leverage.
+
+Three habits that improve your odds:
+
+1. Start with low leverage. 1-5x survives normal swings; 100x dies to one bad quote.
+2. Don't churn. You pay the spread and fees every round trip.
+3. Watch the news. War and crash expectations beat staring at candles.
+
+Also remember: open positions cost overnight interest, and loans cost loan interest — the longer you hold, the more you pay.</RimForex_GuideProfit>
+  <RimForex_GuideLoanTitle>Borrowing</RimForex_GuideLoanTitle>
+  <RimForex_GuideLoan>With the terminal selected, the "Official lending service" gizmo offers four lenders with different rates and terms.
+
+Borrowed silver is debt, not income. If it isn't cleared by the term, the debt is charged to your balance and can push it negative.</RimForex_GuideLoan>
+  <RimForex_GuideGlossaryTitle>Glossary</RimForex_GuideGlossaryTitle>
+  <RimForex_GuideGlossary>Margin: the silver you post.
+Notional: margin × leverage.
+Spread: the gap between buy and sell price, paid on open and close.
+Fee: 0.02% per trade, minimum 2 silver.
+Stop-out line: forced close at 30% margin health.
+Margin call: being forcibly closed.
+Blow-up: losses exceed margin, balance goes negative.
+Lock-in: you must cross one quote before you can close.</RimForex_GuideGlossary>
+
+  <!-- ================= 0.3.0 world events (preview2: E1 / E3) ================= -->
+  <RimForex_Ev1LetterLabel>{0}: currency surge</RimForex_Ev1LetterLabel>
+  <RimForex_Ev1Letter>{0}'s currency rose {1}% in a single day. That kind of move excites the market, and their caravan is already on the road - it should reach your colony in about two days.</RimForex_Ev1Letter>
+  <RimForex_Ev1ArrivedLabel>{0}: caravan arrived</RimForex_Ev1ArrivedLabel>
+  <RimForex_Ev1Arrived>A caravan from {0} has arrived at the edge of your colony. They are carrying more silver than usual and are eager to buy.</RimForex_Ev1Arrived>
+  <RimForex_Ev1NoCaravan>{0}'s caravan never made it.</RimForex_Ev1NoCaravan>
+  <RimForex_Ev1bLetterLabel>{0}: currency surge</RimForex_Ev1bLetterLabel>
+  <RimForex_Ev1bLetter>{0}'s currency rose {1}% in a single day. They noticed what you have been doing in the market - someone may come looking in the next few days.</RimForex_Ev1bLetter>
+  <RimForex_Ev1bRaidLabel>{0}: raid</RimForex_Ev1bRaidLabel>
+  <RimForex_Ev1bRaid>Forces from {0} have appeared near your colony, hoping to cash in on the rally.</RimForex_Ev1bRaid>
+  <RimForex_Ev1bQuiet>{0}'s people looked around and left without acting.</RimForex_Ev1bQuiet>
+  <RimForex_Ev3LetterLabel>Currency prodigy</RimForex_Ev3LetterLabel>
+  <RimForex_Ev3Letter>You made {0} silver in a single day on the FX market, and the story spread across the planet. The factions think more highly of you now - goodwill +{1}.</RimForex_Ev3Letter>
+  <RimForex_Ev3Raid>Wealth draws attention, though. Someone has been asking about your fortune - expect uninvited guests within a few days.</RimForex_Ev3Raid>
+  <RimForex_LetterCustody>Account custody fee -{0} silver</RimForex_LetterCustody>
+
 </LanguageData>

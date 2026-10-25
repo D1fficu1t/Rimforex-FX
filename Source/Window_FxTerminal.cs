@@ -197,11 +197,22 @@ namespace RimForex
                                     TimeControls.TimeButSize.x * 4f, TimeControls.TimeButSize.y);
             TimeControls.DoTimeControlsGUI(buttons);
 
-            // 右下角：「模组设置」快捷入口（2026-10-23 加）。
+            // 右下角：新手教程 + 模组设置（并排）。
             // 放在时间条上而不是账户区 —— 那里已经被标题、状态行、结算倒计时占满。
             const float SettingsBtnW = 96f;
             Rect settingsBtn = new Rect(zone.xMax - SettingsBtnW, zone.y + (zone.height - 24f) * 0.5f,
                                         SettingsBtnW, 24f);
+
+            Rect guideBtn = new Rect(settingsBtn.x - SettingsBtnW - Gap, settingsBtn.y,
+                                     SettingsBtnW, 24f);
+            if (Widgets.ButtonText(guideBtn, "RimForex_GuideButton".Translate()))
+            {
+                if (!Find.WindowStack.IsOpen(typeof(Window_FxGuide)))
+                {
+                    Find.WindowStack.Add(new Window_FxGuide());
+                }
+            }
+            TooltipHandler.TipRegion(guideBtn, "RimForex_GuideButtonTip".Translate());
             if (Widgets.ButtonText(settingsBtn, "RimForex_OpenSettings".Translate()))
             {
                 if (RimForexMod.Instance != null)
@@ -216,7 +227,7 @@ namespace RimForex
             if (RimForexMod.Settings == null || RimForexMod.Settings.showTimeSpeedHint)
             {
                 Widgets.Label(new Rect(buttons.xMax + Gap, zone.y + 8f,
-                        zone.width - buttons.width - Gap - SettingsBtnW - Gap, 18f),
+                        zone.width - buttons.width - Gap - SettingsBtnW * 2f - Gap * 2f, 18f),
                     "RimForex_TimeHint".Translate());
             }
             GUI.color = Color.white;

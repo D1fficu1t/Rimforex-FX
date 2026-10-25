@@ -891,6 +891,8 @@ namespace RimForex
         public float carrySinceSettle;
         /// <summary>本周期已扣的贷款利息，结算信里单列一行。</summary>
         public float loanInterestSinceSettle;
+        /// <summary>本周期已扣的托管费，结算信里单列一行。</summary>
+        public float custodySinceSettle;
         /// <summary>贷款记录（四家借贷方）。</summary>
         public List<FxLoan> loans = new List<FxLoan>();
 
@@ -1098,6 +1100,7 @@ namespace RimForex
             Scribe_Values.Look(ref frozenUntilTick, "frozenUntilTick", 0);
             Scribe_Values.Look(ref carrySinceSettle, "carrySinceSettle", 0f);
             Scribe_Values.Look(ref loanInterestSinceSettle, "loanInterestSinceSettle", 0f);
+            Scribe_Values.Look(ref custodySinceSettle, "custodySinceSettle", 0f);
             Scribe_Collections.Look(ref loans, "loans", LookMode.Deep);
             if (loans == null) loans = new List<FxLoan>();
             if (history == null) history = new List<FxTradeRecord>();
@@ -3028,6 +3031,8 @@ namespace RimForex
         public int platformFactionLoadID;
         /// <summary>下次尝试 E4/E5 战争新闻的 tick。</summary>
         public int nextNewsTick;
+        /// <summary>上次 E3（暴赚）触发的 tick。</summary>
+        public int lastWealthEventTick;
         /// <summary>待判定的难民（存 thingIDNumber，不存 Pawn 引用）。</summary>
         public List<int> refugeePawnIds = new List<int>();
         /// <summary>E2-B 被削弱的据点。</summary>
@@ -3035,6 +3040,32 @@ namespace RimForex
 
         /// <summary>全局事件冷却：两次世界事件之间至少 5 游戏日。</summary>
         public const int GlobalEventCooldown = 5 * TicksPerDay;
+
+        // ── E1 / E3 参数（作者已拍板）──
+        /// <summary>触发阈值：2.5 倍单日 σ。</summary>
+        public const float EventSigma = 2.5f;
+        /// <summary>每货币的事件冷却。</summary>
+        public const int EventCooldownPerCurrency = 20 * TicksPerDay;
+        /// <summary>E1 商队延迟。</summary>
+        public const int E1CaravanDelay = 2 * TicksPerDay;
+        /// <summary>E1-B 袭击掷骰延迟。</summary>
+        public const int E1RaidDelay = 3 * TicksPerDay;
+        /// <summary>E1-B 掷骰成功率。</summary>
+        public const float E1RaidChance = 0.30f;
+        /// <summary>E3 触发下限（绝对值）与占净值的比例。</summary>
+        public const float E3MinPnl = 10000f;
+        public const float E3EquityFraction = 0.05f;
+        /// <summary>E3 好感度增量。</summary>
+        public const int E3Goodwill = 6;
+        /// <summary>E3 额外来袭的概率。</summary>
+        public const float E3RaidChance = 0.35f;
+        public const int E3GoodwillCooldown = 15 * TicksPerDay;
+
+        // ── 托管费（闲置余额的存放成本）──
+        /// <summary>免收额度：20,000 银以下不收。</summary>
+        public const float CustodyFree = 20000f;
+        /// <summary>超出部分每日费率 0.3%。</summary>
+        public const float CustodyRate = 0.003f;
 
         /// <summary>
         /// 待处理的"临近爆仓"预警。key = <b>持仓对象本身</b>（引用相等）。
@@ -4086,17 +4117,268 @@ namespace RimForex
         /// </summary>
         private void DispatchPendingEvent(FxPendingEvent e)
         {
+            var faction = FactionByID(e.factionLoadID);
+            if (faction == null) return;
+
             switch (e.kind)
             {
                 case FxPendingKind.CaravanArrive:
+                {
+                    // 商队真的来了才算数；被 storyteller 拦下来就只留一条消息
+                    if (TryFireCaravan(faction))
+                    {
+                        float amount = Mathf.Max(2000f, TotalEquity() * 0.02f);
+                        TryInjectCaravanSilver(faction, amount);
+                        Find.LetterStack.ReceiveLetter(
+                            "RimForex_Ev1ArrivedLabel".Translate(faction.Name),
+                            "RimForex_Ev1Arrived".Translate(faction.Name),
+                            LetterDefOf.PositiveEvent);
+                    }
+                    else
+                    {
+                        Messages.Message("RimForex_Ev1NoCaravan".Translate(faction.Name),
+                            MessageTypeDefOf.NeutralEvent, false);
+                    }
                     break;
+                }
+
+                case FxPendingKind.RaidChance:
+                {
+                    // E1-B：3 天后掷骰，30% 来一次点数更高的袭击
+                    if (Rand.Chance(E1RaidChance))
+                    {
+                        Map map = Find.AnyPlayerHomeMap;
+                        float pts = map != null
+                            ? Mathf.Max(StorytellerUtility.DefaultThreatPointsNow(map) * 1.3f, 2000f)
+                            : 2000f;
+                        if (TryFireRaid(faction, pts))
+                        {
+                            Find.LetterStack.ReceiveLetter(
+                                "RimForex_Ev1bRaidLabel".Translate(faction.Name),
+                                "RimForex_Ev1bRaid".Translate(faction.Name),
+                                LetterDefOf.ThreatBig);
+                            break;
+                        }
+                    }
+                    Messages.Message("RimForex_Ev1bQuiet".Translate(faction.Name),
+                        MessageTypeDefOf.NeutralEvent, false);
+                    break;
+                }
+
                 case FxPendingKind.RetaliationRaid:
                     break;
                 case FxPendingKind.DebtDeadline:
                     break;
-                case FxPendingKind.RaidChance:
-                    break;
             }
+        }
+
+        /// <summary>按 loadID 找派系（找不到返回 null）。</summary>
+        public Faction FactionByID(int loadID)
+        {
+            var all = Find.FactionManager.AllFactionsListForReading;
+            for (int i = 0; i < all.Count; i++)
+            {
+                var f = all[i];
+                if (f != null && f.loadID == loadID) return f;
+            }
+            return null;
+        }
+
+        /// <summary>发起一次袭击。成功返回 true。</summary>
+        public bool TryFireRaid(Faction f, float points)
+        {
+            if (f == null) return false;
+            Map map = Find.AnyPlayerHomeMap;
+            if (map == null) return false;
+
+            if (points <= 0f) points = StorytellerUtility.DefaultThreatPointsNow(map);
+            var parms = new IncidentParms
+            {
+                target = map,
+                faction = f,
+                points = points
+            };
+            return Find.Storyteller.TryFire(new FiringIncident(IncidentDefOf.RaidEnemy, null, parms));
+        }
+
+        /// <summary>发起一次商队。成功返回 true。</summary>
+        public bool TryFireCaravan(Faction f)
+        {
+            if (f == null) return false;
+            Map map = Find.AnyPlayerHomeMap;
+            if (map == null) return false;
+
+            var parms = new IncidentParms { target = map, faction = f };
+            return Find.Storyteller.TryFire(
+                new FiringIncident(IncidentDefOf.TraderCaravanArrival, null, parms));
+        }
+
+        /// <summary>
+        /// 给来访商队的驼兽背包塞白银（E1-A 的"带更多白银"）。
+        ///
+        /// 已验证 `Pawn_TraderTracker.Goods` 在贸易领主下取 **Carrier 角色 pawn 的背包**，
+        /// 所以往那儿塞银子就能直接抬高他们的购买力。
+        /// 找不到 Carrier 时返回 false，由调用方退化处理。
+        /// </summary>
+        public bool TryInjectCaravanSilver(Faction f, float amount)
+        {
+            if (f == null || amount < 1f) return false;
+            Map map = Find.AnyPlayerHomeMap;
+            if (map == null || map.lordManager == null) return false;
+
+            var lords = map.lordManager.lords;
+            for (int i = 0; i < lords.Count; i++)
+            {
+                var lord = lords[i];
+                if (lord == null || lord.faction != f) continue;
+                if (!(lord.LordJob is LordJob_TradeWithColony)) continue;
+
+                for (int j = 0; j < lord.ownedPawns.Count; j++)
+                {
+                    var pawn = lord.ownedPawns[j];
+                    if (pawn == null || pawn.inventory == null) continue;
+                    if (pawn.GetTraderCaravanRole() != TraderCaravanRole.Carrier) continue;
+
+                    var silver = ThingMaker.MakeThing(ThingDefOf.Silver, null);
+                    silver.stackCount = Mathf.RoundToInt(amount);
+                    if (pawn.inventory.innerContainer.TryAdd(silver)) return true;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// 每日结算时的世界事件检测（必须在 AnchorDayOpen 之前调用 —— 那时
+        /// `previousRate` 还是昨日收盘）。
+        ///
+        /// preview2 只接了 E1（暴涨）。E2/E4~E7 在后续 preview 里往这里加。
+        /// </summary>
+        private void DetectWorldEvents()
+        {
+            RimForexSettings cfg = RimForexMod.Settings;
+            if (cfg != null && !cfg.enableWorldEvents) return;
+            if (!WorldEventAllowed()) return;
+
+            int now = GenTicks.TicksGame;
+            FxCurrency best = null;
+            float bestZ = 0f;
+
+            var keys = new List<int>(market.currencies.Keys);
+            for (int i = 0; i < keys.Count; i++)
+            {
+                var c = market.currencies[keys[i]];
+                if (c == null) continue;
+                int f = c.factionLoadID;
+                if (f == Faction.OfPlayer.loadID) continue;
+                if (now - c.lastEventTick < EventCooldownPerCurrency) continue;
+
+                float sigma = SigmaDayOf(c);
+                if (sigma <= 0f) continue;
+                float z = DailyReturnOf(c) / sigma;
+                // preview2 只接了"涨"这一侧；"跌"（E2）在 preview3。
+                // 这里刻意只筛正 z，免得一次大跌把真正的暴涨挤掉。
+                if (z < EventSigma) continue;
+                if (z > bestZ) { best = c; bestZ = z; }
+            }
+
+            if (best == null) return;
+
+            var faction = FactionByID(best.factionLoadID);
+            if (faction == null || faction.temporary || faction.IsPlayer) return;
+
+            best.lastEventTick = now;
+            lastWorldEventTick = now;
+
+            // 只有暴涨这一条在本 preview 里
+            if (bestZ > 0f) QueueE1(best, faction, bestZ);
+        }
+
+        /// <summary>E1：货币大涨 → 商队或袭击（按派系是否敌对分叉）。</summary>
+        private void QueueE1(FxCurrency c, Faction faction, float z)
+        {
+            bool hostile = faction.HostileTo(Faction.OfPlayer);
+            float pct = DailyReturnOf(c) * 100f;
+
+            if (hostile)
+            {
+                // 敌对派系发不出商队 → 改为 3 天后掷骰袭击
+                QueueEvent(FxPendingKind.RaidChance, faction.loadID, c.factionLoadID, E1RaidDelay);
+                Find.LetterStack.ReceiveLetter(
+                    "RimForex_Ev1bLetterLabel".Translate(faction.Name),
+                    "RimForex_Ev1bLetter".Translate(faction.Name, pct.ToString("0.0")),
+                    LetterDefOf.NegativeEvent);
+            }
+            else
+            {
+                QueueEvent(FxPendingKind.CaravanArrive, faction.loadID, c.factionLoadID, E1CaravanDelay);
+                Find.LetterStack.ReceiveLetter(
+                    "RimForex_Ev1LetterLabel".Translate(faction.Name),
+                    "RimForex_Ev1Letter".Translate(faction.Name, pct.ToString("0.0")),
+                    LetterDefOf.PositiveEvent);
+            }
+        }
+
+        /// <summary>
+        /// E3：单日暴赚 → 各派系好感上升 + 概率招来袭击（作者已拍板）。
+        ///
+        /// 为什么"袭击概率上升"要自己掷骰：原版的袭击概率来自 storyteller，改不了，
+        /// 但我们可以直接排一次额外来袭，效果等价。
+        /// </summary>
+        private void MaybeTriggerE3(FxAccount acc, float dayPnl)
+        {
+            RimForexSettings cfg = RimForexMod.Settings;
+            if (cfg != null && !cfg.enableWorldEvents) return;
+            if (!WorldEventAllowed()) return;
+            if (GenTicks.TicksGame - lastWealthEventTick < E3GoodwillCooldown) return;
+
+            float threshold = Mathf.Max(E3MinPnl,
+                Mathf.Max(0f, acc != null ? acc.Equity : 0f) * E3EquityFraction);
+            if (dayPnl < threshold) return;
+
+            lastWealthEventTick = GenTicks.TicksGame;
+            lastWorldEventTick = GenTicks.TicksGame;
+
+            // ① 所有非敌对派系好感 +6
+            var all = Find.FactionManager.AllFactionsListForReading;
+            for (int i = 0; i < all.Count; i++)
+            {
+                var f = all[i];
+                if (f == null || f.IsPlayer || f.temporary || f.Hidden) continue;
+                f.TryAffectGoodwillWith(Faction.OfPlayer, E3Goodwill,
+                    canSendMessage: false, canSendHostilityLetter: false);
+            }
+
+            // ② 35% 概率招来一次袭击（3 天后）
+            bool raid = Rand.Chance(E3RaidChance);
+            if (raid)
+            {
+                Faction target = null;
+                for (int i = 0; i < all.Count; i++)
+                {
+                    var f = all[i];
+                    if (f == null || f.IsPlayer || f.temporary || f.Hidden) continue;
+                    if (!f.HostileTo(Faction.OfPlayer)) continue;
+                    target = f;
+                    break;
+                }
+                if (target != null)
+                {
+                    QueueEvent(FxPendingKind.RaidChance, target.loadID, -1, E1RaidDelay);
+                }
+                else
+                {
+                    raid = false;
+                }
+            }
+
+            string body = "RimForex_Ev3Letter".Translate(
+                dayPnl.ToString("F0"), E3Goodwill.ToString());
+            if (raid) body += "\n\n" + "RimForex_Ev3Raid".Translate();
+
+            Find.LetterStack.ReceiveLetter(
+                "RimForex_Ev3LetterLabel".Translate(),
+                body,
+                LetterDefOf.PositiveEvent);
         }
 
         /// <summary>该货币的"一日波动"标准差（对数收益）。</summary>
@@ -4156,6 +4438,40 @@ namespace RimForex
 
             acc.balance -= total;
             acc.carrySinceSettle += total;
+        }
+
+        /// <summary>所有账户的权益之和（用于 E1 商队白银量的量级）。</summary>
+        public float TotalEquity()
+        {
+            if (accounts == null || accounts.Count == 0) return 0f;
+            float sum = 0f;
+            var keys = new List<int>(accounts.Keys);
+            for (int i = 0; i < keys.Count; i++)
+            {
+                var acc = accounts[keys[i]];
+                if (acc != null) sum += Mathf.Max(0f, acc.Equity);
+            }
+            return sum;
+        }
+
+        /// <summary>
+        /// 每日托管费：对**闲置余额**收取，堵"把白银存进账户躲袭击"。
+        ///
+        /// 免收额度 20,000：正常玩家把账户当钱包用几乎不会触发。
+        /// 超出部分按 0.3%/日 —— 藏 10 万一年（60 日）约 14.4% 的成本，
+        /// 足以让"为了躲袭击而囤钱"变成一笔需要权衡的买卖。
+        /// </summary>
+        private void ChargeCustody(FxAccount acc)
+        {
+            if (acc == null) return;
+            float excess = acc.balance - CustodyFree;
+            if (excess <= 0f) return;
+
+            float fee = excess * CustodyRate;
+            if (fee < 0.01f) return;
+
+            acc.balance -= fee;
+            acc.custodySinceSettle += fee;
         }
 
         // ══════════════════════════════════════════════════════════════
@@ -4405,6 +4721,11 @@ namespace RimForex
         public void DailySettlement()
         {
             EnsureAllFactionCurrencies();
+
+            // ⚠️ 事件检测必须在 AnchorDayOpen 之前 —— 它会把 previousRate 覆盖成当前价，
+            // 之后就算不出"今日涨跌"了。
+            DetectWorldEvents();
+
             market.AnchorDayOpen();
             MarkToMarket();
 
@@ -4447,6 +4768,9 @@ namespace RimForex
 
                 // ③ 隔夜利息（0.3.0）：按名义仓位每日收取
                 ChargeCarry(acc);
+
+                // ④ 托管费（0.3.0）：对闲置余额收取
+                ChargeCustody(acc);
 
                 // ④ 负余额计时（E7 收债用；preview1 只记录，不触发）
                 if (acc.balance < 0f)
@@ -4538,6 +4862,9 @@ namespace RimForex
             acc.lastDayPnl = dayPnl;
             acc.lastDayPositions = openCount;
 
+            // E3：单日暴赚 → 好感 + 概率袭击（preview2）
+            MaybeTriggerE3(acc, dayPnl);
+
             // 结算不再挂心情。心情已改为"按单笔平仓"实时记录（见 RecordCloseMood），
             // 每天结算只负责发一封事件通告信。
 
@@ -4564,6 +4891,7 @@ namespace RimForex
             acc.feesSinceSettle = 0f;
             acc.carrySinceSettle = 0f;
             acc.loanInterestSinceSettle = 0f;
+            acc.custodySinceSettle = 0f;
         }
 
 
@@ -4612,6 +4940,11 @@ namespace RimForex
                 feeLine += "\n" + "RimForex_LetterLoanInterest".Translate(
                     acc.loanInterestSinceSettle.ToString("F0"));
             }
+            if (acc.custodySinceSettle >= 0.5f)
+            {
+                feeLine += "\n" + "RimForex_LetterCustody".Translate(
+                    acc.custodySinceSettle.ToString("F0"));
+            }
 
             if (pnl >= 0f)
             {
@@ -4642,6 +4975,7 @@ namespace RimForex
             Scribe_Values.Look(ref lastWorldEventTick, "lastWorldEventTick", -999999);
             Scribe_Values.Look(ref platformFactionLoadID, "platformFactionLoadID", 0);
             Scribe_Values.Look(ref nextNewsTick, "nextNewsTick", 0);
+            Scribe_Values.Look(ref lastWealthEventTick, "lastWealthEventTick", 0);
             Scribe_Collections.Look(ref refugeePawnIds, "refugeePawnIds", LookMode.Value);
             Scribe_Collections.Look(ref weakenedSettlements, "weakenedSettlements", LookMode.Deep);
             if (pendingEvents == null) pendingEvents = new List<FxPendingEvent>();

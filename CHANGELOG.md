@@ -1,5 +1,50 @@
 # 更新记录 / Changelog
 
+## 0.3.0-preview2
+
+> 第二个 preview：**新手教程 + 第一个世界事件 + 托管费**。
+
+### 中文
+
+**新增**
+
+- **新手教程**：终端底部新增「新手教程」按钮，随时可以重新打开。
+  五节内容：什么时候做多、什么时候做空、为什么会爆仓与穿仓、K 线怎么看、新手怎么盈利。
+  K 线一节还画了一张示意图。
+- **世界事件：货币暴涨。** 某个派系的货币单日涨幅超过 2.5σ 时会发生：
+  - 中立/友好派系：两天后派**商队**来扫货（他们带的白银比平时多）
+  - 敌对派系（来不了商队）：三天后有三成概率发动一次**点数更高的袭击**
+- **世界事件：外汇奇才。** 单日通过外汇赚到 10,000 银（或净值的 5%）以上时，
+  各派系好感 +6；同时有三成半的概率招来一次额外袭击。
+- **托管费**：账户余额超过 20,000 的部分，每天收取 0.3%。
+  这笔钱以前可以完全免费地存在账户里躲避袭击，现在有成本了。
+
+**其他**
+
+- 结算信会把「隔夜利息」「贷款利息」「托管费」分列，各自独立。
+
+### English
+
+**Added**
+
+- **Beginner's guide**: a new button at the bottom of the terminal; reopen it any time.
+  Five sections: when to go long, when to go short, why positions get liquidated, reading candles
+  (with a diagram), and how beginners actually make money.
+- **World event: currency surge.** When a faction's currency rises more than 2.5 sigma in one day:
+  - Non-hostile factions send a **caravan** two days later, carrying more silver than usual.
+  - Hostile factions (who cannot send caravans) have a 30% chance to launch a **stronger raid**
+    after three days.
+- **World event: currency prodigy.** Earning 10,000 silver (or 5% of net worth) in one day
+  raises every faction's goodwill by 6 — and has a 35% chance to draw an extra raid.
+- **Custody fee**: balance above 20,000 silver is charged 0.3% per day.
+  Parking silver in the account to dodge raids is no longer free.
+
+**Other**
+
+- Settlement letters now list overnight interest, loan interest and custody fees separately.
+
+---
+
 ## 0.3.0-preview1
 
 > 0.3.0 分四个 preview 逐步上线，这是第一个：**地基 + 借贷 + 隔夜利息**。
