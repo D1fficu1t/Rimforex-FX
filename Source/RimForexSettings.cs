@@ -467,6 +467,7 @@ namespace RimForex
                     diagFx.diagPeakZ.ToString("0.00"),
                     diagFx.diagSettleDays.ToString(),
                     FxGameComponent.EventSigma.ToString("0.0")));
+                diagFx.RecountTradeFactions();   // 每次画都重算，避免显示过期数字
                 Hint(l, "RimForex_DiagFactions".Translate(
                     diagFx.diagCaravanFactions.ToString(),
                     diagFx.diagOrbitalFactions.ToString(),

@@ -3139,8 +3139,13 @@ namespace RimForex
         public const int E1CaravanDelay = 2 * TicksPerDay;
         /// <summary>E1-B 袭击掷骰延迟。</summary>
         public const int E1RaidDelay = 3 * TicksPerDay;
-        /// <summary>E1-B 掷骰成功率。</summary>
-        public const float E1RaidChance = 0.30f;
+        /// <summary>
+        /// E1-B 掷骰成功率。
+        ///
+        /// 0.30 实测太钝（作者 2026-10-25：点半天都不来），调到 0.60。
+        /// 敌对派系的"货币暴涨"本来就该是个危险信号，一半以上会兑现比较合理。
+        /// </summary>
+        public const float E1RaidChance = 0.60f;
         /// <summary>E3 触发下限（绝对值）与占净值的比例。</summary>
         public const float E3MinPnl = 10000f;
         public const float E3EquityFraction = 0.05f;
@@ -4639,20 +4644,10 @@ namespace RimForex
             diagMaxPct = maxPct;
             diagSettleDays++;
 
-            // 诊断：到底哪些派系能做贸易（帝国没有皇家许可时会一直是 0）
-            int caravanCount = 0, orbitalCount = 0, tributeCount = 0;
-            var factions = Find.FactionManager.AllFactionsListForReading;
-            for (int i = 0; i < factions.Count; i++)
-            {
-                var ff = factions[i];
-                if (ff == null || ff.IsPlayer || ff.temporary) continue;
-                if (CanSendCaravan(ff)) caravanCount++;
-                else if (CanSendOrbitalTrade(ff)) orbitalCount++;
-                else if (CanSendTributeCollector(ff)) tributeCount++;
-            }
-            diagCaravanFactions = caravanCount;
-            diagOrbitalFactions = orbitalCount;
-            diagTributeFactions = tributeCount;
+            // 诊断：到底哪些派系能做贸易
+            // （抽成独立方法，设置页可以随时重算 —— 否则刚读档时全是 0，
+            //   作者 2026-10-25 就被这个"没刷新"骗了一次）
+            RecountTradeFactions();
             if (maxAbsZ > diagPeakZ)
             {
                 diagPeakZ = maxAbsZ;
@@ -5199,6 +5194,24 @@ namespace RimForex
                 if (pendingEvents[i] != null) pendingEvents[i].dueTick = GenTicks.TicksGame;
             }
             return n2;
+        }
+
+        /// <summary>重新统计能做贸易的派系数量（诊断用，UI 随时可调）。</summary>
+        public void RecountTradeFactions()
+        {
+            int caravanCount = 0, orbitalCount = 0, tributeCount = 0;
+            var factions = Find.FactionManager.AllFactionsListForReading;
+            for (int i = 0; i < factions.Count; i++)
+            {
+                var ff = factions[i];
+                if (ff == null || ff.IsPlayer || ff.temporary) continue;
+                if (CanSendCaravan(ff)) caravanCount++;
+                else if (CanSendOrbitalTrade(ff)) orbitalCount++;
+                else if (CanSendTributeCollector(ff)) tributeCount++;
+            }
+            diagCaravanFactions = caravanCount;
+            diagOrbitalFactions = orbitalCount;
+            diagTributeFactions = tributeCount;
         }
 
         /// <summary>该货币的"一日波动"标准差（对数收益）。</summary>

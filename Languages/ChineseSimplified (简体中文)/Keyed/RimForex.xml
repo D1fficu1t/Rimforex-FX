@@ -409,11 +409,11 @@
   <RimForex_Ev1OrbitalLetterLabel>{0}：货币暴涨</RimForex_Ev1OrbitalLetterLabel>
   <RimForex_Ev1OrbitalLetter>{0} 的货币一天之内涨了 {1}%。他们的贸易船正在赶来，预计两天后进入轨道。</RimForex_Ev1OrbitalLetter>
   <RimForex_Ev1OrbitalArrivedLabel>{0}：贸易船抵达</RimForex_Ev1OrbitalArrivedLabel>
-  <RimForex_Ev1OrbitalArrived>{0} 的贸易船进入了轨道，正等着和你交易。他们带来的白银比平时多。</RimForex_Ev1OrbitalArrived>
+  <RimForex_Ev1OrbitalArrived>{0} 的贸易船进入了轨道，正等着和你交易。他们带来的白银比平时多。\n\n（轨道交易需要一台通电的通讯台。还没造出来的话，这艘船会一直停在轨道上等你。）</RimForex_Ev1OrbitalArrived>
   <RimForex_Ev2OrbitalLetterLabel>{0}：货币下跌</RimForex_Ev2OrbitalLetterLabel>
   <RimForex_Ev2OrbitalLetter>{0} 的货币一天之内跌了 {1}%。他们的贸易船正带着一批货赶来，预计两天后到。到时候东西会比平时便宜。</RimForex_Ev2OrbitalLetter>
   <RimForex_Ev2OrbitalArrivedLabel>{0}：贸易船抵达</RimForex_Ev2OrbitalArrivedLabel>
-  <RimForex_Ev2OrbitalArrived>{0} 的贸易船到了，正在低价出货。接下来你在谈价时更有底气。</RimForex_Ev2OrbitalArrived>
+  <RimForex_Ev2OrbitalArrived>{0} 的贸易船到了，正在低价出货。接下来你在谈价时更有底气。\n\n（轨道交易需要一台通电的通讯台。还没造出来的话，这艘船会一直停在轨道上等你。）</RimForex_Ev2OrbitalArrived>
   <!-- 0.3.0 费用凭证 -->
   <RimForex_FeeCarry>隔夜利息</RimForex_FeeCarry>
   <RimForex_FeeCustody>托管费</RimForex_FeeCustody>
