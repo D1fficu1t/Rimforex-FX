@@ -292,7 +292,7 @@ This is a blow-up: the debt must be covered. Deposit silver at the terminal to b
   <RimForex_LoanLimitReached>This lender's limit is reached</RimForex_LoanLimitReached>
   <RimForex_LoanTooSmall>Amount too small</RimForex_LoanTooSmall>
   <RimForex_LoanDefault>{0} declares you in default: {1} silver has been charged to your account</RimForex_LoanDefault>
-  <RimForex_LoanFooter>Simple interest: accrued daily (daily rate = season rate / 15) on the original principal, so it never compounds. If the loan is not cleared by its term, or three consecutive days of interest go unpaid, you are in default — the debt is charged to your balance at once (and may push it negative).</RimForex_LoanFooter>
+  <RimForex_LoanFooter>Simple interest: accrued daily on the original principal, so it never compounds. If the loan is not cleared by its term, or three consecutive days of interest go unpaid, you are in default — the debt is charged to your balance at once (and may push it negative).</RimForex_LoanFooter>
   <RimForex_Loan0Name>Tomorrow-or-Else Bank</RimForex_Loan0Name>
   <RimForex_Loan0Desc>Short-term liquidity with a deadline strictly defined as "tomorrow". Overdue accounts enter the Doomsday Rocket Collection Procedure: no support desk, no appeals, no grace period — only the impact point.</RimForex_Loan0Desc>
   <RimForex_Loan1Name>Organ Futures Micro-Loan</RimForex_Loan1Name>
@@ -311,4 +311,5 @@ This is a blow-up: the debt must be covered. Deposit silver at the terminal to b
   <RimForex_Set_EnableEvents>Enable world events</RimForex_Set_EnableEvents>
   <RimForex_Set_EnableEventsTip>When disabled, trading affects only your own colony: no caravans or raids from currency swings, no war news, no short-squeeze retaliation, no debt collection.</RimForex_Set_EnableEventsTip>
   <RimForex_LetterLoanInterest>Loan interest −{0} silver</RimForex_LetterLoanInterest>
+  <RimForex_LoanDefaultLabel>{0}: loan default</RimForex_LoanDefaultLabel>
 </LanguageData>

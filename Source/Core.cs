@@ -4390,9 +4390,12 @@ namespace RimForex
             float owed = loan.Owed;
             acc.balance -= owed;
             acc.loans.Remove(loan);
-            Messages.Message("RimForex_LoanDefault".Translate(
-                LenderName(loan.lender), owed.ToString("F0")),
-                MessageTypeDefOf.NegativeEvent, false);
+            // 用信件而不是角落消息：违约是"钱被一次性划走"的重大事件，
+            // 一闪而过的提示玩家根本注意不到（作者 2026-10-25 反馈）。
+            Find.LetterStack.ReceiveLetter(
+                "RimForex_LoanDefaultLabel".Translate(LenderName(loan.lender)),
+                "RimForex_LoanDefault".Translate(LenderName(loan.lender), owed.ToString("F0")),
+                LetterDefOf.NegativeEvent);
         }
 
         /// <summary>

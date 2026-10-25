@@ -303,7 +303,7 @@
   <RimForex_LoanLimitReached>已达到这家的借款上限</RimForex_LoanLimitReached>
   <RimForex_LoanTooSmall>借款金额太小</RimForex_LoanTooSmall>
   <RimForex_LoanDefault>{0} 宣布你违约：欠款 {1} 银已直接计入账户</RimForex_LoanDefault>
-  <RimForex_LoanFooter>单利：利息按日累计（日利率 = 季利息率 ÷ 15），基数永远是本金，不会利滚利。到期未清，或连续 3 日付不出利息，即视为违约 —— 欠款会一次性打进账户余额（可能转负）。</RimForex_LoanFooter>
+  <RimForex_LoanFooter>单利：利息按日累计，基数永远是本金，不会利滚利。到期未清，或连续 3 日付不出利息，即视为违约 —— 欠款会一次性打进账户余额（可能转负）。</RimForex_LoanFooter>
   <RimForex_Loan0Name>明日必还银行</RimForex_Loan0Name>
   <RimForex_Loan0Desc>本行以短期周转为核心业务，还款期限严格限定为"明天"。明日复明日，明日何其多；但在本行，明日只有一个。逾期客户将自动进入"末日火箭催收程序"。该程序流程极简：客服、申诉、缓冲期一概省略，只保留落点。建议您在借款当日就完成还款，以免遭遇不必要的轨道飞行事故。</RimForex_Loan0Desc>
   <RimForex_Loan1Name>器官期货小额贷款</RimForex_Loan1Name>
@@ -322,4 +322,5 @@
   <RimForex_Set_EnableEvents>启用世界事件</RimForex_Set_EnableEvents>
   <RimForex_Set_EnableEventsTip>关闭后，交易只影响你自己的殖民地，不会对世界上的其他派系产生任何影响：没有暴涨暴跌带来的商队或袭击、没有战争新闻、没有做空报复、没有穿仓收债。</RimForex_Set_EnableEventsTip>
   <RimForex_LetterLoanInterest>贷款利息 −{0} 银</RimForex_LetterLoanInterest>
+  <RimForex_LoanDefaultLabel>{0}：贷款违约</RimForex_LoanDefaultLabel>
 </LanguageData>
