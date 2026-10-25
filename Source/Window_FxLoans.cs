@@ -140,13 +140,21 @@ namespace RimForex
             float borrowed = fx.LenderBorrowed(idx, account);
             float available = Mathf.Max(0f, cap - borrowed);
             float owed = 0f;
-            float quarterInterest = 0f;
+            float dailyInterest = 0f;
+            int remainDays = -1;
+            int now = GenTicks.TicksGame;
             for (int i = 0; i < account.loans.Count; i++)
             {
                 var l = account.loans[i];
                 if (l == null || l.lender != idx) continue;
                 owed += l.Owed;
-                quarterInterest += l.principal * FxGameComponent.LenderRate[idx];
+                dailyInterest += l.principal * FxGameComponent.LenderDailyRate(idx);
+                if (l.termDays > 0)
+                {
+                    int left = l.termDays - (now - l.startTick) / FxGameComponent.TicksPerDay;
+                    if (left < 0) left = 0;
+                    if (remainDays < 0 || left < remainDays) remainDays = left;
+                }
             }
 
             Widgets.Label(new Rect(tx, r.y + 22f, tw, 16f), "RimForex_LoanLimit".Translate(
@@ -158,13 +166,14 @@ namespace RimForex
             Widgets.Label(new Rect(tx, r.y + 38f, tw, 16f), "RimForex_LoanRate".Translate(
                 (FxGameComponent.LenderRate[idx] * 100f).ToString("0"), term));
 
-            GUI.color = quarterInterest >= 0.5f ? new Color(1f, 0.78f, 0.55f) : Color.white;
+            GUI.color = dailyInterest >= 0.5f ? new Color(1f, 0.78f, 0.55f) : Color.white;
             Widgets.Label(new Rect(tx, r.y + 54f, tw, 16f),
-                "RimForex_LoanQuarterDue".Translate(quarterInterest.ToString("F0")));
+                "RimForex_LoanDailyDue".Translate(dailyInterest.ToString("F0")));
             GUI.color = Color.white;
 
-            Widgets.Label(new Rect(tx, r.y + 70f, tw, 16f),
-                "RimForex_LoanOwed".Translate(owed.ToString("F0")));
+            Widgets.Label(new Rect(tx, r.y + 70f, tw, 16f), remainDays >= 0
+                ? "RimForex_LoanOwedRemain".Translate(owed.ToString("F0"), remainDays.ToString())
+                : "RimForex_LoanOwed".Translate(owed.ToString("F0")));
             Text.Font = GameFont.Small;
 
             // ── 第二行：简介（整行宽度，约 4 行小字）──

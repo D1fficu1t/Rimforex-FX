@@ -121,16 +121,15 @@ namespace RimForex
         // ================= 0.3.0：隔夜利息与世界事件 =================
 
         /// <summary>
-        /// 隔夜利息率：按**名义仓位**每天收取。
-        /// 0.0002 = 0.02%/日 → 1x 下 0.02%、20x 下 0.4%、100x 下 2% 的保证金。
+        /// 世界事件总开关（作者 2026-10-25 定）。
+        ///
+        /// 关掉之后交易**只影响玩家殖民地**，不对世界上的其他派系产生任何影响：
+        /// 不再有暴涨暴跌的商队/袭击、战争新闻、做空报复、穿仓收债。
+        ///
+        /// 隔夜利息**不提供开关** —— 它一旦能关，低杠杆"死扛"又变回免费期权，
+        /// 其他所有风险平衡都得跟着重算。
         /// </summary>
-        public float carryRate = 0.002f;
-
-        /// <summary>
-        /// 事件频率倍率：缩放 σ 阈值（不是概率）。
-        /// 2.0 = 阈值减半 = 更频繁；0.5 = 阈值加倍 = 更稀少。
-        /// </summary>
-        public float eventFrequency = 1f;
+        public bool enableWorldEvents = true;
 
         public override void ExposeData()
         {
@@ -145,8 +144,7 @@ namespace RimForex
             Scribe_Values.Look(ref showTimeSpeedHint, "showTimeSpeedHint", true);
             Scribe_Values.Look(ref showSettlementCountdown, "showSettlementCountdown", true);
             Scribe_Values.Look(ref showTimeDebug, "showTimeDebug", false);
-            Scribe_Values.Look(ref carryRate, "carryRate", 0.002f);
-            Scribe_Values.Look(ref eventFrequency, "eventFrequency", 1f);
+            Scribe_Values.Look(ref enableWorldEvents, "enableWorldEvents", true);
 
             // 悬浮盈亏窗（2026-10-20）
             Scribe_Values.Look(ref showFloatingPnl, "showFloatingPnl", true);
@@ -610,21 +608,16 @@ namespace RimForex
             l.CheckboxLabeled("RimForex_Set_FloatingPnl".Translate(), ref Settings.showFloatingPnl,
                 "RimForex_Set_FloatingPnlTip".Translate());
 
-            // ── 0.3.0：隔夜利息 ──
+            // ── 0.3.0：隔夜利息（固定，不可调）──
             l.GapLine();
             l.Label("RimForex_Set_CarryHeader".Translate());
-            Settings.carryRate = l.SliderLabeled(
-                "RimForex_Set_CarryRate".Translate((Settings.carryRate * 100f).ToString("0.000")),
-                Settings.carryRate, 0f, 0.001f, 0.55f,
-                "RimForex_Set_CarryRateTip".Translate());
-            l.Gap(4f);
+            l.Label("RimForex_Set_CarryFixed".Translate(
+                (FxGameComponent.DefaultCarryRate * 100f).ToString("0.00")));
 
-            // ── 0.3.0：世界事件 ──
+            // ── 0.3.0：世界事件（只有开关）──
             l.Label("RimForex_Set_EventsHeader".Translate());
-            Settings.eventFrequency = l.SliderLabeled(
-                "RimForex_Set_EventFreq".Translate(Settings.eventFrequency.ToString("0.00")),
-                Settings.eventFrequency, 0.5f, 2f, 0.55f,
-                "RimForex_Set_EventFreqTip".Translate());
+            l.CheckboxLabeled("RimForex_Set_EnableEvents".Translate(), ref Settings.enableWorldEvents,
+                "RimForex_Set_EnableEventsTip".Translate());
 
             l.Gap(10f);
             if (l.ButtonText("RimForex_Set_Reset".Translate()))

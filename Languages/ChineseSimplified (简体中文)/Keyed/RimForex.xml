@@ -289,8 +289,9 @@
   <RimForex_LoanRate>季利息 {0}%　·　{1}</RimForex_LoanRate>
   <RimForex_LoanTerm>期限 {0} 日</RimForex_LoanTerm>
   <RimForex_LoanTermNone>无固定期限</RimForex_LoanTermNone>
-  <RimForex_LoanQuarterDue>本季应付利息：{0} 银</RimForex_LoanQuarterDue>
+  <RimForex_LoanDailyDue>每日利息：{0} 银</RimForex_LoanDailyDue>
   <RimForex_LoanOwed>当前欠款：{0} 银</RimForex_LoanOwed>
+  <RimForex_LoanOwedRemain>当前欠款：{0} 银（还剩 {1} 日）</RimForex_LoanOwedRemain>
   <RimForex_LoanBorrow>借款</RimForex_LoanBorrow>
   <RimForex_LoanRepay>还款</RimForex_LoanRepay>
   <RimForex_LoanBorrowTip>借入的保证金直接进账户余额。输入 0 表示借满可借额度。</RimForex_LoanBorrowTip>
@@ -301,7 +302,6 @@
   <RimForex_LoanNegative>余额为负时不能借款</RimForex_LoanNegative>
   <RimForex_LoanLimitReached>已达到这家的借款上限</RimForex_LoanLimitReached>
   <RimForex_LoanTooSmall>借款金额太小</RimForex_LoanTooSmall>
-  <RimForex_LoanInterestCharged>{0} 提醒你：本季利息 {1} 银，当前欠款 {2} 银</RimForex_LoanInterestCharged>
   <RimForex_LoanDefault>{0} 宣布你违约：欠款 {1} 银已直接计入账户</RimForex_LoanDefault>
   <RimForex_LoanFooter>单利：每季按本金收固定比例，利息不滚入本金。到期未清，或连续两季付不出利息，即视为违约 —— 欠款会一次性打进账户余额（可能转负）。</RimForex_LoanFooter>
   <RimForex_Loan0Name>明日必还银行</RimForex_Loan0Name>
@@ -316,10 +316,10 @@
 
   <!-- 0.3.0 设置 -->
   <RimForex_Set_CarryHeader>隔夜利息（持仓成本）</RimForex_Set_CarryHeader>
-  <RimForex_Set_CarryRate>费率 {0}%/日</RimForex_Set_CarryRate>
-  <RimForex_Set_CarryRateTip>作用在名义仓位上：1x 时等于本金的费率，20x 时是 20 倍，100x 时是 100 倍。</RimForex_Set_CarryRateTip>
   <RimForex_Set_EventsHeader>世界事件</RimForex_Set_EventsHeader>
-  <RimForex_Set_EventFreq>频率 ×{0}</RimForex_Set_EventFreq>
-  <RimForex_Set_EventFreqTip>缩放的是触发阈值（以 σ 为单位），不是概率：数值越大越频繁。</RimForex_Set_EventFreqTip>
 
+  <RimForex_Set_CarryFixed>固定费率 {0}%/日（按名义仓位，不可调整）</RimForex_Set_CarryFixed>
+  <RimForex_Set_EnableEvents>启用世界事件</RimForex_Set_EnableEvents>
+  <RimForex_Set_EnableEventsTip>关闭后，交易只影响你自己的殖民地，不会对世界上的其他派系产生任何影响：没有暴涨暴跌带来的商队或袭击、没有战争新闻、没有做空报复、没有穿仓收债。</RimForex_Set_EnableEventsTip>
+  <RimForex_LetterLoanInterest>贷款利息 −{0} 银</RimForex_LetterLoanInterest>
 </LanguageData>

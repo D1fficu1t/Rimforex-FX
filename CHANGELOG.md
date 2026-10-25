@@ -10,7 +10,8 @@
 **新增**
 
 - **官方借贷服务**：终端上多了一个 gizmo，点开是四家放贷机构。
-  借款上限随你的账户净值缩放，利息按季（15 个游戏日）以**单利**计算，界面会直接告诉你本季该付多少。
+  借款上限随你的账户净值缩放，利息**按日**以**单利**累计（季利息率 ÷ 15，例如 5%/季 = 0.33%/日），
+  界面会直接告诉你每日利息和还剩几天。
   - 明日必还银行：上限 2,000，季利息 5%，**期限 3 日**
   - 器官期货小额贷款：上限 8,000，季利息 10%，期限 6 日
   - 虫巢信用合作社：上限 10,000，季利息 20%，期限 10 日
@@ -21,16 +22,17 @@
 
 **其他**
 
-- 模组设置新增「隔夜利息」与「世界事件」两节，只放费率与频率滑块 ——
-  **不提供总开关**：这两项一旦能关掉，其他地方的风险平衡就全变了。
+- 模组设置新增「隔夜利息」与「世界事件」两节：
+  隔夜利息固定为 0.2%/日（只显示，不可调）；世界事件只有一个总开关，
+  关掉后交易只影响你自己的殖民地，不波及世界上的其他派系。
 
 ### English
 
 **Added**
 
 - **Official lending service**: a new gizmo on the terminal opens four lenders.
-  Borrowing limits scale with your account's net worth; interest is **simple interest** charged per season
-  (15 game days), and the window shows exactly what you owe this season.
+  Borrowing limits scale with your account's net worth; interest accrues **daily** as **simple interest**
+  (season rate ÷ 15, e.g. 5%/season = 0.33%/day), and the window shows the daily cost and days left.
   - Tomorrow-or-Else Bank: limit 2,000, 5%/season, **3 day term**
   - Organ Futures Micro-Loan: limit 8,000, 10%/season, 6 day term
   - Hive Credit Union: limit 10,000, 20%/season, 10 day term
@@ -41,8 +43,8 @@
 
 **Other**
 
-- Two new settings sections (overnight interest rate, world event frequency).
-  **No on/off switches**: disabling them would invalidate the rest of the risk model.
+- Two new settings sections: overnight interest is fixed at 0.2%/day (display only);
+  world events have a single master switch — turn it off and trading affects only your own colony.
 
 ---
 

@@ -278,8 +278,9 @@ This is a blow-up: the debt must be covered. Deposit silver at the terminal to b
   <RimForex_LoanRate>Season interest {0}%   ·   {1}</RimForex_LoanRate>
   <RimForex_LoanTerm>{0} day(s)</RimForex_LoanTerm>
   <RimForex_LoanTermNone>No fixed term</RimForex_LoanTermNone>
-  <RimForex_LoanQuarterDue>Interest due this season: {0} silver</RimForex_LoanQuarterDue>
+  <RimForex_LoanDailyDue>Daily interest: {0} silver</RimForex_LoanDailyDue>
   <RimForex_LoanOwed>Currently owed: {0} silver</RimForex_LoanOwed>
+  <RimForex_LoanOwedRemain>Currently owed: {0} silver ({1} days left)</RimForex_LoanOwedRemain>
   <RimForex_LoanBorrow>Borrow</RimForex_LoanBorrow>
   <RimForex_LoanRepay>Repay</RimForex_LoanRepay>
   <RimForex_LoanBorrowTip>Borrowed margin goes straight into your balance. Enter 0 to borrow the full available amount.</RimForex_LoanBorrowTip>
@@ -290,7 +291,6 @@ This is a blow-up: the debt must be covered. Deposit silver at the terminal to b
   <RimForex_LoanNegative>Cannot borrow while the balance is negative</RimForex_LoanNegative>
   <RimForex_LoanLimitReached>This lender's limit is reached</RimForex_LoanLimitReached>
   <RimForex_LoanTooSmall>Amount too small</RimForex_LoanTooSmall>
-  <RimForex_LoanInterestCharged>{0} charges {1} silver in interest. Currently owed: {2} silver</RimForex_LoanInterestCharged>
   <RimForex_LoanDefault>{0} declares you in default: {1} silver has been charged to your account</RimForex_LoanDefault>
   <RimForex_LoanFooter>Simple interest: a fixed share of the principal each season; interest never compounds. If the loan is not cleared by its term, or two consecutive seasons of interest go unpaid, you are in default — the debt is charged to your balance at once (and may push it negative).</RimForex_LoanFooter>
   <RimForex_Loan0Name>Tomorrow-or-Else Bank</RimForex_Loan0Name>
@@ -305,10 +305,10 @@ This is a blow-up: the debt must be covered. Deposit silver at the terminal to b
 
   <!-- 0.3.0 settings -->
   <RimForex_Set_CarryHeader>Overnight interest (holding cost)</RimForex_Set_CarryHeader>
-  <RimForex_Set_CarryRate>Rate {0}%/day</RimForex_Set_CarryRate>
-  <RimForex_Set_CarryRateTip>Applied to notional: at 1x it equals the rate on your capital, at 20x it is 20 times that, at 100x a hundred times.</RimForex_Set_CarryRateTip>
   <RimForex_Set_EventsHeader>World events</RimForex_Set_EventsHeader>
-  <RimForex_Set_EventFreq>Frequency x{0}</RimForex_Set_EventFreq>
-  <RimForex_Set_EventFreqTip>Scales the trigger threshold (in sigma), not a probability: higher means more frequent.</RimForex_Set_EventFreqTip>
 
+  <RimForex_Set_CarryFixed>Fixed rate {0}%/day (on notional, not adjustable)</RimForex_Set_CarryFixed>
+  <RimForex_Set_EnableEvents>Enable world events</RimForex_Set_EnableEvents>
+  <RimForex_Set_EnableEventsTip>When disabled, trading affects only your own colony: no caravans or raids from currency swings, no war news, no short-squeeze retaliation, no debt collection.</RimForex_Set_EnableEventsTip>
+  <RimForex_LetterLoanInterest>Loan interest −{0} silver</RimForex_LetterLoanInterest>
 </LanguageData>

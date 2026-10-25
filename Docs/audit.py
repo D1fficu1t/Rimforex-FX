@@ -1411,8 +1411,8 @@ def main():
         print("  !! 隔夜利息没接进结算，或结算信没有单列一行")
 
     # 单利：利息只能按 principal 算，不得资本化进欠款
-    if re.search(r"loan\.principal \* FxGameComponent\.LenderRate|loan\.principal \* LenderRate", core14):
-        print("  OK 利息按本金计算（单利）")
+    if re.search(r"loan\.principal \* LenderDailyRate", core14):
+        print("  OK 利息按本金 × 日利率累计（单利，期限按日）")
     else:
         fail += 1
         print("  !! 利息不再按本金计算 —— 单利语义被改")

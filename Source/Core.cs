@@ -828,10 +828,12 @@ namespace RimForex
         public float principal;
         public float unpaidInterest;
         public int startTick;
-        public int quarters;
+        /// <summary>下一次计息的 tick（每日一次）。</summary>
+        public int nextInterestTick;
         /// <summary>期限（游戏日）。0 = 无期限。</summary>
         public int termDays;
-        public int unpaidQuarters;
+        /// <summary>连续多少天连利息都付不出。>= 3 即违约。</summary>
+        public int unpaidDays;
 
         public float Owed => principal + unpaidInterest;
 
@@ -841,8 +843,18 @@ namespace RimForex
             Scribe_Values.Look(ref principal, "principal", 0f);
             Scribe_Values.Look(ref unpaidInterest, "unpaidInterest", 0f);
             Scribe_Values.Look(ref startTick, "startTick", 0);
-            Scribe_Values.Look(ref quarters, "quarters", 0);
+            Scribe_Values.Look(ref nextInterestTick, "nextInterestTick", 0);
             Scribe_Values.Look(ref termDays, "termDays", 0);
+            Scribe_Values.Look(ref unpaidDays, "unpaidDays", 0);
+            // 兼容 preview1 的旧字段（当时按季计息、按季统计未付）
+            int legacyQuarters = 0;
+            Scribe_Values.Look(ref legacyQuarters, "quarters", 0);
+            int legacyUnpaidQuarters = 0;
+            Scribe_Values.Look(ref legacyUnpaidQuarters, "unpaidQuarters", 0);
+            if (Scribe.mode == LoadSaveMode.PostLoadInit && unpaidDays == 0)
+            {
+                unpaidDays = legacyUnpaidQuarters;
+            }
             // 兼容 preview1 的旧字段（当时期限按"季"存）
             int legacyTermQuarters = 0;
             Scribe_Values.Look(ref legacyTermQuarters, "termQuarters", 0);
@@ -850,7 +862,6 @@ namespace RimForex
             {
                 termDays = legacyTermQuarters * 15;
             }
-            Scribe_Values.Look(ref unpaidQuarters, "unpaidQuarters", 0);
         }
     }
 
@@ -876,8 +887,10 @@ namespace RimForex
         public int negativeSinceTick;
         /// <summary>账户冻结到期（E7 报复：1 游戏年）。</summary>
         public int frozenUntilTick;
-        /// <summary>本季已扣的隔夜利息，结算信里单列一行。</summary>
+        /// <summary>本周期已扣的隔夜利息，结算信里单列一行。</summary>
         public float carrySinceSettle;
+        /// <summary>本周期已扣的贷款利息，结算信里单列一行。</summary>
+        public float loanInterestSinceSettle;
         /// <summary>贷款记录（四家借贷方）。</summary>
         public List<FxLoan> loans = new List<FxLoan>();
 
@@ -1084,6 +1097,7 @@ namespace RimForex
             Scribe_Values.Look(ref negativeSinceTick, "negativeSinceTick", 0);
             Scribe_Values.Look(ref frozenUntilTick, "frozenUntilTick", 0);
             Scribe_Values.Look(ref carrySinceSettle, "carrySinceSettle", 0f);
+            Scribe_Values.Look(ref loanInterestSinceSettle, "loanInterestSinceSettle", 0f);
             Scribe_Collections.Look(ref loans, "loans", LookMode.Deep);
             if (loans == null) loans = new List<FxLoan>();
             if (history == null) history = new List<FxTradeRecord>();
@@ -3021,8 +3035,6 @@ namespace RimForex
 
         /// <summary>全局事件冷却：两次世界事件之间至少 5 游戏日。</summary>
         public const int GlobalEventCooldown = 5 * TicksPerDay;
-        /// <summary>一季 = 15 游戏日 = 900000 tick（= GenDate.TicksPerQuadrum）。</summary>
-        public const int TicksPerQuadrum = TicksPerDay * 15;
 
         /// <summary>
         /// 待处理的"临近爆仓"预警。key = <b>持仓对象本身</b>（引用相等）。
@@ -4128,8 +4140,8 @@ namespace RimForex
         {
             if (acc == null || acc.positions == null || acc.positions.Count == 0) return;
 
-            RimForexSettings cfg = RimForexMod.Settings;
-            float rate = cfg != null ? cfg.carryRate : DefaultCarryRate;
+            // 费率固定，不提供设置（作者 2026-10-25：平衡项不给开关）
+            float rate = DefaultCarryRate;
             if (rate <= 0f) return;
 
             float total = 0f;
@@ -4152,8 +4164,25 @@ namespace RimForex
 
         /// <summary>四家借贷方的固定上限（银）。</summary>
         public static readonly float[] LenderCap = { 2000f, 8000f, 10000f, 20000f };
-        /// <summary>四家借贷方的季利息率（单利，按本金）。</summary>
+        /// <summary>
+        /// 四家借贷方的**季**利息率（单利，按本金）。
+        /// 只是名义档位；实际按**日**累计，见 <see cref="LenderDailyRate"/>。
+        /// </summary>
         public static readonly float[] LenderRate = { 0.05f, 0.10f, 0.20f, 0.30f };
+
+        /// <summary>
+        /// 日利率 = 季利息 ÷ 15 日。
+        ///
+        /// ── 为什么改成按日（2026-10-25）──
+        /// 期限从"季"改成"日"（3/6/10 日）之后，如果还按季扣息，
+        /// 3 天的贷款根本等不到第一次扣息就到期了 —— 利息形同虚设。
+        /// 所以计息周期跟着期限一起缩到"日"，季利率只作为展示档位。
+        /// </summary>
+        public static float LenderDailyRate(int lender)
+        {
+            if (lender < 0 || lender >= LenderCount) return 0f;
+            return LenderRate[lender] / 15f;
+        }
         /// <summary>
         /// 四家借贷方的期限（**游戏日**）。0 = 无期限。
         ///
@@ -4251,9 +4280,9 @@ namespace RimForex
                 principal = amount,
                 unpaidInterest = 0f,
                 startTick = GenTicks.TicksGame,
-                quarters = 0,
+                nextInterestTick = GenTicks.TicksGame + TicksPerDay,
                 termDays = LenderTermDays[lender],
-                unpaidQuarters = 0,
+                unpaidDays = 0,
                 // 第一季利息在整整一季后到期
                 // （nextDueTick 用 startTick + 一季，见 ProcessLoans）
             });
@@ -4297,45 +4326,52 @@ namespace RimForex
                     var loan = acc.loans[i];
                     if (loan == null) { acc.loans.RemoveAt(i); continue; }
 
-                    int due = loan.startTick + (loan.quarters + 1) * TicksPerQuadrum;
-                    if (GenTicks.TicksGame < due) continue;
-
-                    loan.quarters++;
-
-                    // 单利：基数永远是 principal
-                    float interest = loan.principal * LenderRate[loan.lender];
-                    loan.unpaidInterest += interest;
-
-                    float pay = Mathf.Min(acc.balance, loan.unpaidInterest);
-                    if (pay > 0.01f)
+                    // ── ① 先补计息（按日）──
+                    //
+                    // 用 while 而不是 if：低帧率、加速、或读档后可能一次跨过好几天，
+                    // 必须把欠下的每一天都补上，否则利息会被悄悄吞掉。
+                    // 上限 60 次防止极端存档把主线程卡死（60 天足够任何一笔贷款违约）。
+                    int guard = 0;
+                    if (loan.nextInterestTick <= 0) loan.nextInterestTick = loan.startTick + TicksPerDay;
+                    while (GenTicks.TicksGame >= loan.nextInterestTick && guard++ < 60)
                     {
-                        acc.balance -= pay;
-                        loan.unpaidInterest -= pay;
-                        loan.unpaidQuarters = 0;
-                    }
-                    else
-                    {
-                        loan.unpaidQuarters++;
+                        float interest = loan.principal * LenderDailyRate(loan.lender);
+                        loan.unpaidInterest += interest;
+
+                        float pay = Mathf.Min(acc.balance, interest);
+                        if (pay > 0.01f)
+                        {
+                            acc.balance -= pay;
+                            loan.unpaidInterest -= pay;
+                            acc.loanInterestSinceSettle += pay;
+                            loan.unpaidDays = 0;
+                        }
+                        else
+                        {
+                            loan.unpaidDays++;
+                        }
+
+                        loan.nextInterestTick += TicksPerDay;
                     }
 
-                    // ── 违约：到期未清 / 连续两季付不出利息 ──
+                    // ── ② 再判违约 ──
+                    //
+                    // ⚠️ 这一步**不能**放进"利息到期才检查"的分支里（preview1 的 bug）：
+                    // 期限是 3 日、计息是 15 日时，3 天的贷款永远等不到检查点，
+                    // 结果就是作者实测到的"借了 3 天没有违约、也没扣款"。
                     bool overdue = loan.termDays > 0
                                    && GenTicks.TicksGame - loan.startTick >= loan.termDays * TicksPerDay
                                    && loan.Owed > 0.01f;
-                    bool broke = loan.unpaidQuarters >= 2;
+                    bool broke = loan.unpaidDays >= 3;
 
                     if (overdue || broke)
                     {
                         DefaultLoan(acc, loan);
-                        continue;
                     }
-
-                    Messages.Message("RimForex_LoanInterestCharged".Translate(
-                        LenderName(loan.lender), interest.ToString("F0"), loan.Owed.ToString("F0")),
-                        MessageTypeDefOf.NeutralEvent, false);
                 }
             }
         }
+
 
         /// <summary>
         /// 违约：把欠款一次性打进余额（可能转负），删掉贷款记录。
@@ -4517,6 +4553,8 @@ namespace RimForex
             // 手续费按结算周期归零。必须放在所有 PostSettlementLetter 调用之后 ——
             // 信里那一行"扣除手续费前 +xxx"要读这个字段。
             acc.feesSinceSettle = 0f;
+            acc.carrySinceSettle = 0f;
+            acc.loanInterestSinceSettle = 0f;
         }
 
 
@@ -4559,6 +4597,11 @@ namespace RimForex
             {
                 feeLine += "\n" + "RimForex_LetterCarry".Translate(
                     acc.carrySinceSettle.ToString("F0"));
+            }
+            if (acc.loanInterestSinceSettle >= 0.5f)
+            {
+                feeLine += "\n" + "RimForex_LetterLoanInterest".Translate(
+                    acc.loanInterestSinceSettle.ToString("F0"));
             }
 
             if (pnl >= 0f)
