@@ -130,12 +130,10 @@
   <RimForex_LineCompactTip>点差成本 {0} 白银，实际占用保证金 {1} 白银，手续费 {2} 白银。</RimForex_LineCompactTip>
 
   <RimForex_TestNormalGap>测试：常规跳空</RimForex_TestNormalGap>
-  <RimForex_TestNormalGapTip>{0} 游戏时后，所有货币各来一次常规跳空（8~9 倍单步波动，方向随机）。
-幅度取常规区间的上半段，是为了保证一定能触发播报——否则按下去没有提示，会让人以为按钮没生效。
-常规跳空不会把仓位打成负余额；要测穿仓请用上面的极端跳空。</RimForex_TestNormalGapTip>
+  <RimForex_TestNormalGapTip>约 3 游戏时后随机一次常规跳空（不会造成负余额）。</RimForex_TestNormalGapTip>
   <RimForex_MsgTestNormalGap>已安排常规跳空：{0} 游戏时后生效。</RimForex_MsgTestNormalGap>
   <RimForex_TestClearGhost>清理幽灵货币</RimForex_TestClearGhost>
-  <RimForex_TestClearGhostTip>任务生成的临时派系（boss 团、朝圣者、被黑终端等）不是真实交易对手，它们名下的货币是旧版本误建的。每日结算会自动清理；这个按钮用于读完旧档后立刻清干净。仍持有仓位的货币会被跳过，先平仓再点。</RimForex_TestClearGhostTip>
+  <RimForex_TestClearGhostTip>立刻清掉派系已消失的空货币，不用等每日结算。</RimForex_TestClearGhostTip>
   <RimForex_MsgGhostCleared>已清理 {0} 种幽灵货币（{1} 种因仍有持仓而跳过）。</RimForex_MsgGhostCleared>
   <RimForex_MsgGhostBlocked>有 {0} 种幽灵货币仍被未平仓的仓位占用。请先平掉这些仓位，否则删掉货币会让它们失去行情。</RimForex_MsgGhostBlocked>
   <RimForex_MsgGhostNone>没有找到幽灵货币。</RimForex_MsgGhostNone>
@@ -213,9 +211,9 @@
   <RimForex_SettingsTest>测试专用</RimForex_SettingsTest>
   <RimForex_SettingsTestDesc>这两个按钮用于验证正常游玩很难碰到的路径。不是给日常用的。</RimForex_SettingsTestDesc>
   <RimForex_TestMood>① 加一层「小亏」心情</RimForex_TestMood>
-  <RimForex_TestMoodTip>每按一次就给当前地图的全体殖民者叠一层小亏心情（上限三层）。用来验证叠加与跨游戏日过期 —— 小亏时长 0.5 天，叠满 0.75 天，睡一觉就该消失。</RimForex_TestMoodTip>
+  <RimForex_TestMoodTip>给全体殖民者叠一层小亏心情，用来验证叠加上限与过期。</RimForex_TestMoodTip>
   <RimForex_TestBlowUp>② 安排一次极端跳空</RimForex_TestBlowUp>
-  <RimForex_TestBlowUpTip>约 {0} 游戏时后，所有货币会发生一次最大档的向下跳空。先用百倍杠杆做多以测试穿仓（余额被推成负数）。跳空只发生一次。</RimForex_TestBlowUpTip>
+  <RimForex_TestBlowUpTip>约 {0} 游戏时后一次最大幅度向下跳空。先开 100x 多单再按。</RimForex_TestBlowUpTip>
   <RimForex_MsgTestMood>已叠一层「小亏」心情。再按几次可以试叠加上限；睡过一晚看它是否自动消失。</RimForex_MsgTestMood>
   <RimForex_MsgTestBlowUp>极端跳空已排程。约 {0} 游戏时后触发。</RimForex_MsgTestBlowUp>
   <RimForex_MsgForceGap>汇市剧震：星际外汇平台刚刚出现了一次极端跳空。</RimForex_MsgForceGap>
@@ -364,7 +362,7 @@
   <RimForex_TestProdigy>测试：外汇奇才</RimForex_TestProdigy>
   <RimForex_TestProdigyTip>立刻触发一次 E3：好感上升 + 三成半概率招来袭击。</RimForex_TestProdigyTip>
   <RimForex_TestRipen>测试：催熟待处理事件</RimForex_TestRipen>
-  <RimForex_TestRipenTip>把所有排队中的事件（商队、袭击掷骰）到期时间设成现在，立刻执行，不用等两三天。</RimForex_TestRipenTip>
+  <RimForex_TestRipenTip>把所有排队事件立刻到期，不用等两三天。</RimForex_TestRipenTip>
   <RimForex_MsgTestSurge>已触发一次货币暴涨事件</RimForex_MsgTestSurge>
   <RimForex_MsgTestProdigy>已触发一次外汇奇才事件</RimForex_MsgTestProdigy>
   <RimForex_MsgTestSurgeFail>没有可用的派系货币</RimForex_MsgTestSurgeFail>
@@ -506,4 +504,6 @@
   <RimForex_Ev7Flee>你没打算好好谈，他也没打算。收债人转头就跑——身后还跟着一整个清算部的账。
 
 让他跑出地图，或者在这里把他放倒。两种结局，清算部都会给你回信。</RimForex_Ev7Flee>
+  <RimForex_Set_ShowTest>显示测试选项</RimForex_Set_ShowTest>
+  <RimForex_Set_ShowTestTip>调试用按钮，正常游玩不需要开。</RimForex_Set_ShowTestTip>
 </LanguageData>

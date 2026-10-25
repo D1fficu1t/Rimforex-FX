@@ -131,6 +131,9 @@ namespace RimForex
         /// </summary>
         public bool enableWorldEvents = true;
 
+        /// <summary>设置页是否显示测试按钮（默认关，作者 2026-10-26 要求折叠）。</summary>
+        public bool showTestOptions = false;
+
         public override void ExposeData()
         {
             Scribe_Values.Look(ref showQuotePacingHint, "showQuotePacingHint", true);
@@ -145,6 +148,7 @@ namespace RimForex
             Scribe_Values.Look(ref showSettlementCountdown, "showSettlementCountdown", true);
             Scribe_Values.Look(ref showTimeDebug, "showTimeDebug", false);
             Scribe_Values.Look(ref enableWorldEvents, "enableWorldEvents", true);
+            Scribe_Values.Look(ref showTestOptions, "showTestOptions", false);
 
             // 悬浮盈亏窗（2026-10-20）
             Scribe_Values.Look(ref showFloatingPnl, "showFloatingPnl", true);
@@ -348,6 +352,10 @@ namespace RimForex
             l.Label("RimForex_SettingsTest".Translate());
             Text.Font = GameFont.Small;
             l.GapLine();
+            l.CheckboxLabeled("RimForex_Set_ShowTest".Translate(), ref Settings.showTestOptions,
+                "RimForex_Set_ShowTestTip".Translate());
+            if (Settings.showTestOptions)
+            {
             l.Label("RimForex_SettingsTestDesc".Translate());
             l.Gap(6f);
 
@@ -584,6 +592,8 @@ namespace RimForex
                 }
             }
             Hint(l, "RimForex_TestClearGhostTip".Translate());
+
+            }   // end of 测试选项
 
             // ---- 玩法参数 ----
             Text.Font = GameFont.Medium;

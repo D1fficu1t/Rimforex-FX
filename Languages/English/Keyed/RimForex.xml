@@ -119,12 +119,10 @@ Floating P/L {2} silver</RimForex_PosLineTip>
   <RimForex_LineCompactTip>Spread cost {0} silver, margin taken {1} silver, fee {2} silver.</RimForex_LineCompactTip>
 
   <RimForex_TestNormalGap>Test: normal gap</RimForex_TestNormalGap>
-  <RimForex_TestNormalGapTip>In {0} game hours every currency takes one normal gap (8-9x the single-step volatility, random direction).
-The upper half of the normal range is used so the announcement is guaranteed to fire — otherwise the button can look like it did nothing.
-A normal gap cannot push a position into negative balance; use the extreme gap button above for that.</RimForex_TestNormalGapTip>
+  <RimForex_TestNormalGapTip>A normal gap in about 3 game hours (never causes negative balance).</RimForex_TestNormalGapTip>
   <RimForex_MsgTestNormalGap>Normal gap scheduled: fires in {0} game hours.</RimForex_MsgTestNormalGap>
   <RimForex_TestClearGhost>Clear ghost currencies</RimForex_TestClearGhost>
-  <RimForex_TestClearGhostTip>Temporary factions created by quests (boss groups, pilgrims, hacked terminals, etc.) are not real trading partners; currencies under their names were created by an older bug. Daily settlement clears them automatically — this button is for cleaning an old save immediately. Currencies still used by an open position are skipped; close those first.</RimForex_TestClearGhostTip>
+  <RimForex_TestClearGhostTip>Clears currencies of dead factions immediately.</RimForex_TestClearGhostTip>
   <RimForex_MsgGhostCleared>Cleared {0} ghost currencies ({1} skipped because of open positions).</RimForex_MsgGhostCleared>
   <RimForex_MsgGhostBlocked>{0} ghost currencies are still used by open positions. Close them first — deleting a currency would leave those positions without a market.</RimForex_MsgGhostBlocked>
   <RimForex_MsgGhostNone>No ghost currencies found.</RimForex_MsgGhostNone>
@@ -202,9 +200,9 @@ A blow-up (margin gone and balance pushed negative) is a heavier tier at base -2
   <RimForex_SettingsTest>Testing</RimForex_SettingsTest>
   <RimForex_SettingsTestDesc>These two buttons exercise paths that normal play rarely reaches. Not meant for everyday use.</RimForex_SettingsTestDesc>
   <RimForex_TestMood>1. Add a "small loss" mood</RimForex_TestMood>
-  <RimForex_TestMoodTip>Each press stacks one more small-loss mood on every colonist of the current map (max three). Use it to check stacking and multi-day expiry: a small loss lasts 0.5 days, or 0.75 when fully stacked, so it should be gone after a night's sleep.</RimForex_TestMoodTip>
+  <RimForex_TestMoodTip>Adds one small-loss mood stack to every colonist.</RimForex_TestMoodTip>
   <RimForex_TestBlowUp>2. Schedule an extreme gap</RimForex_TestBlowUp>
-  <RimForex_TestBlowUpTip>In about {0} game hours every currency takes a maximum-size downward gap. Go 100x long first to test a blow-up (balance pushed negative). The gap fires only once.</RimForex_TestBlowUpTip>
+  <RimForex_TestBlowUpTip>A maximum downward gap in {0} game hours. Open a 100x long first.</RimForex_TestBlowUpTip>
   <RimForex_MsgTestMood>Stacked one more "small loss" mood. Press again to test the stacking cap, then sleep a night to see it expire.</RimForex_MsgTestMood>
   <RimForex_MsgTestBlowUp>Extreme gap scheduled. It will fire in about {0} game hours.</RimForex_MsgTestBlowUp>
   <RimForex_MsgForceGap>The exchange convulses: the interstellar FX platform just took an extreme gap.</RimForex_MsgForceGap>
@@ -353,7 +351,7 @@ This is a blow-up: the debt must be covered. Deposit silver at the terminal to b
   <RimForex_TestProdigy>Test: currency prodigy</RimForex_TestProdigy>
   <RimForex_TestProdigyTip>Fire E3 now: goodwill up, plus a 35% chance of an extra raid.</RimForex_TestProdigyTip>
   <RimForex_TestRipen>Test: ripen pending events</RimForex_TestRipen>
-  <RimForex_TestRipenTip>Set every queued event (caravans, raid rolls) to fire right now, instead of waiting two or three days.</RimForex_TestRipenTip>
+  <RimForex_TestRipenTip>Make every queued event due right now.</RimForex_TestRipenTip>
   <RimForex_MsgTestSurge>Fired a currency surge event</RimForex_MsgTestSurge>
   <RimForex_MsgTestProdigy>Fired a currency prodigy event</RimForex_MsgTestProdigy>
   <RimForex_MsgTestSurgeFail>No usable faction currency</RimForex_MsgTestSurgeFail>
@@ -495,4 +493,6 @@ We wish you a pleasant week.</RimForex_Ev7Attack>
   <RimForex_Ev7Flee>You were never going to talk, and neither was he. The collector turned and ran - with an entire collections department behind him.
 
 Let him reach the map edge, or put him down here. Either way, Collections will write back.</RimForex_Ev7Flee>
+  <RimForex_Set_ShowTest>Show test options</RimForex_Set_ShowTest>
+  <RimForex_Set_ShowTestTip>Debug buttons. Not needed for normal play.</RimForex_Set_ShowTestTip>
 </LanguageData>
