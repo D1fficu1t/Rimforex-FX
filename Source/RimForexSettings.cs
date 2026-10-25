@@ -365,6 +365,50 @@ namespace RimForex
             }
             Hint(l, "RimForex_TestMoodTip".Translate());
 
+            // ---- 0.3.0 世界事件（难等的直接给按钮）----
+            l.Gap(6f);
+            if (l.ButtonText("RimForex_TestSurge".Translate()))
+            {
+                FxGameComponent fx = Find.World != null
+                    ? Find.World.GetComponent<FxGameComponent>() : null;
+                if (fx != null)
+                {
+                    Messages.Message(fx.DebugForceSurge()
+                            ? "RimForex_MsgTestSurge".Translate()
+                            : "RimForex_MsgTestSurgeFail".Translate(),
+                        MessageTypeDefOf.TaskCompletion, false);
+                }
+            }
+            Hint(l, "RimForex_TestSurgeTip".Translate());
+
+            l.Gap(6f);
+            if (l.ButtonText("RimForex_TestProdigy".Translate()))
+            {
+                FxGameComponent fx = Find.World != null
+                    ? Find.World.GetComponent<FxGameComponent>() : null;
+                if (fx != null)
+                {
+                    Messages.Message(fx.DebugForceProdigy()
+                            ? "RimForex_MsgTestProdigy".Translate()
+                            : "RimForex_MsgTestSurgeFail".Translate(),
+                        MessageTypeDefOf.TaskCompletion, false);
+                }
+            }
+            Hint(l, "RimForex_TestProdigyTip".Translate());
+
+            l.Gap(6f);
+            if (l.ButtonText("RimForex_TestRipen".Translate()))
+            {
+                FxGameComponent fx = Find.World != null
+                    ? Find.World.GetComponent<FxGameComponent>() : null;
+                if (fx != null)
+                {
+                    Messages.Message("RimForex_MsgTestRipen".Translate(fx.DebugRipenPending()),
+                        MessageTypeDefOf.TaskCompletion, false);
+                }
+            }
+            Hint(l, "RimForex_TestRipenTip".Translate());
+
             l.Gap(6f);
             if (l.ButtonText("RimForex_TestBlowUp".Translate()))
             {

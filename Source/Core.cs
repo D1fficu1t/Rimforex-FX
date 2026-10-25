@@ -4290,14 +4290,13 @@ namespace RimForex
             lastWorldEventTick = now;
 
             // 只有暴涨这一条在本 preview 里
-            if (bestZ > 0f) QueueE1(best, faction, bestZ);
+            if (bestZ > 0f) QueueE1(best, faction, DailyReturnOf(best) * 100f);
         }
 
         /// <summary>E1：货币大涨 → 商队或袭击（按派系是否敌对分叉）。</summary>
-        private void QueueE1(FxCurrency c, Faction faction, float z)
+        private void QueueE1(FxCurrency c, Faction faction, float pct)
         {
             bool hostile = faction.HostileTo(Faction.OfPlayer);
-            float pct = DailyReturnOf(c) * 100f;
 
             if (hostile)
             {
@@ -4379,6 +4378,63 @@ namespace RimForex
                 "RimForex_Ev3LetterLabel".Translate(),
                 body,
                 LetterDefOf.PositiveEvent);
+        }
+
+        // ══════════════════════════════════════════════════════════════
+        //  0.3.0 调试入口（设置页的测试按钮）
+        // ══════════════════════════════════════════════════════════════
+
+        /// <summary>测试：强制触发一次 E1（随机挑一个非玩家货币）。</summary>
+        public bool DebugForceSurge()
+        {
+            EnsureAllFactionCurrencies();
+            var keys = new List<int>(market.currencies.Keys);
+            if (keys.Count == 0) return false;
+
+            // 从随机位置开始扫，挑第一个可用的
+            int start = Rand.Range(0, keys.Count);
+            for (int i = 0; i < keys.Count; i++)
+            {
+                var c = market.currencies[keys[(start + i) % keys.Count]];
+                if (c == null) continue;
+                if (c.factionLoadID == Faction.OfPlayer.loadID) continue;
+                var f = FactionByID(c.factionLoadID);
+                if (f == null || f.temporary || f.IsPlayer) continue;
+
+                c.lastEventTick = GenTicks.TicksGame;
+                lastWorldEventTick = GenTicks.TicksGame;
+                QueueE1(c, f, EventSigma * SigmaDayOf(c) * 100f);
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>测试：强制触发一次 E3（用当前账户）。</summary>
+        public bool DebugForceProdigy()
+        {
+            Map map = Find.AnyPlayerHomeMap;
+            var acc = map != null ? ColonyAccount(map) : null;
+            if (acc == null) return false;
+
+            // 绕过两个冷却，直接喂一个刚过门槛的盈亏
+            lastWealthEventTick = -999999;
+            lastWorldEventTick = -999999;
+            float fake = Mathf.Max(E3MinPnl,
+                Mathf.Max(0f, acc.Equity) * E3EquityFraction) + 1f;
+            MaybeTriggerE3(acc, fake);
+            return true;
+        }
+
+        /// <summary>测试：把所有排队事件立刻催熟（省去等待 2~3 天）。</summary>
+        public int DebugRipenPending()
+        {
+            if (pendingEvents == null) return 0;
+            int n2 = pendingEvents.Count;
+            for (int i = 0; i < pendingEvents.Count; i++)
+            {
+                if (pendingEvents[i] != null) pendingEvents[i].dueTick = GenTicks.TicksGame;
+            }
+            return n2;
         }
 
         /// <summary>该货币的"一日波动"标准差（对数收益）。</summary>

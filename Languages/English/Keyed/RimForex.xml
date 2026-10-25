@@ -390,4 +390,15 @@ Lock-in: you must cross one quote before you can close.</RimForex_GuideGlossary>
   <RimForex_Ev3Raid>Wealth draws attention, though. Someone has been asking about your fortune - expect uninvited guests within a few days.</RimForex_Ev3Raid>
   <RimForex_LetterCustody>Account custody fee -{0} silver</RimForex_LetterCustody>
 
+  <!-- 0.3.0 event test buttons -->
+  <RimForex_TestSurge>Test: currency surge</RimForex_TestSurge>
+  <RimForex_TestSurgeTip>Fire E1 now: pick a random faction and run the full flow (letter, then a caravan in two days or a raid roll in three).</RimForex_TestSurgeTip>
+  <RimForex_TestProdigy>Test: currency prodigy</RimForex_TestProdigy>
+  <RimForex_TestProdigyTip>Fire E3 now: goodwill up, plus a 35% chance of an extra raid.</RimForex_TestProdigyTip>
+  <RimForex_TestRipen>Test: ripen pending events</RimForex_TestRipen>
+  <RimForex_TestRipenTip>Set every queued event (caravans, raid rolls) to fire right now, instead of waiting two or three days.</RimForex_TestRipenTip>
+  <RimForex_MsgTestSurge>Fired a currency surge event</RimForex_MsgTestSurge>
+  <RimForex_MsgTestProdigy>Fired a currency prodigy event</RimForex_MsgTestProdigy>
+  <RimForex_MsgTestSurgeFail>No usable faction currency</RimForex_MsgTestSurgeFail>
+  <RimForex_MsgTestRipen>Ripened {0} pending event(s)</RimForex_MsgTestRipen>
 </LanguageData>

@@ -401,4 +401,15 @@ K 线只描述过去发生过什么，不预测未来。</RimForex_GuideCandle>
   <RimForex_Ev3Raid>不过有钱的人总引人注意。有人在打听你的财富——这几天可能会有不速之客。</RimForex_Ev3Raid>
   <RimForex_LetterCustody>账户托管费 −{0} 银</RimForex_LetterCustody>
 
+  <!-- 0.3.0 事件测试按钮 -->
+  <RimForex_TestSurge>测试：货币暴涨</RimForex_TestSurge>
+  <RimForex_TestSurgeTip>立刻触发一次 E1：随机挑一个派系，走完整流程（信件 + 两天后商队 / 三天后掷骰袭击）。</RimForex_TestSurgeTip>
+  <RimForex_TestProdigy>测试：外汇奇才</RimForex_TestProdigy>
+  <RimForex_TestProdigyTip>立刻触发一次 E3：好感上升 + 三成半概率招来袭击。</RimForex_TestProdigyTip>
+  <RimForex_TestRipen>测试：催熟待处理事件</RimForex_TestRipen>
+  <RimForex_TestRipenTip>把所有排队中的事件（商队、袭击掷骰）到期时间设成现在，立刻执行，不用等两三天。</RimForex_TestRipenTip>
+  <RimForex_MsgTestSurge>已触发一次货币暴涨事件</RimForex_MsgTestSurge>
+  <RimForex_MsgTestProdigy>已触发一次外汇奇才事件</RimForex_MsgTestProdigy>
+  <RimForex_MsgTestSurgeFail>没有可用的派系货币</RimForex_MsgTestSurgeFail>
+  <RimForex_MsgTestRipen>已催熟 {0} 条待处理事件</RimForex_MsgTestRipen>
 </LanguageData>
