@@ -5392,6 +5392,42 @@ namespace RimForex
             "RimForex_Ev6Crisis4", "RimForex_Ev6Crisis5"
         };
 
+        /// <summary>
+        /// 把某个派系强制打成敌对，并把好感压到 **-100**。
+        ///
+        /// 三步走，因为原版 API 各有坑：
+        ///   ① TryAffectGoodwillWith 传的是**变化量**，所以要传 -100 - 当前值
+        ///   ② 它内部还会过 CalculateAdjustedGoodwillChange（难度系数），
+        ///      负向变化可能被缩放，所以算完还要验一次是否真的敌对
+        ///   ③ 没敌对就再补一次"够到敌对线"的差额（GoodwillToMakeHostile），
+        ///      多降 10 点留余量
+        ///
+        /// 不能用 SetRelationDirect —— 它对使用好感度的派系会直接 Log.Error 并返回。
+        /// </summary>
+        private void ForceHostile(Faction f)
+        {
+            if (f == null || f.IsPlayer || f.temporary || f.defeated) return;
+            if (f.HostileTo(Faction.OfPlayer)) return;
+
+            int current = f.GoodwillWith(Faction.OfPlayer);
+            int delta = -100 - current;
+            if (delta != 0)
+            {
+                f.TryAffectGoodwillWith(Faction.OfPlayer, delta,
+                    canSendMessage: false, canSendHostilityLetter: false);
+            }
+
+            if (!f.HostileTo(Faction.OfPlayer))
+            {
+                int delta2 = Faction.OfPlayer.GoodwillToMakeHostile(f) - 10;
+                if (delta2 != 0)
+                {
+                    f.TryAffectGoodwillWith(Faction.OfPlayer, delta2,
+                        canSendMessage: false, canSendHostilityLetter: false);
+                }
+            }
+        }
+
         /// <summary>实时统计某个货币的空头名义仓位（不依赖每日结算的缓存）。</summary>
         private float ShortNotionalFor(int factionLoadID)
         {
@@ -5427,9 +5463,12 @@ namespace RimForex
                 nextRaidTick = GenTicks.TicksGame
             });
 
-            // 已经敌对/永久敌对的派系这里会返回 false，无所谓 —— 报复照常进行。
-            f.TryAffectGoodwillWith(Faction.OfPlayer, -100,
-                canSendMessage: false, canSendHostilityLetter: false);
+            // ⚠️ 不能只写 -100（2026-10-25 作者实测的 bug）：
+            // TryAffectGoodwillWith 的语义是"**变化量**"，不是"设成"。
+            // 原本 +56 的盟友被扣 100 之后是 -44，而敌对线是 -75，
+            // 结果它仍然是中立 —— RaidEnemy 根本发不出来，
+            // storyteller 只好换一个敌对派系来打，玩家看到的"报复"来自别人。
+            ForceHostile(f);
 
             Find.LetterStack.ReceiveLetter(
                 "RimForex_Ev6LetterLabel".Translate(f.Name),
@@ -5471,6 +5510,10 @@ namespace RimForex
 
                 if (now < r.nextRaidTick) continue;
                 r.nextRaidTick = now + E6RaidInterval;
+
+                // 玩家可能在这两天里靠赠礼把好感拉回中立线上。
+                // 报复期间不允许"花钱消灾" —— 开打前把关系重新压回去。
+                ForceHostile(f);
 
                 if (TryFireRaid(f, 0f)) r.raidCount++;
 

@@ -1441,6 +1441,14 @@ def main():
         fail += 1
         print("  !! 没有 CanSendCaravan 过滤 —— 会对发不出商队的派系发信")
 
+    # E6 报复必须把好感真的压到敌对线以下
+    # （2026-10-25 实测：只传 -100 是「变化量」，+56 的盟友变 -44，不到 -75，袭击根本发不出来）
+    if "ForceHostile" in core14 and "GoodwillToMakeHostile" in core14:
+        print("  OK 报复时强制敌对（好感压到 -100，且验过敌对线）")
+    else:
+        fail += 1
+        print("  !! 报复没有强制敌对 —— 对盟友做空不会触发袭击")
+
     # 上限必须走缩放函数，且净值必须扣掉负债
     if "LenderLimit(" in core14 and "TryBorrow" in core14:
         print("  OK 借款上限经过 LenderLimit（随净值缩放）")
