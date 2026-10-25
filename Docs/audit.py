@@ -1291,13 +1291,19 @@ def main():
         fail += 1
         print("  !! 这些地方又直接向地图要账户了: " + ", ".join(direct))
 
-    # ⑤ 结算发信只看"有没有动"，不再按盈亏金额（2026-10-23 改）
-    # 规则：动过仓 或 收盘还有持仓 → 发；空仓又没交易 → 彻底静默，没有摘要信。
-    if re.search(r"if \(tradedToday \|\| openCount > 0\)", core):
-        print("  OK 结算发信只看动没动仓 / 有没有持仓（空仓静默）")
+    # ⑤ 结算发信只看"有没有动"（2026-10-23 改），2026-10-25 补了"被扣过钱"
+    # 规则：动过仓 / 收盘还有持仓 / 当天被扣过费用 → 发；否则静默。
+    # 加上费用那一档是必须的：托管费上线后，空仓不交易的日子照样会被扣钱。
+    if re.search(r"if \(tradedToday \|\| openCount > 0 \|\| chargedToday\)", core):
+        print("  OK 结算发信：动过仓 / 有持仓 / 当天被扣过钱")
     else:
         fail += 1
-        print("  !! 结算发信条件被改回按盈亏金额了 —— 空仓的日子又会刷信")
+        print("  !! 结算发信条件被改坏了 —— 空仓被扣费的日子会静默扣钱")
+    if "feesToday" in core:
+        print("  OK 费用日也会发信（托管费/隔夜利息/贷款利息）")
+    else:
+        fail += 1
+        print("  !! 费用日没有发信条件 —— 玩家会看着余额变少却没有通知")
     if "quietDays" not in core and "quietDaysBeforeDigest" not in core:
         print("  OK 平淡日摘要信已彻底移除")
     else:

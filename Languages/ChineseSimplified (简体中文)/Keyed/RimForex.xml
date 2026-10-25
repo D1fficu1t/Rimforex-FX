@@ -434,4 +434,33 @@
   <RimForex_EvTributeArrivedLabel>{0}：征收队抵达</RimForex_EvTributeArrivedLabel>
   <RimForex_EvTributeArrived>帝国征收队抵达了殖民地。他们不卖货，只收礼。</RimForex_EvTributeArrived>
   <RimForex_EvTributeNoShow>帝国征收队没能安排过来。</RimForex_EvTributeNoShow>
+  <!-- 0.3.0 E6 做空报复 -->
+  <RimForex_Ev6LetterLabel>{0}：市场报复</RimForex_Ev6LetterLabel>
+  <RimForex_Ev6Letter>你在 {0} 货币上的空头仓位已经压住了汇率，账面名义价值达到 {1} 银。
+
+{0} 认为这不是交易，而是攻击。他们不会善罢甘休。
+
+只要你还挂着空单，他们就会不断派人过来。</RimForex_Ev6Letter>
+  <RimForex_Ev6StopLabel>{0}：报复中止</RimForex_Ev6StopLabel>
+  <RimForex_Ev6Stop>你已经把空头仓位平掉了。{0} 的袭击者陆续撤回。</RimForex_Ev6Stop>
+  <RimForex_Ev6CrisisLabel>{0}：金融危机</RimForex_Ev6CrisisLabel>
+  <RimForex_Ev6Crisis>第 {2} 次危机。{0} 的货币信用崩塌，汇率永久下跌 10%。
+
+{1} 名难民流落到你的殖民地边缘，倒在地上。救不救，你自己决定。</RimForex_Ev6Crisis>
+  <RimForex_Ev6Defeat>{0} 名存实亡。
+
+他们不再参与世界政治，不再发起袭击，也不会再派商队。
+
+他们的据点仍会作为只挂着这个派系牌面的独立定居点留在世界上。</RimForex_Ev6Defeat>
+  <RimForex_Ev6JoinLabel>{0}：愿意留下</RimForex_Ev6JoinLabel>
+  <RimForex_Ev6Join>{0} 说，既然命是你救的，那就跟着你干。</RimForex_Ev6Join>
+  <RimForex_Ev6LeaveLabel>{0}：离开了</RimForex_Ev6LeaveLabel>
+  <RimForex_Ev6Leave>{0} 等不到答复，自己走了。</RimForex_Ev6Leave>
+  <RimForex_TestRetaliation>测试：做空报复</RimForex_TestRetaliation>
+  <RimForex_TestRetaliationTip>跳过 20 万名义仓位 + 3 天的门槛，直接对一个随机派系启动报复循环。每 2 天一次袭击。</RimForex_TestRetaliationTip>
+  <RimForex_MsgTestRetaliation>已启动一次报复循环</RimForex_MsgTestRetaliation>
+  <RimForex_TestCrisis>测试：立即触发危机</RimForex_TestCrisis>
+  <RimForex_TestCrisisTip>让当前报复循环立刻进一次危机：货币永久 -10%，刷 3~5 个难民。连点 5 次可以让该派系名存实亡。</RimForex_TestCrisisTip>
+  <RimForex_MsgTestCrisis>已触发一次金融危机</RimForex_MsgTestCrisis>
+  <RimForex_MsgTestCrisisFail>当前没有进行中的报复循环</RimForex_MsgTestCrisisFail>
 </LanguageData>

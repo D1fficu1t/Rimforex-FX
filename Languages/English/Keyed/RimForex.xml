@@ -423,4 +423,33 @@ They do not sell anything. If you want them satisfied, silver buys goodwill.</Ri
   <RimForex_EvTributeArrivedLabel>{0}: tribute collector arrived</RimForex_EvTributeArrivedLabel>
   <RimForex_EvTributeArrived>The Imperial tribute collector has arrived. They sell nothing; they only collect.</RimForex_EvTributeArrived>
   <RimForex_EvTributeNoShow>The Imperial tribute collector could not be arranged.</RimForex_EvTributeNoShow>
+  <!-- 0.3.0 E6 short-squeeze retaliation -->
+  <RimForex_Ev6LetterLabel>{0}: market retaliation</RimForex_Ev6LetterLabel>
+  <RimForex_Ev6Letter>Your short position in {0}'s currency has grown large enough to pin the exchange rate - {1} silver of notional.
+
+{0} does not see a trade. They see an attack. They will not let it go.
+
+As long as you hold that short, they will keep coming.</RimForex_Ev6Letter>
+  <RimForex_Ev6StopLabel>{0}: retaliation ended</RimForex_Ev6StopLabel>
+  <RimForex_Ev6Stop>You have closed your short position. {0}'s raiders are pulling back.</RimForex_Ev6Stop>
+  <RimForex_Ev6CrisisLabel>{0}: financial crisis</RimForex_Ev6CrisisLabel>
+  <RimForex_Ev6Crisis>Crisis number {2}. {0}'s currency has lost credibility, and the rate drops 10% permanently.
+
+{1} refugees have fallen near the edge of your colony. Whether to save them is up to you.</RimForex_Ev6Crisis>
+  <RimForex_Ev6Defeat>{0} is finished.
+
+They no longer take part in world politics, no longer raid, and no longer send caravans.
+
+Their settlements remain on the world as independent places that still fly the old flag.</RimForex_Ev6Defeat>
+  <RimForex_Ev6JoinLabel>{0}: willing to stay</RimForex_Ev6JoinLabel>
+  <RimForex_Ev6Join>{0} says that since you saved their life, they will follow you.</RimForex_Ev6Join>
+  <RimForex_Ev6LeaveLabel>{0}: left</RimForex_Ev6LeaveLabel>
+  <RimForex_Ev6Leave>{0} waited for an answer and then walked away.</RimForex_Ev6Leave>
+  <RimForex_TestRetaliation>Test: short-squeeze retaliation</RimForex_TestRetaliation>
+  <RimForex_TestRetaliationTip>Skip the 200k notional and 3-day gate: start a retaliation loop against a random faction. One raid every 2 days.</RimForex_TestRetaliationTip>
+  <RimForex_MsgTestRetaliation>Retaliation loop started</RimForex_MsgTestRetaliation>
+  <RimForex_TestCrisis>Test: trigger a crisis now</RimForex_TestCrisis>
+  <RimForex_TestCrisisTip>Force the active retaliation loop into a crisis: currency -10% permanently, 3-5 refugees. Press 5 times to finish a faction off.</RimForex_TestCrisisTip>
+  <RimForex_MsgTestCrisis>Financial crisis triggered</RimForex_MsgTestCrisis>
+  <RimForex_MsgTestCrisisFail>No retaliation loop is active</RimForex_MsgTestCrisisFail>
 </LanguageData>

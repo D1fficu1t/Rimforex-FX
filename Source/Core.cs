@@ -60,6 +60,8 @@ namespace RimForex
         public int newsDriftUntilTick;
         /// <summary>当前空头名义仓位缓存（E6 检测用）。</summary>
         public float shortNotional;
+        /// <summary>空头仓位首次超过门槛的 tick（0 = 当前没超）。</summary>
+        public int shortSinceTick;
 
         /// <summary>
         /// 本报价步内已经推进到第几个子步（0 ~ SubSteps）。
@@ -246,6 +248,7 @@ namespace RimForex
             Scribe_Values.Look(ref newsDriftLog, "newsDriftLog", 0f);
             Scribe_Values.Look(ref newsDriftUntilTick, "newsDriftUntilTick", 0);
             Scribe_Values.Look(ref shortNotional, "shortNotional", 0f);
+            Scribe_Values.Look(ref shortSinceTick, "shortSinceTick", 0);
 
             // 历史字段：仅读取用于向后兼容，不再写入。
             bool legacyTribal = false;
@@ -824,6 +827,25 @@ namespace RimForex
             Scribe_Values.Look(ref currencyFaction, "currencyFaction", -1);
             Scribe_Values.Look(ref dueTick, "dueTick", 0);
             Scribe_Values.Look(ref payload, "payload", 0);
+        }
+    }
+
+    /// <summary>E6：针对某个派系的报复循环。</summary>
+    public class FxRetaliation : IExposable
+    {
+        public int factionLoadID = -1;
+        public int currencyFaction = -1;
+        public int raidCount;
+        public int crisisCount;
+        public int nextRaidTick;
+
+        public void ExposeData()
+        {
+            Scribe_Values.Look(ref factionLoadID, "factionLoadID", -1);
+            Scribe_Values.Look(ref currencyFaction, "currencyFaction", -1);
+            Scribe_Values.Look(ref raidCount, "raidCount", 0);
+            Scribe_Values.Look(ref crisisCount, "crisisCount", 0);
+            Scribe_Values.Look(ref nextRaidTick, "nextRaidTick", 0);
         }
     }
 
@@ -3120,6 +3142,12 @@ namespace RimForex
         /// <summary>E2-B 被削弱的据点。</summary>
         public List<FxWeakenedSettlement> weakenedSettlements = new List<FxWeakenedSettlement>();
 
+        // ── 0.3.0 E6（定名后不可改）──
+        /// <summary>正在进行的报复循环。</summary>
+        public List<FxRetaliation> retaliations = new List<FxRetaliation>();
+        /// <summary>难民加入判定的截止 tick。</summary>
+        public int refugeeDeadlineTick;
+
         /// <summary>全局事件冷却：两次世界事件之间至少 3 游戏日。</summary>
         public const int GlobalEventCooldown = 3 * TicksPerDay;
 
@@ -3170,6 +3198,29 @@ namespace RimForex
         public const float NewsDriftOtherSigma = 0.8f;
         /// <summary>E4/E5 新闻兑现的概率。</summary>
         public const float NewsDriftChance = 0.6f;
+
+        // ── E6 参数（作者已拍板）──
+        /// <summary>做空名义仓位的绝对下限。</summary>
+        public const float E6ShortNotionalMin = 200000f;
+        /// <summary>做空名义仓位相对净值的倍数。</summary>
+        public const float E6ShortEquityMultiple = 3f;
+        /// <summary>空头仓位要持续多少天才算"盯上了"。</summary>
+        public const int E6ShortHoldDays = 3;
+        /// <summary>报复袭击间隔：2 游戏日一次。</summary>
+        public const int E6RaidInterval = 2 * TicksPerDay;
+        /// <summary>多少次袭击算一次金融危机。</summary>
+        public const int E6RaidsPerCrisis = 10;
+        /// <summary>几次危机让派系名存实亡。</summary>
+        public const int E6CrisesToDefeat = 5;
+        /// <summary>危机时货币永久乘数。</summary>
+        public const float E6CrisisFactor = 0.9f;
+        /// <summary>危机难民数量范围。</summary>
+        public const int E6RefugeeMin = 3;
+        public const int E6RefugeeMax = 5;
+        /// <summary>难民加入概率（每日）。</summary>
+        public const float E6RefugeeJoinChance = 0.35f;
+        /// <summary>难民等待天数。</summary>
+        public const int E6RefugeeDays = 3;
 
         // ── 托管费（闲置余额的存放成本）──
         /// <summary>免收额度：20,000 银以下不收。</summary>
@@ -3550,6 +3601,7 @@ namespace RimForex
             ProcessWeakenedSettlements();
             ExpireTradeBonus();
             ProcessWarNews();
+            ProcessRetaliation();
 
             if (now != lastSampleTick)
             {
@@ -5166,6 +5218,44 @@ namespace RimForex
             return lastWorldEventTick >= 0;
         }
 
+        /// <summary>测试：跳过门槛直接启动一次 E6 报复循环。</summary>
+        public bool DebugForceRetaliation()
+        {
+            EnsureAllFactionCurrencies();
+            var keys = new List<int>(market.currencies.Keys);
+            if (keys.Count == 0) return false;
+
+            int start = Rand.Range(0, keys.Count);
+            for (int i = 0; i < keys.Count; i++)
+            {
+                var c = market.currencies[keys[(start + i) % keys.Count]];
+                if (c == null) continue;
+                if (c.factionLoadID == Faction.OfPlayer.loadID) continue;
+                var f = FactionByID(c.factionLoadID);
+                if (f == null || f.temporary || f.IsPlayer || f.defeated) continue;
+
+                // 把敞口和计时都伪装成"已经持续做空"，
+                // 否则 UpdateShortExposure 下次结算就会发现空头是 0 并中止。
+                c.shortNotional = E6ShortNotionalMin * 2f;
+                c.shortSinceTick = GenTicks.TicksGame - (E6ShortHoldDays + 1) * TicksPerDay;
+                StartRetaliation(c, c.shortNotional);
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>测试：立刻让当前报复循环进入一次危机。</summary>
+        public bool DebugForceCrisis()
+        {
+            if (retaliations == null || retaliations.Count == 0) return false;
+            var r = retaliations[0];
+            if (r == null) return false;
+            var cur = market.Get(r.currencyFaction);
+            if (cur == null) return false;
+            TriggerCrisis(r, cur);
+            return true;
+        }
+
         /// <summary>测试：直接对一个敌对派系发起袭击（绕过掷骰）。</summary>
         public bool DebugForceRaid()
         {
@@ -5194,6 +5284,258 @@ namespace RimForex
                 if (pendingEvents[i] != null) pendingEvents[i].dueTick = GenTicks.TicksGame;
             }
             return n2;
+        }
+
+        // ══════════════════════════════════════════════════════════════
+        //  0.3.0 E6：大量做空 → 派系报复 → 危机 → 名存实亡
+        // ══════════════════════════════════════════════════════════════
+
+        /// <summary>每日结算时刷新各货币的空头敞口，并判断是否触发报复。</summary>
+        private void UpdateShortExposure()
+        {
+            var keys = new List<int>(market.currencies.Keys);
+            for (int i = 0; i < keys.Count; i++)
+            {
+                var c = market.currencies[keys[i]];
+                if (c != null) c.shortNotional = 0f;
+            }
+
+            var accKeys = new List<int>(accounts.Keys);
+            for (int i = 0; i < accKeys.Count; i++)
+            {
+                var acc = accounts[accKeys[i]];
+                if (acc == null || acc.positions == null) continue;
+                for (int j = 0; j < acc.positions.Count; j++)
+                {
+                    var pos = acc.positions[j];
+                    if (pos == null || pos.isLong) continue;
+                    var cur = market.Get(pos.currencyFactionLoadID);
+                    if (cur == null) continue;
+                    float px = pos.markRate > 0f ? pos.markRate : pos.entryRate;
+                    cur.shortNotional += Mathf.Abs(pos.units) * px;
+                }
+            }
+
+            int now = GenTicks.TicksGame;
+            float threshold = Mathf.Max(E6ShortNotionalMin,
+                TotalEquity() * E6ShortEquityMultiple);
+
+            for (int i = 0; i < keys.Count; i++)
+            {
+                var c = market.currencies[keys[i]];
+                if (c == null) continue;
+
+                if (c.shortNotional < threshold)
+                {
+                    c.shortSinceTick = 0;
+                    continue;
+                }
+
+                if (c.shortSinceTick == 0) c.shortSinceTick = now;
+                if (now - c.shortSinceTick < E6ShortHoldDays * TicksPerDay) continue;
+
+                bool already = false;
+                if (retaliations != null)
+                {
+                    for (int r = 0; r < retaliations.Count; r++)
+                    {
+                        if (retaliations[r] != null && retaliations[r].currencyFaction == c.factionLoadID)
+                        {
+                            already = true;
+                            break;
+                        }
+                    }
+                }
+                if (already) continue;
+
+                StartRetaliation(c, c.shortNotional);
+            }
+        }
+
+        private void StartRetaliation(FxCurrency c, float notional)
+        {
+            var f = FactionByID(c.factionLoadID);
+            if (f == null || f.IsPlayer || f.temporary || f.defeated) return;
+
+            if (retaliations == null) retaliations = new List<FxRetaliation>();
+            retaliations.Add(new FxRetaliation
+            {
+                factionLoadID = f.loadID,
+                currencyFaction = c.factionLoadID,
+                nextRaidTick = GenTicks.TicksGame
+            });
+
+            // 已经敌对/永久敌对的派系这里会返回 false，无所谓 —— 报复照常进行。
+            f.TryAffectGoodwillWith(Faction.OfPlayer, -100,
+                canSendMessage: false, canSendHostilityLetter: false);
+
+            Find.LetterStack.ReceiveLetter(
+                "RimForex_Ev6LetterLabel".Translate(f.Name),
+                "RimForex_Ev6Letter".Translate(f.Name, notional.ToString("F0")),
+                LetterDefOf.ThreatBig);
+        }
+
+        /// <summary>报复循环：每 2 日一次袭击，满 10 次进一次危机。</summary>
+        private void ProcessRetaliation()
+        {
+            if (GenTicks.TicksGame % 250 != 0) return;
+            if (retaliations == null || retaliations.Count == 0) return;
+
+            int now = GenTicks.TicksGame;
+            for (int i = retaliations.Count - 1; i >= 0; i--)
+            {
+                var r = retaliations[i];
+                if (r == null) { retaliations.RemoveAt(i); continue; }
+
+                var f = FactionByID(r.factionLoadID);
+                if (f == null || f.defeated) { retaliations.RemoveAt(i); continue; }
+
+                var cur = market.Get(r.currencyFaction);
+
+                // 放弃操盘：空头几乎清零 → 停止报复
+                if (cur == null || cur.shortNotional < E6ShortNotionalMin * 0.25f)
+                {
+                    retaliations.RemoveAt(i);
+                    Find.LetterStack.ReceiveLetter(
+                        "RimForex_Ev6StopLabel".Translate(f.Name),
+                        "RimForex_Ev6Stop".Translate(f.Name),
+                        LetterDefOf.NeutralEvent);
+                    continue;
+                }
+
+                if (now < r.nextRaidTick) continue;
+                r.nextRaidTick = now + E6RaidInterval;
+
+                if (TryFireRaid(f, 0f)) r.raidCount++;
+
+                if (r.raidCount >= E6RaidsPerCrisis) TriggerCrisis(r, cur);
+            }
+        }
+
+        private void TriggerCrisis(FxRetaliation r, FxCurrency cur)
+        {
+            r.raidCount = 0;
+            r.crisisCount++;
+
+            // 货币永久贬值。rate 与 previousRate 一起乘，
+            // 否则第二天会显示一个假的 -10% 涨跌幅。
+            cur.rate *= E6CrisisFactor;
+            cur.previousRate *= E6CrisisFactor;
+
+            int count = Rand.Range(E6RefugeeMin, E6RefugeeMax + 1);
+            SpawnRefugees(count);
+
+            var f = FactionByID(r.factionLoadID);
+            string fname = f != null ? f.Name : "?";
+
+            if (f != null && r.crisisCount >= E6CrisesToDefeat)
+            {
+                DefeatFaction(f);
+                retaliations.Remove(r);
+                Find.WindowStack.Add(new Dialog_MessageBox(
+                    "RimForex_Ev6Defeat".Translate(fname)));
+                return;
+            }
+
+            Find.LetterStack.ReceiveLetter(
+                "RimForex_Ev6CrisisLabel".Translate(fname),
+                "RimForex_Ev6Crisis".Translate(fname, count.ToString(), r.crisisCount.ToString()),
+                LetterDefOf.ThreatBig);
+        }
+
+        /// <summary>名存实亡：不再参与政治、不再袭击或派商队，但据点保留。</summary>
+        private void DefeatFaction(Faction f)
+        {
+            if (f == null) return;
+            f.defeated = true;
+            f.deactivated = true;
+        }
+
+        /// <summary>
+        /// 危机难民：无派系的 SpaceRefugee，倒地，落在殖民地边缘。
+        ///
+        /// 刻意**不用**原版的 RefugeePodCrash（会随机挂派系），
+        /// 也不用 Hospitality_Refugee（要 Ideology）。
+        /// 无派系正好命中原版"救他，他可能自愿加入"的那一档。
+        /// </summary>
+        private void SpawnRefugees(int count)
+        {
+            Map map = Find.AnyPlayerHomeMap;
+            if (map == null) return;
+            if (refugeePawnIds == null) refugeePawnIds = new List<int>();
+
+            for (int i = 0; i < count; i++)
+            {
+                var req = new PawnGenerationRequest(
+                    PawnKindDefOf.SpaceRefugee, null,
+                    PawnGenerationContext.NonPlayer, map.Tile);
+                Pawn pawn = PawnGenerator.GeneratePawn(req);
+                if (pawn == null) continue;
+
+                HealthUtility.DamageUntilDowned(pawn);
+
+                IntVec3 cell;
+                if (!CellFinder.TryFindRandomEdgeCellWith(
+                        c => c.Standable(map) && !map.roofGrid.Roofed(c),
+                        map, CellFinder.EdgeRoadChance_Ignore, out cell))
+                {
+                    cell = CellFinder.RandomEdgeCell(map);
+                }
+
+                GenSpawn.Spawn(pawn, cell, map);
+                refugeePawnIds.Add(pawn.thingIDNumber);
+            }
+
+            refugeeDeadlineTick = GenTicks.TicksGame + E6RefugeeDays * TicksPerDay;
+        }
+
+        /// <summary>每日结算时判定难民：被救起则 35%/日加入，超期则离开。</summary>
+        private void ProcessRefugees()
+        {
+            if (refugeePawnIds == null || refugeePawnIds.Count == 0) return;
+            int now = GenTicks.TicksGame;
+
+            for (int i = refugeePawnIds.Count - 1; i >= 0; i--)
+            {
+                int id = refugeePawnIds[i];
+
+                Pawn pawn = null;
+                for (int m = 0; m < Find.Maps.Count && pawn == null; m++)
+                {
+                    var map = Find.Maps[m];
+                    if (map == null || !map.IsPlayerHome) continue;
+                    var all = map.mapPawns.AllPawnsSpawned;
+                    for (int k = 0; k < all.Count; k++)
+                    {
+                        if (all[k] != null && all[k].thingIDNumber == id) { pawn = all[k]; break; }
+                    }
+                }
+
+                if (pawn == null) { refugeePawnIds.RemoveAt(i); continue; }
+                if (pawn.Dead || pawn.Faction == Faction.OfPlayer) { refugeePawnIds.RemoveAt(i); continue; }
+
+                bool rescued = pawn.GuestStatus == GuestStatus.Guest;
+                if (rescued && !pawn.Downed && Rand.Chance(E6RefugeeJoinChance))
+                {
+                    pawn.SetFaction(Faction.OfPlayer);
+                    Find.LetterStack.ReceiveLetter(
+                        "RimForex_Ev6JoinLabel".Translate(pawn.LabelShortCap),
+                        "RimForex_Ev6Join".Translate(pawn.LabelShortCap),
+                        LetterDefOf.PositiveEvent, new LookTargets(pawn));
+                    refugeePawnIds.RemoveAt(i);
+                    continue;
+                }
+
+                if (now >= refugeeDeadlineTick && !pawn.Downed)
+                {
+                    pawn.DeSpawn();
+                    Find.LetterStack.ReceiveLetter(
+                        "RimForex_Ev6LeaveLabel".Translate(pawn.LabelShortCap),
+                        "RimForex_Ev6Leave".Translate(pawn.LabelShortCap),
+                        LetterDefOf.NeutralEvent);
+                    refugeePawnIds.RemoveAt(i);
+                }
+            }
         }
 
         /// <summary>重新统计能做贸易的派系数量（诊断用，UI 随时可调）。</summary>
@@ -5565,6 +5907,10 @@ namespace RimForex
             market.AnchorDayOpen();
             MarkToMarket();
 
+            // E6：更新空头敞口、判定报复；难民按日判定
+            UpdateShortExposure();
+            ProcessRefugees();
+
             // 还活着的玩家殖民地（key = map.Parent.ID）。
             //
             // 已经不存在的地图**不再结算**：否则废弃殖民地 / 临时地图留下的账户
@@ -5717,7 +6063,16 @@ namespace RimForex
             bool tradedToday = acc.activityToday > 0;
             acc.activityToday = 0;
 
-            if (tradedToday || openCount > 0)
+            // ③ 今天被扣过钱（隔夜利息 / 托管费 / 贷款利息）→ 也发
+            //
+            // 2026-10-25 补：加了托管费之后，空仓又不交易的日子照样会被扣钱，
+            // 而原来"没交易不发信"会让玩家看着余额变少却没有任何通知。
+            // 费用凭证在交易历史里能查到，但那需要主动去翻。
+            float feesToday = acc.carrySinceSettle + acc.custodySinceSettle
+                            + acc.loanInterestSinceSettle;
+            bool chargedToday = feesToday >= 0.5f;
+
+            if (tradedToday || openCount > 0 || chargedToday)
             {
                 PostSettlementLetter(acc, dayPnl, false, openCount);
             }
@@ -5814,6 +6169,9 @@ namespace RimForex
             Scribe_Values.Look(ref lastWealthEventTick, "lastWealthEventTick", 0);
             Scribe_Collections.Look(ref refugeePawnIds, "refugeePawnIds", LookMode.Value);
             Scribe_Collections.Look(ref weakenedSettlements, "weakenedSettlements", LookMode.Deep);
+            Scribe_Collections.Look(ref retaliations, "retaliations", LookMode.Deep);
+            Scribe_Values.Look(ref refugeeDeadlineTick, "refugeeDeadlineTick", 0);
+            if (retaliations == null) retaliations = new List<FxRetaliation>();
             if (pendingEvents == null) pendingEvents = new List<FxPendingEvent>();
             if (refugeePawnIds == null) refugeePawnIds = new List<int>();
             if (weakenedSettlements == null) weakenedSettlements = new List<FxWeakenedSettlement>();
