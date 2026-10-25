@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+
+  <!--
+    E2-A：货币大跌 → 商队来清库存，附带 5 天议价优势。
+
+    为什么用 Hediff 而不是改交易价格：
+    原版交易价没有可扩展的钩子（不改原版代码就插不进去），
+    但 `TradePriceImprovement` 是原版 stat，Hediff 的 statOffsets 可以抬它 ——
+    这是"不改原版也能让玩家谈价更占优"的等价做法。
+
+    由 FxGameComponent.ApplyTradeBonus() 挂上，
+    ExpireTradeBonus() 在 ageTicks 超过 5 天后摘掉（不占存档字段）。
+  -->
+  <HediffDef>
+    <defName>RimForexTradeBonus</defName>
+    <label>议价优势</label>
+    <labelNoun>议价优势</labelNoun>
+    <description>对方急于出手，你在谈价时更有底气。交易价格对你更有利。</description>
+    <hediffClass>HediffWithComps</hediffClass>
+    <isBad>false</isBad>
+    <everCurableByItem>false</everCurableByItem>
+    <initialSeverity>1</initialSeverity>
+    <defaultLabelColor>(0.62, 0.86, 0.68)</defaultLabelColor>
+    <stages>
+      <li>
+        <statOffsets>
+          <TradePriceImprovement>0.15</TradePriceImprovement>
+        </statOffsets>
+      </li>
+    </stages>
+  </HediffDef>
+
+</Defs>

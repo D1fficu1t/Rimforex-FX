@@ -27,12 +27,12 @@
 
          为什么要在这里重复一遍：GenerateAssemblyInfo 默认产出的是 1.0.0，
          而加载时那条日志（RimForexBootstrap）是从程序集元数据读版本的 ——
-         不设这里的话，日志会打印 1.0.0，与 mod 列表里显示的 0.3.0-preview2 对不上。
+         不设这里的话，日志会打印 1.0.0，与 mod 列表里显示的 0.3.0-preview3 对不上。
 
          ContinuousIntegrationBuild 会在 InformationalVersion 后面追加
-         `+<40 位提交哈希>`，所以日志实际形如 0.3.0-preview2+1483697... ——
+         `+<40 位提交哈希>`，所以日志实际形如 0.3.0-preview3+1483697... ——
          既能看出是哪一版，也能看出由哪份源码编出来。 -->
-    <Version>0.3.0-preview2</Version>
+    <Version>0.3.0-preview3</Version>
   </PropertyGroup>
 
   <!-- ══════════════════════════════════════════════════════════════════════
@@ -50,7 +50,7 @@
 
        原因是游戏上传创意工坊时把 mod 根目录整个交给 Steam、不排除任何文件，
        若 .git 留在里面，完整版本历史会被分发给每个订阅者。
-       副作用：MSBuild 向上找不到仓库，于是不再嵌入哈希，日志退回只有 "0.3.0-preview2"。
+       副作用：MSBuild 向上找不到仓库，于是不再嵌入哈希，日志退回只有 "0.3.0-preview3"。
 
        这里补一个 target 直接问 git 要哈希。
 

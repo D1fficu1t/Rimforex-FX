@@ -1683,6 +1683,24 @@ namespace RimForex
             forcedGapKind = ForcedGapNormal;
         }
 
+        /// <summary>
+        /// E4/E5 的新闻漂移：每步均摊。
+        ///
+        /// `newsDriftLog` 存的是**整段窗口的累计对数漂移**（例如 −1.5σ），
+        /// 摊到 NewsDriftDays 天、每天 StepsPerDay 步上，逐步施加。
+        /// 这样价格会走出一个缓坡，而不是跳空式的瞬时跳变。
+        /// </summary>
+        private static float NewsDriftStep(FxCurrency c)
+        {
+            if (c == null || c.newsDriftLog == 0f) return 0f;
+            if (GenTicks.TicksGame >= c.newsDriftUntilTick)
+            {
+                c.newsDriftLog = 0f;
+                return 0f;
+            }
+            return c.newsDriftLog / (FxGameComponent.NewsDriftDays * StepsPerDay);
+        }
+
         public void TickStep(int stepStartTick)
         {
             keyBuffer.Clear();
@@ -1772,7 +1790,8 @@ namespace RimForex
                 double oscDisp = c.StepOsc() * c.VolMult;
                 c.stepLogTarget = c.stepLogStart
                     + (float)oscDisp
-                    + mult * sigma;
+                    + mult * sigma
+                    + NewsDriftStep(c);
                 c.subStep = 0;
                 c.stepBudgetValid = true;   // 见 stepLogStart 的说明（读档保护）
                 c.AdvanceOscIndex();        // 每步换一条盘内路径
@@ -3061,6 +3080,22 @@ namespace RimForex
         public const float E3RaidChance = 0.35f;
         public const int E3GoodwillCooldown = 15 * TicksPerDay;
 
+        // ── E2 / E4 / E5 参数（作者已拍板）──
+        /// <summary>E2-B 弱化据点的生效窗口：10 游戏日。</summary>
+        public const int E2WeakenWindow = 10 * TicksPerDay;
+        /// <summary>E2-B 削掉的守军比例。</summary>
+        public const float E2ThinFraction = 0.5f;
+        /// <summary>E2-A 议价加成持续 5 日。</summary>
+        public const int E2TradeBonusDays = 5;
+        /// <summary>E4/E5 新闻漂移持续 3 日。</summary>
+        public const int NewsDriftDays = 3;
+        /// <summary>E4/E5 目标货币的漂移幅度（以日 σ 为单位）。</summary>
+        public const float NewsDriftTargetSigma = 1.5f;
+        /// <summary>E4/E5 对手货币的漂移幅度。</summary>
+        public const float NewsDriftOtherSigma = 0.8f;
+        /// <summary>E4/E5 新闻兑现的概率。</summary>
+        public const float NewsDriftChance = 0.6f;
+
         // ── 托管费（闲置余额的存放成本）──
         /// <summary>免收额度：20,000 银以下不收。</summary>
         public const float CustodyFree = 20000f;
@@ -3437,6 +3472,9 @@ namespace RimForex
             // 0.3.0：延迟事件与贷款利息（都放在采样判定之外，暂停时也走）
             ProcessPendingEvents();
             ProcessLoans();
+            ProcessWeakenedSettlements();
+            ExpireTradeBonus();
+            ProcessWarNews();
 
             if (now != lastSampleTick)
             {
@@ -4138,20 +4176,34 @@ namespace RimForex
             {
                 case FxPendingKind.CaravanArrive:
                 {
+                    bool sellOff = e.payload == 1;   // E2 的甩卖商队
+
                     // 商队真的来了才算数；被 storyteller 拦下来就只留一条消息
                     if (TryFireCaravan(faction))
                     {
-                        float amount = Mathf.Max(2000f, TotalEquity() * 0.02f);
-                        TryInjectCaravanSilver(faction, amount);
-                        Find.LetterStack.ReceiveLetter(
-                            "RimForex_Ev1ArrivedLabel".Translate(faction.Name),
-                            "RimForex_Ev1Arrived".Translate(faction.Name),
-                            LetterDefOf.PositiveEvent);
+                        if (sellOff)
+                        {
+                            ApplyTradeBonus();
+                            Find.LetterStack.ReceiveLetter(
+                                "RimForex_Ev2ArrivedLabel".Translate(faction.Name),
+                                "RimForex_Ev2Arrived".Translate(
+                                    faction.Name, E2TradeBonusDays.ToString()),
+                                LetterDefOf.PositiveEvent);
+                        }
+                        else
+                        {
+                            float amount = Mathf.Max(2000f, TotalEquity() * 0.02f);
+                            TryInjectCaravanSilver(faction, amount);
+                            Find.LetterStack.ReceiveLetter(
+                                "RimForex_Ev1ArrivedLabel".Translate(faction.Name),
+                                "RimForex_Ev1Arrived".Translate(faction.Name),
+                                LetterDefOf.PositiveEvent);
+                        }
                     }
                     else
                     {
-                        Messages.Message("RimForex_Ev1NoCaravan".Translate(faction.Name),
-                            MessageTypeDefOf.NeutralEvent, false);
+                        Messages.Message((sellOff ? "RimForex_Ev2NoCaravan" : "RimForex_Ev1NoCaravan")
+                            .Translate(faction.Name), MessageTypeDefOf.NeutralEvent, false);
                     }
                     break;
                 }
@@ -4294,10 +4346,8 @@ namespace RimForex
                 float sigma = SigmaDayOf(c);
                 if (sigma <= 0f) continue;
                 float z = DailyReturnOf(c) / sigma;
-                // preview2 只接了"涨"这一侧；"跌"（E2）在 preview3。
-                // 这里刻意只筛正 z，免得一次大跌把真正的暴涨挤掉。
-                if (z < EventSigma) continue;
-                if (z > bestZ) { best = c; bestZ = z; }
+                if (Mathf.Abs(z) < EventSigma) continue;
+                if (Mathf.Abs(z) > Mathf.Abs(bestZ)) { best = c; bestZ = z; }
             }
 
             if (best == null) return;
@@ -4308,8 +4358,264 @@ namespace RimForex
             best.lastEventTick = now;
             lastWorldEventTick = now;
 
-            // 只有暴涨这一条在本 preview 里
-            if (bestZ > 0f) QueueE1(best, faction, DailyReturnOf(best) * 100f);
+            float pctMove = DailyReturnOf(best) * 100f;
+            if (bestZ > 0f) QueueE1(best, faction, pctMove);
+            else QueueE2(best, faction, pctMove);
+        }
+
+        /// <summary>E2：货币大跌 → 商队来清库存，或削弱敌方据点（按派系是否敌对分叉）。</summary>
+        private void QueueE2(FxCurrency c, Faction faction, float pct)
+        {
+            bool hostile = faction.HostileTo(Faction.OfPlayer);
+
+            if (hostile)
+            {
+                var settlement = PickSettlementOf(faction);
+                if (settlement != null)
+                {
+                    if (weakenedSettlements == null) weakenedSettlements = new List<FxWeakenedSettlement>();
+                    weakenedSettlements.Add(new FxWeakenedSettlement
+                    {
+                        settlementID = settlement.ID,
+                        factionLoadID = faction.loadID,
+                        untilTick = GenTicks.TicksGame + E2WeakenWindow
+                    });
+                    Find.LetterStack.ReceiveLetter(
+                        "RimForex_Ev2bLetterLabel".Translate(settlement.Name),
+                        "RimForex_Ev2bLetter".Translate(
+                            faction.Name, settlement.Name, pct.ToString("0.0"),
+                            (E2WeakenWindow / TicksPerDay).ToString()),
+                        LetterDefOf.PositiveEvent);
+                }
+                else
+                {
+                    // 没有据点可削：他们连基地都守不住，只能拿袭击出气
+                    QueueEvent(FxPendingKind.RaidChance, faction.loadID, c.factionLoadID, E1RaidDelay);
+                    Find.LetterStack.ReceiveLetter(
+                        "RimForex_Ev2bNoSettlementLabel".Translate(faction.Name),
+                        "RimForex_Ev2bNoSettlement".Translate(faction.Name, pct.ToString("0.0")),
+                        LetterDefOf.NegativeEvent);
+                }
+                return;
+            }
+
+            // 非敌对：2 天后商队来清库存（payload=1 表示"甩卖商队"）
+            QueueEvent(FxPendingKind.CaravanArrive, faction.loadID, c.factionLoadID,
+                E1CaravanDelay, 1);
+            Find.LetterStack.ReceiveLetter(
+                "RimForex_Ev2LetterLabel".Translate(faction.Name),
+                "RimForex_Ev2Letter".Translate(faction.Name, pct.ToString("0.0")),
+                LetterDefOf.PositiveEvent);
+        }
+
+        /// <summary>随便挑该派系一个还活着的据点。</summary>
+        private Settlement PickSettlementOf(Faction faction)
+        {
+            if (faction == null) return null;
+            var settlements = Find.WorldObjects.Settlements;
+            int count = 0;
+            for (int i = 0; i < settlements.Count; i++)
+            {
+                if (settlements[i] != null && settlements[i].Faction == faction) count++;
+            }
+            if (count == 0) return null;
+
+            int pick = Rand.Range(0, count);
+            for (int i = 0; i < settlements.Count; i++)
+            {
+                var s = settlements[i];
+                if (s == null || s.Faction != faction) continue;
+                if (pick-- == 0) return s;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// E2-B：把已经生成的据点地图上的守军削掉一半。
+        ///
+        /// 原版没有"据点防御"字段，守军统一由 DefaultPawnsPoints(1150~1600) 决定，
+        /// 插不进去，只能在**地图生成之后**动手。所以弱化记录会一直挂着，
+        /// 直到玩家真的去打那个据点（或 10 天窗口过期）。
+        /// </summary>
+        private void ProcessWeakenedSettlements()
+        {
+            if (GenTicks.TicksGame % 250 != 0) return;
+            if (weakenedSettlements == null || weakenedSettlements.Count == 0) return;
+            int now = GenTicks.TicksGame;
+
+            for (int i = weakenedSettlements.Count - 1; i >= 0; i--)
+            {
+                var w = weakenedSettlements[i];
+                if (w == null) { weakenedSettlements.RemoveAt(i); continue; }
+                if (now > w.untilTick) { weakenedSettlements.RemoveAt(i); continue; }
+
+                Map hit = null;
+                for (int m = 0; m < Find.Maps.Count; m++)
+                {
+                    var map = Find.Maps[m];
+                    if (map == null || map.Parent == null) continue;
+                    var st = map.Parent as Settlement;
+                    if (st != null && st.ID == w.settlementID) { hit = map; break; }
+                }
+                if (hit == null) continue;
+
+                int removed = ThinDefenders(hit, w.factionLoadID);
+                weakenedSettlements.RemoveAt(i);
+                if (removed > 0)
+                {
+                    Messages.Message("RimForex_Ev2bThinned".Translate(removed),
+                        MessageTypeDefOf.NeutralEvent, false);
+                }
+            }
+        }
+
+        /// <summary>随机销毁地图上属于该派系的一部分 pawn。返回销毁数量。</summary>
+        private int ThinDefenders(Map map, int factionLoadID)
+        {
+            var faction = FactionByID(factionLoadID);
+            if (faction == null || map == null) return 0;
+
+            var targets = new List<Pawn>();
+            var all = map.mapPawns.AllPawnsSpawned;
+            for (int i = 0; i < all.Count; i++)
+            {
+                var p = all[i];
+                if (p == null || p.Destroyed || p.Dead) continue;
+                if (p.Faction != faction) continue;
+                targets.Add(p);
+            }
+            if (targets.Count <= 1) return 0;
+
+            int remove = Mathf.RoundToInt(targets.Count * E2ThinFraction);
+            if (targets.Count - remove < 1) remove = targets.Count - 1;
+
+            // 洗牌后从头删，避免总是削掉同一批（比如总是削掉带名字的头目）
+            for (int i = 0; i < targets.Count; i++)
+            {
+                int j = Rand.Range(i, targets.Count);
+                var tmp = targets[i]; targets[i] = targets[j]; targets[j] = tmp;
+            }
+
+            int done = 0;
+            for (int i = 0; i < remove; i++)
+            {
+                var p = targets[i];
+                if (p == null || p.Destroyed) continue;
+                p.Destroy(DestroyMode.Vanish);
+                done++;
+            }
+            return done;
+        }
+
+        /// <summary>
+        /// E2-A 的议价加成：给殖民地所有自由殖民者挂一个 5 天的临时 hediff。
+        ///
+        /// 原版没有直接改交易价的钩子，但 `TradePriceImprovement` 是原版 stat，
+        /// hediff 的 statOffsets 可以抬它 —— 这是不改原版代码能做到的等价效果。
+        /// </summary>
+        private void ApplyTradeBonus()
+        {
+            var def = DefDatabase<HediffDef>.GetNamedSilentFail("RimForexTradeBonus");
+            if (def == null) return;
+
+            for (int m = 0; m < Find.Maps.Count; m++)
+            {
+                var map = Find.Maps[m];
+                if (map == null || !map.IsPlayerHome) continue;
+                var pawns = map.mapPawns.FreeColonistsSpawned;
+                for (int i = 0; i < pawns.Count; i++)
+                {
+                    var pawn = pawns[i];
+                    if (pawn == null || pawn.health == null) continue;
+                    if (pawn.health.hediffSet.HasHediff(def)) continue;
+                    pawn.health.AddHediff(def);
+                }
+            }
+        }
+
+        /// <summary>清理到期的临时 hediff（按 ageTicks 判断，不需要新存档字段）。</summary>
+        private void ExpireTradeBonus()
+        {
+            if (GenTicks.TicksGame % 250 != 0) return;
+            var def = DefDatabase<HediffDef>.GetNamedSilentFail("RimForexTradeBonus");
+            if (def == null) return;
+            int life = E2TradeBonusDays * TicksPerDay;
+
+            for (int m = 0; m < Find.Maps.Count; m++)
+            {
+                var map = Find.Maps[m];
+                if (map == null || !map.IsPlayerHome) continue;
+                var pawns = map.mapPawns.AllPawnsSpawned;
+                for (int i = 0; i < pawns.Count; i++)
+                {
+                    var pawn = pawns[i];
+                    if (pawn == null || pawn.health == null) continue;
+                    var h = pawn.health.hediffSet.GetFirstHediffOfDef(def);
+                    if (h != null && h.ageTicks > life) pawn.health.RemoveHediff(h);
+                }
+            }
+        }
+
+        /// <summary>
+        /// E4/E5：战争新闻。
+        ///
+        /// 每 8~12 日尝试一次：找一个"A 敌对 B"的对，随机决定谁占了上风，
+        /// 然后以 60% 概率把预期变成真实的汇率漂移。
+        ///
+        /// 漂移不直接改价格，而是写进 `newsDriftLog`，由 TickStep 逐步施加 ——
+        /// 这样走出来的是一条缓坡，不是跳空。
+        /// </summary>
+        private void ProcessWarNews()
+        {
+            RimForexSettings cfg = RimForexMod.Settings;
+            if (cfg != null && !cfg.enableWorldEvents) return;
+            if (GenTicks.TicksGame < nextNewsTick) return;
+            if (!WorldEventAllowed()) return;
+
+            nextNewsTick = GenTicks.TicksGame + Rand.Range(8, 13) * TicksPerDay;
+
+            var all = Find.FactionManager.AllFactionsListForReading;
+            Faction a = null, b = null;
+            for (int i = 0; i < all.Count && a == null; i++)
+            {
+                var fa = all[i];
+                if (fa == null || fa.IsPlayer || fa.temporary || fa.Hidden) continue;
+                if (market.Get(fa.loadID) == null) continue;
+                for (int j = 0; j < all.Count; j++)
+                {
+                    var fb = all[j];
+                    if (fb == null || fb == fa || fb.IsPlayer || fb.temporary || fb.Hidden) continue;
+                    if (market.Get(fb.loadID) == null) continue;
+                    if (!fa.HostileTo(fb)) continue;
+                    a = fa; b = fb;
+                    break;
+                }
+            }
+            if (a == null || b == null) return;
+
+            if (!Rand.Chance(NewsDriftChance)) return;
+
+            bool aWins = Rand.Chance(0.5f);
+            Faction winner = aWins ? a : b;
+            Faction loser = aWins ? b : a;
+
+            var winCur = market.Get(winner.loadID);
+            var loseCur = market.Get(loser.loadID);
+            if (winCur == null || loseCur == null) return;
+
+            int until = GenTicks.TicksGame + NewsDriftDays * TicksPerDay;
+            loseCur.newsDriftLog = -NewsDriftTargetSigma * SigmaDayOf(loseCur) * NewsDriftDays;
+            loseCur.newsDriftUntilTick = until;
+            winCur.newsDriftLog = NewsDriftOtherSigma * SigmaDayOf(winCur) * NewsDriftDays;
+            winCur.newsDriftUntilTick = until;
+
+            lastWorldEventTick = GenTicks.TicksGame;
+
+            Find.LetterStack.ReceiveLetter(
+                "RimForex_Ev4LetterLabel".Translate(winner.Name, loser.Name),
+                "RimForex_Ev4Letter".Translate(
+                    winner.Name, loser.Name, (NewsDriftChance * 100f).ToString("0")),
+                LetterDefOf.NeutralEvent);
         }
 
         /// <summary>E1：货币大涨 → 商队或袭击（按派系是否敌对分叉）。</summary>
@@ -4442,6 +4748,40 @@ namespace RimForex
                 Mathf.Max(0f, acc.Equity) * E3EquityFraction) + 1f;
             MaybeTriggerE3(acc, fake);
             return true;
+        }
+
+        /// <summary>测试：强制触发一次 E2（随机挑一个非玩家货币）。</summary>
+        public bool DebugForceCrash()
+        {
+            EnsureAllFactionCurrencies();
+            var keys = new List<int>(market.currencies.Keys);
+            if (keys.Count == 0) return false;
+
+            int start = Rand.Range(0, keys.Count);
+            for (int i = 0; i < keys.Count; i++)
+            {
+                var c = market.currencies[keys[(start + i) % keys.Count]];
+                if (c == null) continue;
+                if (c.factionLoadID == Faction.OfPlayer.loadID) continue;
+                var f = FactionByID(c.factionLoadID);
+                if (f == null || f.temporary || f.IsPlayer) continue;
+
+                c.lastEventTick = GenTicks.TicksGame;
+                lastWorldEventTick = GenTicks.TicksGame;
+                QueueE2(c, f, -EventSigma * SigmaDayOf(c) * 100f);
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>测试：立刻触发一次 E4/E5 战争新闻。</summary>
+        public bool DebugForceNews()
+        {
+            nextNewsTick = 0;
+            lastWorldEventTick = -999999;
+            ProcessWarNews();
+            // 成功时 ProcessWarNews 会把 lastWorldEventTick 写成当前时间
+            return lastWorldEventTick >= 0;
         }
 
         /// <summary>测试：直接对一个敌对派系发起袭击（绕过掷骰）。</summary>

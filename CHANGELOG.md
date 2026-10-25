@@ -1,5 +1,43 @@
 # 更新记录 / Changelog
 
+## 0.3.0-preview3
+
+> 第三个 preview：**货币暴跌（商队 / 削守军）+ 战争新闻**。
+
+### 中文
+
+**新增**
+
+- **世界事件：货币暴跌。** 某个派系的货币单日跌幅超过 2.5σ 时：
+  - 中立/友好派系：两天后派**清库存的商队**，谈价更容易（议价优势持续 5 天）
+  - 敌对派系：挑它一个据点，**10 天内去打，守军少一半**
+- **世界事件：战争新闻。** 每 8~12 天，两个敌对派系之间会打一仗。
+  有六成概率这变成趋势：赢家的货币走强，输家的货币走弱，持续 3 天。
+  信里会写明这个概率。
+
+**其他**
+
+- 新增两个测试按钮：「测试：货币暴跌」「测试：战争新闻」。
+
+### English
+
+**Added**
+
+- **World event: currency crash.** When a faction's currency falls more than 2.5 sigma in a day:
+  - Non-hostile factions send a **clearance caravan** two days later; you get a bargaining edge
+    for 5 days.
+  - Hostile factions: pick one of their settlements. **Attack within 10 days and half the
+    defenders are gone.**
+- **World event: war news.** Every 8-12 days two hostile factions fight. There is a 60% chance
+  it becomes a trend: the winner's currency strengthens, the loser's weakens, for 3 days.
+  The letter states the probability.
+
+**Other**
+
+- Two new test buttons: "currency crash" and "war news".
+
+---
+
 ## 0.3.0-preview2
 
 > 第二个 preview：**新手教程 + 第一个世界事件 + 托管费**。

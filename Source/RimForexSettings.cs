@@ -425,6 +425,36 @@ namespace RimForex
             Hint(l, "RimForex_TestRaidTip".Translate());
 
             l.Gap(6f);
+            if (l.ButtonText("RimForex_TestCrash".Translate()))
+            {
+                FxGameComponent fx = Find.World != null
+                    ? Find.World.GetComponent<FxGameComponent>() : null;
+                if (fx != null)
+                {
+                    Messages.Message(fx.DebugForceCrash()
+                            ? "RimForex_MsgTestCrash".Translate()
+                            : "RimForex_MsgTestSurgeFail".Translate(),
+                        MessageTypeDefOf.TaskCompletion, false);
+                }
+            }
+            Hint(l, "RimForex_TestCrashTip".Translate());
+
+            l.Gap(6f);
+            if (l.ButtonText("RimForex_TestNews".Translate()))
+            {
+                FxGameComponent fx = Find.World != null
+                    ? Find.World.GetComponent<FxGameComponent>() : null;
+                if (fx != null)
+                {
+                    Messages.Message(fx.DebugForceNews()
+                            ? "RimForex_MsgTestNews".Translate()
+                            : "RimForex_MsgTestNewsFail".Translate(),
+                        MessageTypeDefOf.TaskCompletion, false);
+                }
+            }
+            Hint(l, "RimForex_TestNewsTip".Translate());
+
+            l.Gap(6f);
             if (l.ButtonText("RimForex_TestBlowUp".Translate()))
             {
                 FxGameComponent fx = Find.World != null

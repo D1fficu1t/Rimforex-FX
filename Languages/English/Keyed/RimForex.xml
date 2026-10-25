@@ -367,4 +367,32 @@ This is a blow-up: the debt must be covered. Deposit silver at the terminal to b
   <RimForex_TestRaidTip>Skip the dice roll and launch a raid from a hostile faction right now. Use it to check that raids can actually fire.</RimForex_TestRaidTip>
   <RimForex_MsgTestRaid>Raid launched</RimForex_MsgTestRaid>
   <RimForex_MsgTestRaidFail>Raid could not be launched: no hostile faction, or the storyteller refused</RimForex_MsgTestRaidFail>
+  <!-- 0.3.0 world events (preview3: E2 / E4-E5) -->
+  <RimForex_Ev2LetterLabel>{0}: currency fall</RimForex_Ev2LetterLabel>
+  <RimForex_Ev2Letter>{0}'s currency fell {1}% in a single day. They are in a hurry to turn stock into hard currency, and a caravan will arrive in two days with goods cheaper than usual.
+
+Bargaining should be easier when it does.</RimForex_Ev2Letter>
+  <RimForex_Ev2ArrivedLabel>{0}: clearance caravan arrived</RimForex_Ev2ArrivedLabel>
+  <RimForex_Ev2Arrived>The caravan from {0} has arrived and is dumping stock. For the next {1} days you have the upper hand in negotiations.</RimForex_Ev2Arrived>
+  <RimForex_Ev2NoCaravan>{0}'s caravan never made it.</RimForex_Ev2NoCaravan>
+  <RimForex_Ev2bLetterLabel>{0}: defenses thin</RimForex_Ev2bLetterLabel>
+  <RimForex_Ev2bLetter>{0}'s currency fell {2}% in a single day. {1} can no longer pay its garrison, and the defenses have suffered for it.
+
+That state should last about {3} days. Strike now and half the defenders will be gone.</RimForex_Ev2bLetter>
+  <RimForex_Ev2bNoSettlementLabel>{0}: nothing left to lose</RimForex_Ev2bNoSettlementLabel>
+  <RimForex_Ev2bNoSettlement>{0}'s currency fell {1}%, and they have no settlements left to fall back on. Desperate people tend to turn to raiding.</RimForex_Ev2bNoSettlement>
+  <RimForex_Ev2bThinned>The garrison has thinned: {0} defenders left their posts.</RimForex_Ev2bThinned>
+  <RimForex_Ev4LetterLabel>{0} defeats {1}</RimForex_Ev4LetterLabel>
+  <RimForex_Ev4Letter>{0} has beaten {1} on the border.
+
+Analysts put a {2}% chance on this becoming a trend: {1}'s currency weakens, {0}'s strengthens.
+
+A probability, not a promise.</RimForex_Ev4Letter>
+  <RimForex_TestCrash>Test: currency crash</RimForex_TestCrash>
+  <RimForex_TestCrashTip>Fire E2 now: non-hostile factions send a clearance caravan; hostile factions get their settlement garrison thinned.</RimForex_TestCrashTip>
+  <RimForex_MsgTestCrash>Fired a currency crash event</RimForex_MsgTestCrash>
+  <RimForex_TestNews>Test: war news</RimForex_TestNews>
+  <RimForex_TestNewsTip>Fire E4/E5 now: two hostile factions fight, with a 60% chance of a three-day drift in both currencies.</RimForex_TestNewsTip>
+  <RimForex_MsgTestNews>Fired a war news event</RimForex_MsgTestNews>
+  <RimForex_MsgTestNewsFail>No hostile faction pair available</RimForex_MsgTestNewsFail>
 </LanguageData>
