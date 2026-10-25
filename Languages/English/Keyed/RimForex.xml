@@ -454,4 +454,36 @@ Their settlements remain on the world as independent places that still fly the o
   <RimForex_Ev6Crisis3>{0}'s currency no longer buys bread. The army is looting its own depots, officials are burning their badges, and the rich are lighting cigars with gold bars - which they have just discovered are also worthless.\n\n{1} refugees drifted in vacuum for three days before landing outside your colony. They may still be alive.\n\nRescuing them is an investment. Harvesting them is cash on delivery.</RimForex_Ev6Crisis3>
   <RimForex_Ev6Crisis4>Nothing is left of {0} but the name. The cities are burning, the emergency broadcast keeps repeating "please remain calm", and then the broadcast station burned too.\n\n{1} refugees stuffed themselves into escape pods without entering a destination. They landed outside your colony, in unflattering positions.\n\nThey still have usable parts.</RimForex_Ev6Crisis4>
   <RimForex_Ev6Crisis5>{0} is gone from the star map. No government, no currency, no survivor organization - only drifting debris and a few lifeboats flying in circles.\n\n{1} refugees came down outside your colony. This is their last landing.\n\nSave them or take them apart. Your call.</RimForex_Ev6Crisis5>
+  <!-- 0.3.0 E7 debt collection -->
+  <RimForex_PlatformName>FX Exchange Collections</RimForex_PlatformName>
+  <RimForex_Ev7LetterLabel>A collector is on the way</RimForex_Ev7LetterLabel>
+  <RimForex_Ev7Letter>Your account with us has blown up. You owe {0} silver.
+
+Collections has sent a man. You have {1} days to settle: pay, hand someone over, or hit him.
+
+We have seen the third option before. The paperwork is well established.</RimForex_Ev7Letter>
+  <RimForex_Ev7WindowTitle>Debt settlement</RimForex_Ev7WindowTitle>
+  <RimForex_Ev7WindowSub>Outstanding {0} silver   ·   {1} day(s) left</RimForex_Ev7WindowSub>
+  <RimForex_Ev7WindowBody>We offer three ways to close this. Pick one. Do not keep him waiting - he brought a gun and a great deal of patience.</RimForex_Ev7WindowBody>
+  <RimForex_Ev7BalanceLine>Current balance: {0} silver</RimForex_Ev7BalanceLine>
+  <RimForex_Ev7Pay>Pay (balance must be 0 or more)</RimForex_Ev7Pay>
+  <RimForex_Ev7NeedSilver>The balance is still negative. Deposit silver at the terminal first.</RimForex_Ev7NeedSilver>
+  <RimForex_Ev7HostageBtn>Settle with people</RimForex_Ev7HostageBtn>
+  <RimForex_Ev7Refuse>Refuse / fight</RimForex_Ev7Refuse>
+  <RimForex_Ev7RefuseTip>Refusing brings a mechanoid raid and freezes the account for one year: no new positions, no withdrawals.</RimForex_Ev7RefuseTip>
+  <RimForex_Ev7HostageSum>Selected worth {0} / {1} silver required</RimForex_Ev7HostageSum>
+  <RimForex_Ev7Confirm>Confirm handover</RimForex_Ev7Confirm>
+  <RimForex_Ev7HostageShort>Not enough value selected, or nothing selected at all.</RimForex_Ev7HostageShort>
+  <RimForex_Ev7Back>Back</RimForex_Ev7Back>
+  <RimForex_Ev7AttackLabel>Collections stops being polite</RimForex_Ev7AttackLabel>
+  <RimForex_Ev7Attack>You went after their man. They sent mechanoids, and your account is frozen for {0} days - no positions, no withdrawals.
+
+We wish you a pleasant week.</RimForex_Ev7Attack>
+  <RimForex_Ev7DoneLabel>Debt settled</RimForex_Ev7DoneLabel>
+  <RimForex_Ev7Paid>Collections confirms receipt. The collector has left.</RimForex_Ev7Paid>
+  <RimForex_Ev7Hostage>The debt was paid in people and the account is clear. We make no comment on the method.</RimForex_Ev7Hostage>
+  <RimForex_MsgFrozen>Account frozen. {0} more day(s) before you can trade.</RimForex_MsgFrozen>
+  <RimForex_TestDebt>Test: trigger debt collection</RimForex_TestDebt>
+  <RimForex_TestDebtTip>Force the account negative and start collection immediately, skipping the two-day wait.</RimForex_TestDebtTip>
+  <RimForex_MsgTestDebt>Debt collection started</RimForex_MsgTestDebt>
 </LanguageData>

@@ -1887,6 +1887,15 @@ namespace RimForex
         {
             if (cur == null || units <= 0) return;
 
+            // E7：账户冻结期间禁止开仓
+            if (account.frozenUntilTick > GenTicks.TicksGame)
+            {
+                Messages.Message("RimForex_MsgFrozen".Translate(
+                    ((account.frozenUntilTick - GenTicks.TicksGame) / FxGameComponent.TicksPerDay)
+                        .ToString("0")), MessageTypeDefOf.RejectInput, false);
+                return;
+            }
+
             FxMarket market = Fx.market;
             float entry = market.EntryPriceOf(cur.factionLoadID, isLong);
             float notional = units * entry;
@@ -2037,6 +2046,15 @@ namespace RimForex
 
         private void DoWithdraw(int requested)
         {
+            // E7：账户冻结期间禁止提款
+            if (account.frozenUntilTick > GenTicks.TicksGame)
+            {
+                Messages.Message("RimForex_MsgFrozen".Translate(
+                    ((account.frozenUntilTick - GenTicks.TicksGame) / FxGameComponent.TicksPerDay)
+                        .ToString("0")), MessageTypeDefOf.RejectInput, false);
+                return;
+            }
+
             Map map = terminal.Map;
             if (map == null) return;
 

@@ -1,5 +1,54 @@
 # 更新记录 / Changelog
 
+## 0.3.0-preview4
+
+> 第四个 preview（最后一个功能版）：**做空报复 + 穿仓收债**。
+
+### 中文
+
+**新增**
+
+- **世界事件：做空报复。** 如果某个派系的货币被你做空到
+  `max(200,000, 你的净值 × 3)` 以上并维持三天，他们会认为这是攻击：
+  好感直接压到 −100，然后每两天派一次袭击，直到你平掉空单。
+- **金融危机。** 每十次袭击触发一次：该货币**永久贬值 10%**，
+  殖民地边缘会掉下来三到五个无派系难民。连出五次，这个派系就名存实亡 ——
+  不再发动袭击、不再派商队，货币从市场上摘牌（持仓按市价强制平仓）。
+  五次危机的信件一次比一次绝望。
+- **穿仓收债。** 账户余额为负满两天后，清算部会派人上门。
+  你有三天时间：付清、交人抵债，或者动手。
+  动手的代价是一次机械族袭击加一年账户冻结（不能开仓、不能提款）。
+
+**其他**
+
+- 隔夜利息、托管费、贷款利息现在会作为**费用凭证**写进交易历史，
+  不再"扣了钱查不到"。
+- 新增四个测试按钮：做空报复 / 立即触发危机 / 触发收债。
+
+### English
+
+**Added**
+
+- **World event: short-squeeze retaliation.** Short a faction's currency up to
+  `max(200,000, 3x your net worth)` and hold it for three days, and they treat it as an attack:
+  goodwill drops to -100, and they raid every two days until you close the position.
+- **Financial crisis.** Every ten raids: the currency loses **10% permanently**, and
+  three to five factionless refugees crash-land at the edge of your colony. Five crises and
+  the faction is finished - no more raids, no more caravans, and its currency is delisted
+  (open positions are force-closed at market price). The five crisis letters get progressively
+  bleaker.
+- **Debt collection.** Two days in the red and Collections sends someone. You get three days:
+  pay, hand over people, or fight. Fighting costs you a mechanoid raid and a one-year account
+  freeze (no positions, no withdrawals).
+
+**Other**
+
+- Overnight interest, custody fees and loan interest are now recorded in the trade history
+  as fee receipts, so the money is always traceable.
+- Four new test buttons.
+
+---
+
 ## 0.3.0-preview3
 
 > 第三个 preview：**货币暴跌（商队 / 削守军）+ 战争新闻**。

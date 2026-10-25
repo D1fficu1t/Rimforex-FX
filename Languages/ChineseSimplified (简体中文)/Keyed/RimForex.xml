@@ -465,4 +465,36 @@
   <RimForex_Ev6Crisis3>{0} 的货币已经买不到面包。军队开始抢劫自己的补给站，公务员烧掉工牌，富人用金条点烟，然后发现金条也不值钱了。\n\n{1} 名难民在真空里飘了三天才落到你的殖民地外面。他们可能还活着。\n\n救人是笔投资，收割是笔现货。</RimForex_Ev6Crisis3>
   <RimForex_Ev6Crisis4>{0} 只剩下一个名字。城市在烧，广播在循环播放「请保持冷静」，然后广播站也烧了。\n\n{1} 名难民把自己塞进逃生舱，没填目的地。他们落在你的殖民地外面，姿势不太好看。\n\n他们身上还有能用的零件。</RimForex_Ev6Crisis4>
   <RimForex_Ev6Crisis5>{0} 从星图上消失了。没有政府，没有货币，没有幸存者组织，只剩一些还在飘的碎片和几艘没头苍蝇一样的救生舱。\n\n{1} 名难民落在你的殖民地外面。这是他们最后一次降落。\n\n救，还是拆，随你。</RimForex_Ev6Crisis5>
+  <!-- 0.3.0 E7 穿仓收债 -->
+  <RimForex_PlatformName>FX 交易所清算部</RimForex_PlatformName>
+  <RimForex_Ev7LetterLabel>收债人已出发</RimForex_Ev7LetterLabel>
+  <RimForex_Ev7Letter>你在本平台的账户已经穿仓，欠款 {0} 银。
+
+清算部派了一名收债人过来。你有 {1} 天时间处理：付清、交人，或者把他打一顿。
+
+第三种方案我们见得多，处理流程也很成熟。</RimForex_Ev7Letter>
+  <RimForex_Ev7WindowTitle>债务清算</RimForex_Ev7WindowTitle>
+  <RimForex_Ev7WindowSub>欠款 {0} 银　·　剩余 {1} 天</RimForex_Ev7WindowSub>
+  <RimForex_Ev7WindowBody>本平台提供三种结清方式。选一种，别让他久等 —— 他带着枪，也带着耐心。</RimForex_Ev7WindowBody>
+  <RimForex_Ev7BalanceLine>当前账户余额：{0} 银</RimForex_Ev7BalanceLine>
+  <RimForex_Ev7Pay>付清（需余额 ≥ 0）</RimForex_Ev7Pay>
+  <RimForex_Ev7NeedSilver>余额还是负的。先去终端存白银，把账填平再来。</RimForex_Ev7NeedSilver>
+  <RimForex_Ev7HostageBtn>交人抵债</RimForex_Ev7HostageBtn>
+  <RimForex_Ev7Refuse>拒绝 / 动手</RimForex_Ev7Refuse>
+  <RimForex_Ev7RefuseTip>拒绝的后果：招来一次机械族袭击，账户冻结一年（不能开仓、不能提款）。</RimForex_Ev7RefuseTip>
+  <RimForex_Ev7HostageSum>已选市值 {0} / 需要 {1} 银</RimForex_Ev7HostageSum>
+  <RimForex_Ev7Confirm>确认交割</RimForex_Ev7Confirm>
+  <RimForex_Ev7HostageShort>选的人不够值钱，或者你一个都没选。</RimForex_Ev7HostageShort>
+  <RimForex_Ev7Back>返回</RimForex_Ev7Back>
+  <RimForex_Ev7AttackLabel>清算部不再客气</RimForex_Ev7AttackLabel>
+  <RimForex_Ev7Attack>你动了清算部的人。他们派来了机械族，账户冻结 {0} 天 —— 期间不能开仓，也不能提款。
+
+本平台祝您接下来的日子顺利。</RimForex_Ev7Attack>
+  <RimForex_Ev7DoneLabel>债务已结清</RimForex_Ev7DoneLabel>
+  <RimForex_Ev7Paid>清算部确认收到款项，收债人离开了。</RimForex_Ev7Paid>
+  <RimForex_Ev7Hostage>人被带走了，账也平了。本平台对这种结清方式不做评价。</RimForex_Ev7Hostage>
+  <RimForex_MsgFrozen>账户已冻结，还要 {0} 天才能交易。</RimForex_MsgFrozen>
+  <RimForex_TestDebt>测试：触发收债</RimForex_TestDebt>
+  <RimForex_TestDebtTip>直接把账户做成负余额并启动收债流程，省去等两天。</RimForex_TestDebtTip>
+  <RimForex_MsgTestDebt>已启动收债流程</RimForex_MsgTestDebt>
 </LanguageData>

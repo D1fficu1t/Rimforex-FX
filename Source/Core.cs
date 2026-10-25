@@ -3150,6 +3150,16 @@ namespace RimForex
         /// <summary>难民加入判定的截止 tick。</summary>
         public int refugeeDeadlineTick;
 
+        // ── 0.3.0 E7（定名后不可改）──
+        /// <summary>是否正在收债。</summary>
+        public bool debtActive;
+        /// <summary>欠债账户所在的 map.Parent.ID。</summary>
+        public int debtMapId = -1;
+        /// <summary>收债期限。</summary>
+        public int debtDeadlineTick;
+        /// <summary>收债人的 thingIDNumber。</summary>
+        public int debtCollectorId = -1;
+
         /// <summary>全局事件冷却：两次世界事件之间至少 3 游戏日。</summary>
         public const int GlobalEventCooldown = 3 * TicksPerDay;
 
@@ -3230,6 +3240,16 @@ namespace RimForex
         /// 只看到消亡弹窗，红信根本没出现）。先让信落地，两小时后再清算。
         /// </summary>
         public const int E6DefeatDelay = 2 * 2500;
+
+        // ── E7 参数（作者已拍板）──
+        /// <summary>负余额持续几天后开始收债。</summary>
+        public const int E7NegativeDays = 2;
+        /// <summary>收债宽限期：3 天。</summary>
+        public const int E7GraceDays = 3;
+        /// <summary>攻击收债人后的账户冻结时长（游戏日）。</summary>
+        public const int E7FreezeDays = 60;
+        /// <summary>攻击收债人招来的机械袭击最低点数。</summary>
+        public const float E7MechRaidMinPoints = 6000f;
 
         // ── 托管费（闲置余额的存放成本）──
         /// <summary>免收额度：20,000 银以下不收。</summary>
@@ -3615,6 +3635,7 @@ namespace RimForex
             ExpireTradeBonus();
             ProcessWarNews();
             ProcessRetaliation();
+            ProcessDebtCase();
 
             if (now != lastSampleTick)
             {
@@ -5246,6 +5267,21 @@ namespace RimForex
             return lastWorldEventTick >= 0;
         }
 
+        /// <summary>测试：立刻制造一笔欠款并启动收债流程。</summary>
+        public bool DebugForceDebt()
+        {
+            Map map = Find.AnyPlayerHomeMap;
+            if (map == null) return false;
+            var acc = ColonyAccount(map);
+            if (acc == null) return false;
+
+            acc.balance = -Mathf.Max(1000f, Mathf.Abs(acc.Equity) * 0.05f);
+            acc.negativeSinceTick = GenTicks.TicksGame - (E7NegativeDays + 1) * TicksPerDay;
+            debtActive = false;
+            MaybeStartDebtCollection();
+            return debtActive;
+        }
+
         /// <summary>测试：跳过门槛直接启动一次 E6 报复循环。</summary>
         public bool DebugForceRetaliation()
         {
@@ -5722,6 +5758,235 @@ namespace RimForex
             }
         }
 
+        // ══════════════════════════════════════════════════════════════
+        //  0.3.0 E7：穿仓收债
+        // ══════════════════════════════════════════════════════════════
+
+        /// <summary>每日结算时检查：负余额连续两天就开始收债。</summary>
+        private void MaybeStartDebtCollection()
+        {
+            if (debtActive) return;
+            int now = GenTicks.TicksGame;
+
+            var keys = new List<int>(accounts.Keys);
+            for (int i = 0; i < keys.Count; i++)
+            {
+                var acc = accounts[keys[i]];
+                if (acc == null || acc.balance >= 0f) continue;
+                if (acc.negativeSinceTick <= 0) continue;
+                if (now - acc.negativeSinceTick < E7NegativeDays * TicksPerDay) continue;
+
+                StartDebtCase(acc);
+                return;
+            }
+        }
+
+        private void StartDebtCase(FxAccount acc)
+        {
+            Map map = Find.AnyPlayerHomeMap;
+            if (map == null) return;
+
+            Pawn collector = SpawnCollector(map);
+            debtActive = true;
+            debtMapId = map.Parent != null ? map.Parent.ID : -1;
+            debtDeadlineTick = GenTicks.TicksGame + E7GraceDays * TicksPerDay;
+            debtCollectorId = collector != null ? collector.thingIDNumber : -1;
+
+            Find.LetterStack.ReceiveLetter(
+                "RimForex_Ev7LetterLabel".Translate(),
+                "RimForex_Ev7Letter".Translate(
+                    (-acc.balance).ToString("F0"), E7GraceDays.ToString()),
+                LetterDefOf.ThreatBig,
+                collector != null ? new LookTargets(collector) : null);
+
+            Find.WindowStack.Add(new Window_FxDebt(this, acc));
+        }
+
+        /// <summary>
+        /// 收债人所属的"平台"派系：只建一次，之后复用。
+        ///
+        /// 必须只建一次 —— RimWorld 全程序没有任何地方调用
+        /// FactionManager.RemoveFaction，每建一个就永久残留在存档里。
+        /// temporary = true 让 HasGoodwill 返回 false，不参与好感度记账。
+        /// </summary>
+        private Faction EnsurePlatformFaction()
+        {
+            if (platformFactionLoadID != 0)
+            {
+                var existing = FactionByID(platformFactionLoadID);
+                if (existing != null) return existing;
+            }
+
+            var f = FactionGenerator.NewGeneratedFaction(
+                new FactionGeneratorParms(FactionDefOf.OutlanderCivil));
+            if (f == null) return null;
+
+            f.temporary = true;
+            f.Name = "RimForex_PlatformName".Translate();
+            Find.FactionManager.Add(f);
+            platformFactionLoadID = f.loadID;
+            return f;
+        }
+
+        private Pawn SpawnCollector(Map map)
+        {
+            var faction = EnsurePlatformFaction();
+            var req = new PawnGenerationRequest(
+                PawnKindDefOf.Villager, faction,
+                PawnGenerationContext.NonPlayer, map.Tile);
+            Pawn pawn = PawnGenerator.GeneratePawn(req);
+            if (pawn == null) return null;
+
+            IntVec3 cell;
+            if (!CellFinder.TryFindRandomEdgeCellWith(
+                    c => c.Standable(map) && !map.roofGrid.Roofed(c),
+                    map, CellFinder.EdgeRoadChance_Ignore, out cell))
+            {
+                cell = CellFinder.RandomEdgeCell(map);
+            }
+            GenSpawn.Spawn(pawn, cell, map);
+            return pawn;
+        }
+
+        /// <summary>每 250 tick 检查收债进度。</summary>
+        private void ProcessDebtCase()
+        {
+            if (!debtActive) return;
+            if (GenTicks.TicksGame % 250 != 0) return;
+
+            FxAccount acc = null;
+            var keys = new List<int>(accounts.Keys);
+            for (int i = 0; i < keys.Count; i++)
+            {
+                if (keys[i] == debtMapId) { acc = accounts[keys[i]]; break; }
+            }
+            if (acc == null) { ResolveDebtCase(null, "gone"); return; }
+
+            Pawn collector = FindPawnById(debtCollectorId);
+            bool attacked = collector != null
+                            && (collector.Dead || collector.Destroyed || collector.Downed);
+
+            if (attacked) { TriggerCollectorRetaliation(acc); return; }
+
+            if (acc.balance >= 0f) { ResolveDebtCase(collector, "paid"); return; }
+
+            if (GenTicks.TicksGame >= debtDeadlineTick)
+            {
+                TriggerCollectorRetaliation(acc);
+            }
+        }
+
+        /// <summary>攻击/逾期：招来机械袭击 + 冻结账户一年。</summary>
+        private void TriggerCollectorRetaliation(FxAccount acc)
+        {
+            Map map = Find.AnyPlayerHomeMap;
+            Faction mech = Faction.OfMechanoids;
+            if (mech == null)
+            {
+                mech = Find.FactionManager.FirstFactionOfDef(FactionDefOf.Mechanoid);
+            }
+
+            if (mech != null && map != null)
+            {
+                float pts = Mathf.Max(E7MechRaidMinPoints,
+                    StorytellerUtility.DefaultThreatPointsNow(map));
+                TryFireRaid(mech, pts);
+            }
+
+            if (acc != null)
+            {
+                acc.frozenUntilTick = GenTicks.TicksGame + E7FreezeDays * TicksPerDay;
+            }
+
+            Find.LetterStack.ReceiveLetter(
+                "RimForex_Ev7AttackLabel".Translate(),
+                "RimForex_Ev7Attack".Translate(E7FreezeDays.ToString()),
+                LetterDefOf.ThreatBig);
+
+            ResolveDebtCase(null, "attacked");
+        }
+
+        /// <summary>用殖民者抵债。累计市值 ≥ 债务才算数。</summary>
+        public bool PayWithHostages(FxAccount acc, List<Pawn> pawns)
+        {
+            if (acc == null || pawns == null || pawns.Count == 0) return false;
+            float debt = -acc.balance;
+            if (debt <= 0.01f) return false;
+
+            float sum = 0f;
+            for (int i = 0; i < pawns.Count; i++)
+            {
+                if (pawns[i] != null) sum += pawns[i].MarketValue;
+            }
+            if (sum < debt) return false;
+
+            for (int i = 0; i < pawns.Count; i++)
+            {
+                var p = pawns[i];
+                if (p == null) continue;
+                if (p.Spawned) p.DeSpawn();
+                else p.Destroy(DestroyMode.Vanish);
+            }
+
+            acc.balance = 0f;
+            acc.negativeSinceTick = 0;
+
+            ResolveDebtCase(FindPawnById(debtCollectorId), "hostage");
+            return true;
+        }
+
+        /// <summary>收债窗口里点「拒绝」时调用：直接按攻击处理。</summary>
+        public void RefuseDebt(FxAccount acc)
+        {
+            TriggerCollectorRetaliation(acc);
+        }
+
+        /// <summary>收债窗口里点「付清」时调用。</summary>
+        public bool TrySettleDebtByPayment(FxAccount acc)
+        {
+            if (acc == null || acc.balance < 0f) return false;
+            acc.negativeSinceTick = 0;
+            ResolveDebtCase(FindPawnById(debtCollectorId), "paid");
+            return true;
+        }
+
+        private void ResolveDebtCase(Pawn collector, string reason)
+        {
+            if (!debtActive) return;
+            debtActive = false;
+            debtCollectorId = -1;
+
+            if (collector != null && collector.Spawned && !collector.Destroyed && !collector.Dead)
+            {
+                collector.DeSpawn();
+                Find.WorldPawns.PassToWorld(collector, PawnDiscardDecideMode.Discard);
+            }
+
+            if (reason == "paid" || reason == "hostage")
+            {
+                Find.LetterStack.ReceiveLetter(
+                    "RimForex_Ev7DoneLabel".Translate(),
+                    (reason == "paid" ? "RimForex_Ev7Paid" : "RimForex_Ev7Hostage").Translate(),
+                    LetterDefOf.PositiveEvent);
+            }
+        }
+
+        private Pawn FindPawnById(int id)
+        {
+            if (id < 0) return null;
+            for (int m = 0; m < Find.Maps.Count; m++)
+            {
+                var map = Find.Maps[m];
+                if (map == null) continue;
+                var all = map.mapPawns.AllPawnsSpawned;
+                for (int i = 0; i < all.Count; i++)
+                {
+                    if (all[i] != null && all[i].thingIDNumber == id) return all[i];
+                }
+            }
+            return null;
+        }
+
         /// <summary>重新统计能做贸易的派系数量（诊断用，UI 随时可调）。</summary>
         public void RecountTradeFactions()
         {
@@ -6095,6 +6360,9 @@ namespace RimForex
             UpdateShortExposure();
             ProcessRefugees();
 
+            // E7：负余额连续两天 → 开始收债
+            MaybeStartDebtCollection();
+
             // 还活着的玩家殖民地（key = map.Parent.ID）。
             //
             // 已经不存在的地图**不再结算**：否则废弃殖民地 / 临时地图留下的账户
@@ -6355,6 +6623,10 @@ namespace RimForex
             Scribe_Collections.Look(ref weakenedSettlements, "weakenedSettlements", LookMode.Deep);
             Scribe_Collections.Look(ref retaliations, "retaliations", LookMode.Deep);
             Scribe_Values.Look(ref refugeeDeadlineTick, "refugeeDeadlineTick", 0);
+            Scribe_Values.Look(ref debtActive, "debtActive", false);
+            Scribe_Values.Look(ref debtMapId, "debtMapId", -1);
+            Scribe_Values.Look(ref debtDeadlineTick, "debtDeadlineTick", 0);
+            Scribe_Values.Look(ref debtCollectorId, "debtCollectorId", -1);
             if (retaliations == null) retaliations = new List<FxRetaliation>();
             if (pendingEvents == null) pendingEvents = new List<FxPendingEvent>();
             if (refugeePawnIds == null) refugeePawnIds = new List<int>();

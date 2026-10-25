@@ -484,6 +484,21 @@ namespace RimForex
             }
             Hint(l, "RimForex_TestCrisisTip".Translate());
 
+            l.Gap(6f);
+            if (l.ButtonText("RimForex_TestDebt".Translate()))
+            {
+                FxGameComponent fx = Find.World != null
+                    ? Find.World.GetComponent<FxGameComponent>() : null;
+                if (fx != null)
+                {
+                    Messages.Message(fx.DebugForceDebt()
+                            ? "RimForex_MsgTestDebt".Translate()
+                            : "RimForex_MsgNoMap".Translate(),
+                        MessageTypeDefOf.TaskCompletion, false);
+                }
+            }
+            Hint(l, "RimForex_TestDebtTip".Translate());
+
             // ── 诊断：世界事件的真实波动读数（用来校准 σ 阈值）──
             l.Gap(8f);
             FxGameComponent diagFx = Find.World != null
