@@ -407,4 +407,14 @@
   <RimForex_MsgTestNews>已触发一次战争新闻</RimForex_MsgTestNews>
   <RimForex_MsgTestNewsFail>没有可用的敌对派系对</RimForex_MsgTestNewsFail>
   <RimForex_DiagEventStats>诊断：最近结算最大波动 {0}%（{1}σ）｜历史峰值 {2}%（{3}σ）｜已统计 {4} 天｜当前触发阈值 {5}σ</RimForex_DiagEventStats>
+  <!-- 0.3.0 轨道贸易船（帝国 / 轨道贸易联盟）-->
+  <RimForex_Ev1OrbitalLetterLabel>{0}：货币暴涨</RimForex_Ev1OrbitalLetterLabel>
+  <RimForex_Ev1OrbitalLetter>{0} 的货币一天之内涨了 {1}%。他们的贸易船正在赶来，预计两天后进入轨道。</RimForex_Ev1OrbitalLetter>
+  <RimForex_Ev1OrbitalArrivedLabel>{0}：贸易船抵达</RimForex_Ev1OrbitalArrivedLabel>
+  <RimForex_Ev1OrbitalArrived>{0} 的贸易船进入了轨道，正等着和你交易。他们带来的白银比平时多。</RimForex_Ev1OrbitalArrived>
+  <RimForex_Ev2OrbitalLetterLabel>{0}：货币下跌</RimForex_Ev2OrbitalLetterLabel>
+  <RimForex_Ev2OrbitalLetter>{0} 的货币一天之内跌了 {1}%。他们的贸易船正带着一批货赶来，预计两天后到。到时候东西会比平时便宜。</RimForex_Ev2OrbitalLetter>
+  <RimForex_Ev2OrbitalArrivedLabel>{0}：贸易船抵达</RimForex_Ev2OrbitalArrivedLabel>
+  <RimForex_Ev2OrbitalArrived>{0} 的贸易船到了，正在低价出货。接下来你在谈价时更有底气。</RimForex_Ev2OrbitalArrived>
+  <RimForex_EvOrbitalNoShip>{0} 的贸易船没能安排过来。</RimForex_EvOrbitalNoShip>
 </LanguageData>

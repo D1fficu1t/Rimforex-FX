@@ -772,6 +772,12 @@ namespace RimForex
         DebtDeadline = 3,
         /// <summary>E1-B：3 天后掷骰决定是否发起袭击。</summary>
         RaidChance = 4,
+        /// <summary>
+        /// 轨道贸易船到达。
+        /// 帝国、轨道贸易联盟这类派系没有可派的陆路商队（CanFireNow 恒 false），
+        /// 它们走的是 orbitalTraderKinds —— 用贸易船代替商队。
+        /// </summary>
+        OrbitalArrive = 5,
     }
 
     /// <summary>
@@ -4254,6 +4260,27 @@ namespace RimForex
                     break;
                 }
 
+                case FxPendingKind.OrbitalArrive:
+                {
+                    bool sellOff = e.payload == 1;
+                    if (TryFireOrbitalTrader(faction))
+                    {
+                        if (sellOff) ApplyTradeBonus();
+                        Find.LetterStack.ReceiveLetter(
+                            (sellOff ? "RimForex_Ev2OrbitalArrivedLabel" : "RimForex_Ev1OrbitalArrivedLabel")
+                                .Translate(faction.Name),
+                            (sellOff ? "RimForex_Ev2OrbitalArrived" : "RimForex_Ev1OrbitalArrived")
+                                .Translate(faction.Name),
+                            LetterDefOf.PositiveEvent);
+                    }
+                    else
+                    {
+                        Messages.Message("RimForex_EvOrbitalNoShip".Translate(faction.Name),
+                            MessageTypeDefOf.NeutralEvent, false);
+                    }
+                    break;
+                }
+
                 case FxPendingKind.RetaliationRaid:
                     break;
                 case FxPendingKind.DebtDeadline:
@@ -4317,6 +4344,39 @@ namespace RimForex
 
             var parms = new IncidentParms { target = map, faction = f };
             return worker.CanFireNow(parms);
+        }
+
+        /// <summary>
+        /// 这个派系能不能派**轨道贸易船**。
+        ///
+        /// 帝国（Royalty）与轨道贸易联盟（Odyssey）没有陆路商队，
+        /// 但它们的 orbitalTraderKinds 是有内容的 —— 事件改走贸易船。
+        /// </summary>
+        public static bool CanSendOrbitalTrade(Faction f)
+        {
+            if (f == null || f.IsPlayer || f.temporary || f.defeated) return false;
+            if (f.HostileTo(Faction.OfPlayer)) return false;
+
+            Map map = Find.AnyPlayerHomeMap;
+            if (map == null) return false;
+
+            var worker = IncidentDefOf.OrbitalTraderArrival.Worker;
+            if (worker == null) return false;
+
+            var parms = new IncidentParms { target = map, faction = f };
+            return worker.CanFireNow(parms);
+        }
+
+        /// <summary>发起一艘轨道贸易船。成功返回 true。</summary>
+        public bool TryFireOrbitalTrader(Faction f)
+        {
+            if (f == null) return false;
+            Map map = Find.AnyPlayerHomeMap;
+            if (map == null) return false;
+
+            var parms = new IncidentParms { target = map, faction = f };
+            return Find.Storyteller.TryFire(
+                new FiringIncident(IncidentDefOf.OrbitalTraderArrival, null, parms));
         }
 
         /// <summary>发起一次商队。成功返回 true。</summary>
@@ -4404,6 +4464,15 @@ namespace RimForex
                 // 冷却中的货币不参与触发，但**参与诊断**（否则峰值会偏小）
                 if (now - c.lastEventTick < EventCooldownPerCurrency) continue;
                 if (absZ < EventSigma) continue;
+
+                // ⚠️ 必须在**挑选阶段**就筛掉"做不出任何效果"的派系
+                // （2026-10-25 实测）：否则一个 2.4σ 的帝国会把机会吃掉 ——
+                // 它派不出商队，事件被跳过，而排在后面的合格货币根本没机会。
+                var cand = FactionByID(c.factionLoadID);
+                if (cand == null || cand.temporary || cand.IsPlayer) continue;
+                if (!cand.HostileTo(Faction.OfPlayer)
+                    && !CanSendCaravan(cand) && !CanSendOrbitalTrade(cand)) continue;
+
                 if (absZ > Mathf.Abs(bestZ)) { best = c; bestZ = z; }
             }
 
@@ -4472,12 +4541,26 @@ namespace RimForex
             }
 
             // 非敌对：2 天后商队来清库存（payload=1 表示"甩卖商队"）
-            QueueEvent(FxPendingKind.CaravanArrive, faction.loadID, c.factionLoadID,
-                E1CaravanDelay, 1);
-            Find.LetterStack.ReceiveLetter(
-                "RimForex_Ev2LetterLabel".Translate(faction.Name),
-                "RimForex_Ev2Letter".Translate(faction.Name, pct.ToString("0.0")),
-                LetterDefOf.PositiveEvent);
+            if (CanSendCaravan(faction))
+            {
+                QueueEvent(FxPendingKind.CaravanArrive, faction.loadID, c.factionLoadID,
+                    E1CaravanDelay, 1);
+                Find.LetterStack.ReceiveLetter(
+                    "RimForex_Ev2LetterLabel".Translate(faction.Name),
+                    "RimForex_Ev2Letter".Translate(faction.Name, pct.ToString("0.0")),
+                    LetterDefOf.PositiveEvent);
+                return;
+            }
+
+            if (CanSendOrbitalTrade(faction))
+            {
+                QueueEvent(FxPendingKind.OrbitalArrive, faction.loadID, c.factionLoadID,
+                    E1CaravanDelay, 1);
+                Find.LetterStack.ReceiveLetter(
+                    "RimForex_Ev2OrbitalLetterLabel".Translate(faction.Name),
+                    "RimForex_Ev2OrbitalLetter".Translate(faction.Name, pct.ToString("0.0")),
+                    LetterDefOf.PositiveEvent);
+            }
         }
 
         /// <summary>随便挑该派系一个还活着的据点。</summary>
@@ -4723,13 +4806,25 @@ namespace RimForex
                     "RimForex_Ev1bLetterLabel".Translate(faction.Name),
                     "RimForex_Ev1bLetter".Translate(faction.Name, pct.ToString("0.0")),
                     LetterDefOf.NegativeEvent);
+                return;
             }
-            else
+
+            if (CanSendCaravan(faction))
             {
                 QueueEvent(FxPendingKind.CaravanArrive, faction.loadID, c.factionLoadID, E1CaravanDelay);
                 Find.LetterStack.ReceiveLetter(
                     "RimForex_Ev1LetterLabel".Translate(faction.Name),
                     "RimForex_Ev1Letter".Translate(faction.Name, pct.ToString("0.0")),
+                    LetterDefOf.PositiveEvent);
+                return;
+            }
+
+            if (CanSendOrbitalTrade(faction))
+            {
+                QueueEvent(FxPendingKind.OrbitalArrive, faction.loadID, c.factionLoadID, E1CaravanDelay);
+                Find.LetterStack.ReceiveLetter(
+                    "RimForex_Ev1OrbitalLetterLabel".Translate(faction.Name),
+                    "RimForex_Ev1OrbitalLetter".Translate(faction.Name, pct.ToString("0.0")),
                     LetterDefOf.PositiveEvent);
             }
         }
@@ -4817,7 +4912,8 @@ namespace RimForex
                 if (c.factionLoadID == Faction.OfPlayer.loadID) continue;
                 var f = FactionByID(c.factionLoadID);
                 if (f == null || f.temporary || f.IsPlayer) continue;
-                if (!f.HostileTo(Faction.OfPlayer) && !CanSendCaravan(f)) continue;
+                if (!f.HostileTo(Faction.OfPlayer)
+                    && !CanSendCaravan(f) && !CanSendOrbitalTrade(f)) continue;
 
                 c.lastEventTick = GenTicks.TicksGame;
                 lastWorldEventTick = GenTicks.TicksGame;
@@ -4858,7 +4954,8 @@ namespace RimForex
                 if (c.factionLoadID == Faction.OfPlayer.loadID) continue;
                 var f = FactionByID(c.factionLoadID);
                 if (f == null || f.temporary || f.IsPlayer) continue;
-                if (!f.HostileTo(Faction.OfPlayer) && !CanSendCaravan(f)) continue;
+                if (!f.HostileTo(Faction.OfPlayer)
+                    && !CanSendCaravan(f) && !CanSendOrbitalTrade(f)) continue;
 
                 c.lastEventTick = GenTicks.TicksGame;
                 lastWorldEventTick = GenTicks.TicksGame;

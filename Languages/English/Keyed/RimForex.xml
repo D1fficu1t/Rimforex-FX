@@ -396,4 +396,14 @@ A probability, not a promise.</RimForex_Ev4Letter>
   <RimForex_MsgTestNews>Fired a war news event</RimForex_MsgTestNews>
   <RimForex_MsgTestNewsFail>No hostile faction pair available</RimForex_MsgTestNewsFail>
   <RimForex_DiagEventStats>Diagnostics: last settlement peak {0}% ({1} sigma) | all-time peak {2}% ({3} sigma) | {4} days sampled | trigger threshold {5} sigma</RimForex_DiagEventStats>
+  <!-- 0.3.0 orbital traders (Empire / orbital trade league) -->
+  <RimForex_Ev1OrbitalLetterLabel>{0}: currency surge</RimForex_Ev1OrbitalLetterLabel>
+  <RimForex_Ev1OrbitalLetter>{0}'s currency rose {1}% in a single day. Their trade ship is on its way and should reach orbit in about two days.</RimForex_Ev1OrbitalLetter>
+  <RimForex_Ev1OrbitalArrivedLabel>{0}: trade ship arrived</RimForex_Ev1OrbitalArrivedLabel>
+  <RimForex_Ev1OrbitalArrived>{0}'s trade ship is in orbit and waiting to trade. They are carrying more silver than usual.</RimForex_Ev1OrbitalArrived>
+  <RimForex_Ev2OrbitalLetterLabel>{0}: currency fall</RimForex_Ev2OrbitalLetterLabel>
+  <RimForex_Ev2OrbitalLetter>{0}'s currency fell {1}% in a single day. Their trade ship is on its way with a load of stock, due in about two days. Goods should be cheaper than usual.</RimForex_Ev2OrbitalLetter>
+  <RimForex_Ev2OrbitalArrivedLabel>{0}: trade ship arrived</RimForex_Ev2OrbitalArrivedLabel>
+  <RimForex_Ev2OrbitalArrived>{0}'s trade ship has arrived and is dumping stock. You have the upper hand in negotiations while it is here.</RimForex_Ev2OrbitalArrived>
+  <RimForex_EvOrbitalNoShip>{0}'s trade ship could not be arranged.</RimForex_EvOrbitalNoShip>
 </LanguageData>
