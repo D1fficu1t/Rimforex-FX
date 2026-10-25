@@ -196,7 +196,10 @@ namespace RimForex
             Rect borrowRect = new Rect(inputRect.xMax + Gap, by, btnW, 24f);
             Rect repayRect = new Rect(borrowRect.xMax + Gap, by, btnW, 24f);
 
-            bool canBorrow = available >= 1f && account.balance >= 0f;
+            // 冻结满 30 天时负余额也能借（与 TryBorrow 同一判据）
+            bool canBorrow = available >= 1f
+                             && (account.balance >= 0f
+                                 || FxGameComponent.LoansOpenWhileFrozen(account));
             if (!canBorrow) GUI.color = new Color(0.55f, 0.55f, 0.55f);
             if (Widgets.ButtonText(borrowRect, "RimForex_LoanBorrow".Translate()) && canBorrow)
             {

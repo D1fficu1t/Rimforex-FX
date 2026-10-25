@@ -5929,21 +5929,28 @@ namespace RimForex
             if (acc == null) { ResolveDebtCase(null, "gone"); return; }
 
             Pawn collector = FindPawnById(debtCollectorId);
-            bool attacked = collector != null
-                            && (collector.Dead || collector.Destroyed || collector.Downed);
 
-            if (attacked) { TriggerCollectorRetaliation(acc); return; }
+            // "被攻击"不能只看敌对状态：中立 pawn 被玩家打也不会自动翻脸，
+            // 所以把"掉过血"也算进来（作者 2026-10-25：他站着挨打不还手）
+            bool attacked = collector != null
+                            && (collector.Dead || collector.Destroyed || collector.Downed
+                                || collector.HostileTo(Faction.OfPlayer)
+                                || collector.health.summaryHealth.SummaryHealthPercent < 0.999f);
+
+            if (attacked) { TriggerCollectorRetaliation(acc, collector); return; }
 
             if (acc.balance >= 0f) { ResolveDebtCase(collector, "paid"); return; }
 
             if (GenTicks.TicksGame >= debtDeadlineTick)
             {
-                TriggerCollectorRetaliation(acc);
+                // 逾期：先让他走人，再算账。否则他会一直杵在殖民地
+                // 被随后招来的机械族顺手打死（作者实测）
+                TriggerCollectorRetaliation(acc, collector);
             }
         }
 
         /// <summary>攻击/逾期：招来机械袭击 + 冻结账户一年。</summary>
-        private void TriggerCollectorRetaliation(FxAccount acc)
+        private void TriggerCollectorRetaliation(FxAccount acc, Pawn collector)
         {
             Map map = Find.AnyPlayerHomeMap;
             Faction mech = Faction.OfMechanoids;
@@ -5970,7 +5977,7 @@ namespace RimForex
                 "RimForex_Ev7Attack".Translate(E7FreezeDays.ToString()),
                 LetterDefOf.ThreatBig);
 
-            ResolveDebtCase(null, "attacked");
+            ResolveDebtCase(collector, "attacked");
         }
 
         /// <summary>用殖民者抵债。累计市值 ≥ 债务才算数。</summary>
@@ -6005,7 +6012,7 @@ namespace RimForex
         /// <summary>收债窗口里点「拒绝」时调用：直接按攻击处理。</summary>
         public void RefuseDebt(FxAccount acc)
         {
-            TriggerCollectorRetaliation(acc);
+            TriggerCollectorRetaliation(acc, FindPawnById(debtCollectorId));
         }
 
         /// <summary>收债窗口里点「付清」时调用。</summary>
@@ -6230,6 +6237,20 @@ namespace RimForex
             return LenderNameKeys[Mathf.Clamp(lender, 0, LenderCount - 1)].Translate();
         }
 
+        /// <summary>
+        /// 冻结满 30 天后，即使账户仍在冻结、甚至余额为负，也允许借款。
+        ///
+        /// 抽成公开方法是因为**界面也要用同一判据**：
+        /// 之前只改了 TryBorrow，借按钮仍然按 balance >= 0 置灰，玩家根本点不下去。
+        /// </summary>
+        public static bool LoansOpenWhileFrozen(FxAccount acc)
+        {
+            if (acc == null) return false;
+            if (acc.frozenUntilTick <= GenTicks.TicksGame) return false;
+            if (acc.frozenSinceTick <= 0) return false;
+            return GenTicks.TicksGame - acc.frozenSinceTick >= 30 * TicksPerDay;
+        }
+
         public float LenderLimit(int lender, FxAccount acc)
         {
             if (lender < 0 || lender >= LenderCount) return 0f;
@@ -6280,8 +6301,7 @@ namespace RimForex
             // 而且**负余额也放行**（作者 2026-10-25：穿仓金额太大，
             // 不能借就只能眼睁睁看着账户烂掉，没有翻身路径）。
             bool frozen = acc.frozenUntilTick > GenTicks.TicksGame;
-            int frozenDays = (GenTicks.TicksGame - acc.frozenSinceTick) / TicksPerDay;
-            bool frozenLoanOpen = frozen && acc.frozenSinceTick > 0 && frozenDays >= 30;
+            bool frozenLoanOpen = LoansOpenWhileFrozen(acc);
 
             if (acc.balance < 0f && !frozenLoanOpen)
             {
