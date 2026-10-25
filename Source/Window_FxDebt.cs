@@ -28,15 +28,17 @@ namespace RimForex
             this.fx = fx;
             this.account = account;
 
-            doCloseX = false;          // 必须做选择，不给叉
+            // 作者实测：不给关、又强制暂停，玩家根本没法去筹钱。
+            // 现在可以随时关掉去存银，之后从终端上的「债务清算」按钮再打开。
+            doCloseX = true;
             doCloseButton = false;
             draggable = true;
             resizeable = false;
-            absorbInputAroundWindow = true;
-            forcePause = true;
+            absorbInputAroundWindow = false;
+            forcePause = false;
             closeOnClickedOutside = false;
-            closeOnAccept = false;
-            closeOnCancel = false;
+            closeOnAccept = true;
+            closeOnCancel = true;
         }
 
         public override Vector2 InitialSize
@@ -115,6 +117,11 @@ namespace RimForex
             GUI.color = new Color(0.70f, 0.72f, 0.76f);
             Widgets.Label(new Rect(0f, y, body.width, 40f),
                 "RimForex_Ev7RefuseTip".Translate());
+            GUI.color = Color.white;
+
+            GUI.color = new Color(0.62f, 0.78f, 0.92f);
+            Widgets.Label(new Rect(0f, y + 46f, body.width, 40f),
+                "RimForex_Ev7CanClose".Translate());
             GUI.color = Color.white;
             Text.Font = GameFont.Small;
         }

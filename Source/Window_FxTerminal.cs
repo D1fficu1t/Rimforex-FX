@@ -311,8 +311,24 @@ namespace RimForex
                 GUI.color = Color.white;
             }
 
+            // 冻结倒计时（E7）：告诉玩家还有多少天不能开仓/提款
+            int frozenDays = account.frozenUntilTick > GenTicks.TicksGame
+                ? (account.frozenUntilTick - GenTicks.TicksGame) / FxGameComponent.TicksPerDay + 1
+                : 0;
+            if (frozenDays > 0)
+            {
+                float fzY = rowY + StatRowH + (inDebt ? 24f : 2f);
+                GUI.color = new Color(0.55f, 0.72f, 0.95f);
+                Text.Font = GameFont.Tiny;
+                Widgets.Label(new Rect(r.x, fzY, r.width, 20f),
+                    "RimForex_FrozenWarning".Translate(frozenDays.ToString()));
+                Text.Font = GameFont.Small;
+                GUI.color = Color.white;
+            }
+
             // 存取款行：直接填数字
-            float y = rowY + StatRowH + (inDebt ? 24f : 0f) + Gap;
+            float y = rowY + StatRowH + (inDebt ? 24f : 0f)
+                    + (frozenDays > 0 ? 22f : 0f) + Gap;
             int availableSilver = CountMapSilver();
 
             if (depositBufferDirty)

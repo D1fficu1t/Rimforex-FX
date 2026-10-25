@@ -486,4 +486,9 @@ We wish you a pleasant week.</RimForex_Ev7Attack>
   <RimForex_TestDebt>Test: trigger debt collection</RimForex_TestDebt>
   <RimForex_TestDebtTip>Force the account negative and start collection immediately, skipping the two-day wait.</RimForex_TestDebtTip>
   <RimForex_MsgTestDebt>Debt collection started</RimForex_MsgTestDebt>
+  <RimForex_Ev7CanClose>You can close this window and go raise the money. Select the terminal later and use the "Debt settlement" gizmo to reopen it.\n\nTime is not paused, and the collector will wait near your colony.</RimForex_Ev7CanClose>
+  <RimForex_Ev7Gizmo>Debt settlement</RimForex_Ev7Gizmo>
+  <RimForex_Ev7GizmoDesc>Collections is still waiting for your answer.</RimForex_Ev7GizmoDesc>
+  <RimForex_FrozenWarning>Account frozen: {0} day(s) left (no positions, no withdrawals)</RimForex_FrozenWarning>
+  <RimForex_LoanFrozen>Account frozen. Borrowing unlocks 30 days into the freeze.</RimForex_LoanFrozen>
 </LanguageData>

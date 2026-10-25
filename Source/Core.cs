@@ -3,6 +3,7 @@ using RimWorld;
 using RimWorld.Planet;
 using UnityEngine;
 using Verse;
+using Verse.AI;
 
 namespace RimForex
 {
@@ -948,6 +949,8 @@ namespace RimForex
         public int negativeSinceTick;
         /// <summary>账户冻结到期（E7 报复：1 游戏年）。</summary>
         public int frozenUntilTick;
+        /// <summary>冻结开始的 tick（用于"冻结满 30 天开放借贷"）。</summary>
+        public int frozenSinceTick;
         /// <summary>本周期已扣的隔夜利息，结算信里单列一行。</summary>
         public float carrySinceSettle;
         /// <summary>本周期已扣的贷款利息，结算信里单列一行。</summary>
@@ -1177,6 +1180,7 @@ namespace RimForex
             Scribe_Collections.Look(ref history, "history", LookMode.Deep);
             Scribe_Values.Look(ref negativeSinceTick, "negativeSinceTick", 0);
             Scribe_Values.Look(ref frozenUntilTick, "frozenUntilTick", 0);
+            Scribe_Values.Look(ref frozenSinceTick, "frozenSinceTick", 0);
             Scribe_Values.Look(ref carrySinceSettle, "carrySinceSettle", 0f);
             Scribe_Values.Look(ref loanInterestSinceSettle, "loanInterestSinceSettle", 0f);
             Scribe_Values.Look(ref custodySinceSettle, "custodySinceSettle", 0f);
@@ -5865,6 +5869,20 @@ namespace RimForex
                 cell = CellFinder.RandomEdgeCell(map);
             }
             GenSpawn.Spawn(pawn, cell, map);
+
+            // 像商队一样走到殖民地附近，而不是站在地图边缘
+            try
+            {
+                IntVec3 target;
+                if (RCellFinder.TryFindRandomSpotJustOutsideColony(pawn.Position, map, pawn,
+                        out target))
+                {
+                    pawn.jobs.StartJob(JobMaker.MakeJob(JobDefOf.Goto, target),
+                        JobCondition.InterruptForced);
+                }
+            }
+            catch { }
+
             return pawn;
         }
 
@@ -5916,6 +5934,7 @@ namespace RimForex
             if (acc != null)
             {
                 acc.frozenUntilTick = GenTicks.TicksGame + E7FreezeDays * TicksPerDay;
+                acc.frozenSinceTick = GenTicks.TicksGame;
             }
 
             Find.LetterStack.ReceiveLetter(
@@ -6230,6 +6249,18 @@ namespace RimForex
             if (acc == null) { error = "RimForex_LoanNoAccount"; return false; }
             if (lender < 0 || lender >= LenderCount) { error = "RimForex_LoanNoAccount"; return false; }
             if (acc.balance < 0f) { error = "RimForex_LoanNegative"; return false; }
+
+            // E7 冻结：前 30 天连借都不行（作者 2026-10-25 要求），
+            // 后面 30 天开放 —— 原版环境下靠正常收入凑齐本金确实太难。
+            if (acc.frozenUntilTick > GenTicks.TicksGame)
+            {
+                int since = GenTicks.TicksGame - acc.frozenSinceTick;
+                if (acc.frozenSinceTick <= 0 || since < 30 * TicksPerDay)
+                {
+                    error = "RimForex_LoanFrozen";
+                    return false;
+                }
+            }
 
             float available = LenderLimit(lender, acc) - LenderBorrowed(lender, acc);
             if (available < 1f) { error = "RimForex_LoanLimitReached"; return false; }
