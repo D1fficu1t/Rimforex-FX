@@ -6097,8 +6097,43 @@ namespace RimForex
 
             if (collector != null && collector.Spawned && !collector.Destroyed && !collector.Dead)
             {
-                collector.DeSpawn();
-                Find.WorldPawns.PassToWorld(collector, PawnDiscardDecideMode.Discard);
+                bool walkAway = reason == "paid" || reason == "hostage";
+
+                if (walkAway)
+                {
+                    // 结清之后他该"走出去"，不是凭空消失（作者 2026-10-25）。
+                    // 先撤掉守点领主，再让他朝地图边缘走；
+                    // 另外挂一个 2 小时的 exitMapAfterTick 兜底 ——
+                    // 万一找不到路，也不会永远杵在殖民地里。
+                    try
+                    {
+                        var lord = collector.GetLord();
+                        if (lord != null && lord.LordJob is LordJob_DefendPoint)
+                        {
+                            lord.lordManager.RemoveLord(lord);
+                        }
+                    }
+                    catch { }
+
+                    try
+                    {
+                        collector.mindState.exitMapAfterTick =
+                            GenTicks.TicksGame + 2 * 2500;
+                        collector.jobs.StartJob(
+                            JobMaker.MakeJob(JobDefOf.Goto, CellFinder.RandomEdgeCell(collector.Map)),
+                            JobCondition.InterruptForced);
+                    }
+                    catch
+                    {
+                        collector.DeSpawn();
+                        Find.WorldPawns.PassToWorld(collector, PawnDiscardDecideMode.Discard);
+                    }
+                }
+                else
+                {
+                    collector.DeSpawn();
+                    Find.WorldPawns.PassToWorld(collector, PawnDiscardDecideMode.Discard);
+                }
             }
 
             if (reason == "paid" || reason == "hostage")
