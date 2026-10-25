@@ -456,7 +456,7 @@ Their settlements remain on the world as independent places that still fly the o
   <RimForex_Ev6Crisis5>{0} is gone from the star map. No government, no currency, no survivor organization - only drifting debris and a few lifeboats flying in circles.\n\n{1} refugees came down outside your colony. This is their last landing.\n\nSave them or take them apart. Your call.</RimForex_Ev6Crisis5>
   <!-- 0.3.0 E7 debt collection -->
   <RimForex_PlatformName>FX Exchange Collections</RimForex_PlatformName>
-  <RimForex_Ev7LetterLabel>A collector is on the way</RimForex_Ev7LetterLabel>
+  <RimForex_Ev7LetterLabel>The collector has arrived</RimForex_Ev7LetterLabel>
   <RimForex_Ev7Letter>Your account with us has blown up. You owe {0} silver.
 
 Collections has sent a man. You have {1} days to settle: pay, hand someone over, or hit him.

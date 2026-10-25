@@ -467,7 +467,7 @@
   <RimForex_Ev6Crisis5>{0} 从星图上消失了。没有政府，没有货币，没有幸存者组织，只剩一些还在飘的碎片和几艘没头苍蝇一样的救生舱。\n\n{1} 名难民落在你的殖民地外面。这是他们最后一次降落。\n\n救，还是拆，随你。</RimForex_Ev6Crisis5>
   <!-- 0.3.0 E7 穿仓收债 -->
   <RimForex_PlatformName>FX 交易所清算部</RimForex_PlatformName>
-  <RimForex_Ev7LetterLabel>收债人已出发</RimForex_Ev7LetterLabel>
+  <RimForex_Ev7LetterLabel>收债人已到达</RimForex_Ev7LetterLabel>
   <RimForex_Ev7Letter>你在本平台的账户已经穿仓，欠款 {0} 银。
 
 清算部派了一名收债人过来。你有 {1} 天时间处理：付清、交人，或者把他打一顿。

@@ -4,6 +4,7 @@ using RimWorld.Planet;
 using UnityEngine;
 using Verse;
 using Verse.AI;
+using Verse.AI.Group;
 
 namespace RimForex
 {
@@ -5797,6 +5798,11 @@ namespace RimForex
             {
                 var acc = accounts[keys[i]];
                 if (acc == null || acc.balance >= 0f) continue;
+
+                // 已经冻结过的账户不再重复收债 —— 否则逾期结案后，
+                // 下一次结算又会开一单，收债窗口反复弹出（作者 2026-10-25 实测）
+                if (acc.frozenUntilTick > now) continue;
+
                 if (acc.negativeSinceTick <= 0) continue;
                 if (now - acc.negativeSinceTick < E7NegativeDays * TicksPerDay) continue;
 
@@ -5870,18 +5876,40 @@ namespace RimForex
             }
             GenSpawn.Spawn(pawn, cell, map);
 
-            // 像商队一样走到殖民地附近，而不是站在地图边缘
+            // 让他留在图上：不设这个，没有领主的中立 pawn 会自己走向地图边缘离开
+            try { pawn.mindState.exitMapAfterTick = int.MaxValue; } catch { }
+
+            // 像商队一样走到殖民地外围，然后用一个"守点"领主把他钉在那里
+            IntVec3 target = pawn.Position;
             try
             {
-                IntVec3 target;
-                if (RCellFinder.TryFindRandomSpotJustOutsideColony(pawn.Position, map, pawn,
-                        out target))
+                IntVec3 found;
+                if (RCellFinder.TryFindRandomSpotJustOutsideColony(pawn.Position, map, pawn, out found))
+                {
+                    target = found;
+                }
+            }
+            catch { }
+
+            try
+            {
+                var lord = LordMaker.MakeNewLord(faction, new LordJob_DefendPoint(target),
+                    map, new List<Pawn> { pawn });
+                if (lord == null)
                 {
                     pawn.jobs.StartJob(JobMaker.MakeJob(JobDefOf.Goto, target),
                         JobCondition.InterruptForced);
                 }
             }
-            catch { }
+            catch
+            {
+                try
+                {
+                    pawn.jobs.StartJob(JobMaker.MakeJob(JobDefOf.Goto, target),
+                        JobCondition.InterruptForced);
+                }
+                catch { }
+            }
 
             return pawn;
         }
@@ -6248,18 +6276,23 @@ namespace RimForex
             error = null;
             if (acc == null) { error = "RimForex_LoanNoAccount"; return false; }
             if (lender < 0 || lender >= LenderCount) { error = "RimForex_LoanNoAccount"; return false; }
-            if (acc.balance < 0f) { error = "RimForex_LoanNegative"; return false; }
+            // E7 冻结：前 30 天连借都不行，之后开放 ——
+            // 而且**负余额也放行**（作者 2026-10-25：穿仓金额太大，
+            // 不能借就只能眼睁睁看着账户烂掉，没有翻身路径）。
+            bool frozen = acc.frozenUntilTick > GenTicks.TicksGame;
+            int frozenDays = (GenTicks.TicksGame - acc.frozenSinceTick) / TicksPerDay;
+            bool frozenLoanOpen = frozen && acc.frozenSinceTick > 0 && frozenDays >= 30;
 
-            // E7 冻结：前 30 天连借都不行（作者 2026-10-25 要求），
-            // 后面 30 天开放 —— 原版环境下靠正常收入凑齐本金确实太难。
-            if (acc.frozenUntilTick > GenTicks.TicksGame)
+            if (acc.balance < 0f && !frozenLoanOpen)
             {
-                int since = GenTicks.TicksGame - acc.frozenSinceTick;
-                if (acc.frozenSinceTick <= 0 || since < 30 * TicksPerDay)
-                {
-                    error = "RimForex_LoanFrozen";
-                    return false;
-                }
+                error = "RimForex_LoanNegative";
+                return false;
+            }
+
+            if (frozen && !frozenLoanOpen)
+            {
+                error = "RimForex_LoanFrozen";
+                return false;
             }
 
             float available = LenderLimit(lender, acc) - LenderBorrowed(lender, acc);
