@@ -9,15 +9,18 @@ namespace RimForex
     /// 作者要求：**整合进交易终端、常驻**，不是首次弹一次就没了的提示。
     /// 所以它是一个随时能重新打开的窗口，入口在终端底部。
     ///
-    /// 内容作者已指定五块：什么时候做多 / 做空 / 为什么会爆仓穿仓 /
-    /// K 线怎么看 / 小白怎么盈利。另外补了借贷与术语两节。
+    /// ── 文风（作者 2026-10-25 定）──
+    /// 这份教程的设定是**星际交易平台写给用户的宣传材料**，
+    /// 所以正经的建议要用夸张的推销腔说，真话藏在彩蛋里：
+    /// 「五、新手怎么盈利」先教人梭哈，下面一个小按钮写着
+    /// "（老油条的忠告：别听他的）"，点开才是真话。
     ///
-    /// 文风要求（作者定）：**简洁明了，不写技术细节**。
+    /// 另外**不要泛滥使用破折号**、不要"先说清楚""一句话讲清"这种 AI 腔。
     /// </summary>
     public class Window_FxGuide : Window
     {
         private Vector2 scroll;
-        private const float Pad = 16f;
+        private bool showHonest;
         private const float GapAfterSection = 18f;
 
         public Window_FxGuide()
@@ -38,9 +41,7 @@ namespace RimForex
         public override void DoWindowContents(Rect inRect)
         {
             float width = inRect.width - 24f;
-            float height = CalcHeight(width);
-
-            Rect view = new Rect(0f, 0f, width, height);
+            Rect view = new Rect(0f, 0f, width, CalcHeight(width));
             Widgets.BeginScrollView(inRect, ref scroll, view);
 
             float y = 0f;
@@ -50,24 +51,39 @@ namespace RimForex
             Text.Font = GameFont.Small;
             y += 36f;
 
-            y = Section(view, y, width, null, "RimForex_GuideIntro");
-            y = Section(view, y, width, "RimForex_GuideLongTitle", "RimForex_GuideLong");
-            y = Section(view, y, width, "RimForex_GuideShortTitle", "RimForex_GuideShort");
-            y = Section(view, y, width, "RimForex_GuideLiquidationTitle", "RimForex_GuideLiquidation");
+            y = Section(y, width, null, "RimForex_GuideIntro");
+            y = Section(y, width, "RimForex_GuideLongTitle", "RimForex_GuideLong");
+            y = Section(y, width, "RimForex_GuideShortTitle", "RimForex_GuideShort");
+            y = Section(y, width, "RimForex_GuideLiquidationTitle", "RimForex_GuideLiquidation");
 
-            // K 线一节：文字 + 一张示意图
-            y = Section(view, y, width, "RimForex_GuideCandleTitle", "RimForex_GuideCandle");
-            DrawCandleDiagram(view, ref y, width);
+            y = Section(y, width, "RimForex_GuideCandleTitle", "RimForex_GuideCandle");
+            DrawCandleDiagram(ref y, width);
 
-            y = Section(view, y, width, "RimForex_GuideProfitTitle", "RimForex_GuideProfit");
-            y = Section(view, y, width, "RimForex_GuideLoanTitle", "RimForex_GuideLoan");
-            y = Section(view, y, width, "RimForex_GuideGlossaryTitle", "RimForex_GuideGlossary");
+            y = Section(y, width, "RimForex_GuideProfitTitle", "RimForex_GuideProfit");
+
+            // ── 彩蛋：老油条的忠告 ──
+            string eggLabel = "RimForex_GuideHonestButton".Translate();
+            float eggW = Text.CalcSize(eggLabel).x + 24f;
+            Rect egg = new Rect(0f, y, eggW, 24f);
+            if (Widgets.ButtonText(egg, eggLabel))
+            {
+                showHonest = !showHonest;
+            }
+            y += 32f;
+
+            if (showHonest)
+            {
+                y = Section(y, width, "RimForex_GuideHonestTitle", "RimForex_GuideHonest");
+            }
+
+            y = Section(y, width, "RimForex_GuideLoanTitle", "RimForex_GuideLoan");
+            Section(y, width, "RimForex_GuideGlossaryTitle", "RimForex_GuideGlossary");
 
             Widgets.EndScrollView();
         }
 
         /// <summary>画一节（可选标题 + 正文），返回下一节的 y。</summary>
-        private float Section(Rect view, float y, float width, string titleKey, string bodyKey)
+        private float Section(float y, float width, string titleKey, string bodyKey)
         {
             if (titleKey != null)
             {
@@ -84,17 +100,16 @@ namespace RimForex
         }
 
         /// <summary>
-        /// K 线示意：四根蜡烛，现画。
-        /// 不依赖任何贴图 —— 作者不希望为教程专门做图。
+        /// K 线示意：四根蜡烛，现画。不依赖任何贴图 —— 教程不该为配图再去做资源。
         /// </summary>
-        private void DrawCandleDiagram(Rect view, ref float y, float width)
+        private void DrawCandleDiagram(ref float y, float width)
         {
             const float H = 120f;
             Rect box = new Rect(0f, y, Mathf.Min(width, 360f), H);
             Widgets.DrawBoxSolid(box, new Color(0.12f, 0.13f, 0.16f));
             Widgets.DrawBox(box, 1);
 
-            // (开盘, 收盘, 最高, 最低)，都是 0~1 的相对高度
+            // (开盘, 收盘, 最高, 最低)，0~1 相对高度
             float[][] candles =
             {
                 new[] { 0.55f, 0.70f, 0.78f, 0.50f },
@@ -123,9 +138,7 @@ namespace RimForex
                 float bodyBottom = box.yMax - 12f - Mathf.Min(open, close) * (H - 24f);
 
                 Color c = rising ? up : down;
-                // 上下影线
                 Widgets.DrawBoxSolid(new Rect(cx - 1f, top, 2f, bottom - top), c);
-                // 实体
                 Widgets.DrawBoxSolid(new Rect(cx - BodyW * 0.5f, bodyTop, BodyW,
                     Mathf.Max(2f, bodyBottom - bodyTop)), c);
             }
@@ -143,6 +156,11 @@ namespace RimForex
             h += Measure(width, "RimForex_GuideCandleTitle", "RimForex_GuideCandle");
             h += 120f + GapAfterSection;
             h += Measure(width, "RimForex_GuideProfitTitle", "RimForex_GuideProfit");
+            h += 32f;
+            if (showHonest)
+            {
+                h += Measure(width, "RimForex_GuideHonestTitle", "RimForex_GuideHonest");
+            }
             h += Measure(width, "RimForex_GuideLoanTitle", "RimForex_GuideLoan");
             h += Measure(width, "RimForex_GuideGlossaryTitle", "RimForex_GuideGlossary");
             return h + 40f;

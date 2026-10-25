@@ -3064,8 +3064,13 @@ namespace RimForex
         // ── 托管费（闲置余额的存放成本）──
         /// <summary>免收额度：20,000 银以下不收。</summary>
         public const float CustodyFree = 20000f;
-        /// <summary>超出部分每日费率 0.3%。</summary>
-        public const float CustodyRate = 0.003f;
+        /// <summary>
+        /// 超出部分每日费率 3%。
+        ///
+        /// 0.3% 实测形同虚设（作者 2026-10-25：5 万余额一天才扣 100 银），
+        /// 调到 3% 后，藏 5 万一天的成本约 900 银，才真正构成"要不要把钱放这儿"的权衡。
+        /// </summary>
+        public const float CustodyRate = 0.03f;
 
         /// <summary>
         /// 待处理的"临近爆仓"预警。key = <b>持仓对象本身</b>（引用相等）。
@@ -4117,6 +4122,15 @@ namespace RimForex
         /// </summary>
         private void DispatchPendingEvent(FxPendingEvent e)
         {
+            // 世界事件关掉后，连已经排队的也不执行（作者 2026-10-25 反馈：
+            // 关了开关商队仍然到来）。同时清掉队列，避免关闭期间越积越多。
+            RimForexSettings cfgEvt = RimForexMod.Settings;
+            if (cfgEvt != null && !cfgEvt.enableWorldEvents)
+            {
+                pendingEvents.Clear();
+                return;
+            }
+
             var faction = FactionByID(e.factionLoadID);
             if (faction == null) return;
 
@@ -4159,6 +4173,11 @@ namespace RimForex
                                 LetterDefOf.ThreatBig);
                             break;
                         }
+                        // 掷骰中了却发不出去：明确告诉玩家"他们来了但被打道回府"，
+                        // 而不是假装什么都没发生（否则测试时完全看不出区别）。
+                        Messages.Message("RimForex_Ev1bRaidBlocked".Translate(faction.Name),
+                            MessageTypeDefOf.NeutralEvent, false);
+                        break;
                     }
                     Messages.Message("RimForex_Ev1bQuiet".Translate(faction.Name),
                         MessageTypeDefOf.NeutralEvent, false);
@@ -4423,6 +4442,24 @@ namespace RimForex
                 Mathf.Max(0f, acc.Equity) * E3EquityFraction) + 1f;
             MaybeTriggerE3(acc, fake);
             return true;
+        }
+
+        /// <summary>测试：直接对一个敌对派系发起袭击（绕过掷骰）。</summary>
+        public bool DebugForceRaid()
+        {
+            var all = Find.FactionManager.AllFactionsListForReading;
+            for (int i = 0; i < all.Count; i++)
+            {
+                var f = all[i];
+                if (f == null || f.IsPlayer || f.temporary || f.Hidden) continue;
+                if (!f.HostileTo(Faction.OfPlayer)) continue;
+                Map map = Find.AnyPlayerHomeMap;
+                float pts = map != null
+                    ? Mathf.Max(StorytellerUtility.DefaultThreatPointsNow(map) * 1.3f, 2000f)
+                    : 2000f;
+                return TryFireRaid(f, pts);
+            }
+            return false;
         }
 
         /// <summary>测试：把所有排队事件立刻催熟（省去等待 2~3 天）。</summary>

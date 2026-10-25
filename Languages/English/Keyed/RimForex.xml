@@ -316,63 +316,21 @@ This is a blow-up: the debt must be covered. Deposit silver at the terminal to b
   <RimForex_GuideButton>Beginner's guide</RimForex_GuideButton>
   <RimForex_GuideButtonTip>Reopen any time. Covers picking a direction, why positions get liquidated, and reading candles.</RimForex_GuideButtonTip>
   <RimForex_GuideTitle>Beginner's guide</RimForex_GuideTitle>
-  <RimForex_GuideIntro>FX trading is three things: pick a direction, add leverage, don't get wiped out. These five short sections cover the rest.</RimForex_GuideIntro>
-  <RimForex_GuideLongTitle>1. When to go long</RimForex_GuideLongTitle>
-  <RimForex_GuideLong>Going long means buying: you're betting the rate goes up.
-
-What makes it go up?
-· News: a faction wins a war or its economy improves, and its currency usually rises.
-· Price action: after a long slide, a turn back up is often the reversal.
-
-Profit = units × the rise. Higher is better; if it falls, you lose.</RimForex_GuideLong>
-  <RimForex_GuideShortTitle>2. When to go short</RimForex_GuideShortTitle>
-  <RimForex_GuideShort>Going short means selling first and buying back later: you're betting the rate goes down.
-
-What makes it fall?
-· The faction just lost a war, its economy collapsed, or its currency is being dumped.
-· A long rally that has stalled.
-
-Profit = units × the fall. Mind the direction: if the rate rises, a short loses.</RimForex_GuideShort>
-  <RimForex_GuideLiquidationTitle>3. Why you get liquidated</RimForex_GuideLiquidationTitle>
-  <RimForex_GuideLiquidation>Leverage magnifies profits and losses alike.
-
-· At 45% margin health the terminal warns you and pauses the game; you can add margin.
-· At 30% the position is closed for you — that's a margin call.
-· If a gap jumps past the stop-out line, losses exceed your margin and the balance goes negative — that's a blow-up. You cannot open positions or withdraw until you deposit silver.
-
-The higher the leverage, the closer the stop-out: at 100x, a 0.7% move against you is enough.</RimForex_GuideLiquidation>
+  <RimForex_GuideIntro>Welcome to the Interstellar FX Terminal.\n\nVoted best trading experience in the galaxy for 87 consecutive quarters (data collected by us).\n\nTrading takes three steps: pick a currency, add leverage, press the button.</RimForex_GuideIntro>
+  <RimForex_GuideLongTitle>1. When to buy (going long)</RimForex_GuideLongTitle>
+  <RimForex_GuideLong>Going long means buying. Bet it rises and you keep the difference; bet wrong and you lose your margin.\n\nWhen should you buy? Our official answers:\n· There is news it will rise. Buy.\n· No news, but it has fallen for a long time. Buy. That is called bottom-fishing.\n· It is already surging. Buy. That is called momentum.\n\nIf you want to buy, you will always find a reason. That is why our users love us.</RimForex_GuideLong>
+  <RimForex_GuideShortTitle>2. When to sell (going short)</RimForex_GuideShortTitle>
+  <RimForex_GuideShort>The other way round: sell first, buy back after it falls, keep the difference.\n\n· News says it will fall. Sell.\n· They just lost a war or their economy collapsed. Sell.\n· It has fallen for a long time. Sell, the trend continues.\n\nOne note: a short caps at 100% profit, but losses have no ceiling. We reserve the right to collect.</RimForex_GuideShort>
+  <RimForex_GuideLiquidationTitle>3. Margin calls and blow-ups</RimForex_GuideLiquidationTitle>
+  <RimForex_GuideLiquidation>Leverage magnifies gains and losses. They come as a package.\n\n· At 45% margin left, we pause the game and warn you. That is our service.\n· At 30%, we close the position for you. That is a margin call.\n· If a gap is brutal enough that losses exceed your margin, the balance goes negative. That is a blow-up.\n\nAfter a blow-up you cannot open positions or withdraw. Deposit silver to clear it.\nOur collections department is available 24 hours and has no feelings.</RimForex_GuideLiquidation>
   <RimForex_GuideCandleTitle>4. Reading candles</RimForex_GuideCandleTitle>
-  <RimForex_GuideCandle>Each candle records four prices over a period: open, high, low, close.
-
-· Body: the distance from open to close. Green when it rose, red when it fell.
-· Wicks: the thin lines above and below, marking the high and low reached.
-
-Long wicks mean price pushed and got pushed back — buyers and sellers are fighting.
-
-Candles describe what already happened. They do not predict the future.</RimForex_GuideCandle>
-  <RimForex_GuideProfitTitle>5. How beginners actually make money</RimForex_GuideProfitTitle>
-  <RimForex_GuideProfit>First, the honest part: there is no sure-win strategy. Get the direction wrong and you lose, at any leverage.
-
-Three habits that improve your odds:
-
-1. Start with low leverage. 1-5x survives normal swings; 100x dies to one bad quote.
-2. Don't churn. You pay the spread and fees every round trip.
-3. Watch the news. War and crash expectations beat staring at candles.
-
-Also remember: open positions cost overnight interest, and loans cost loan interest — the longer you hold, the more you pay.</RimForex_GuideProfit>
-  <RimForex_GuideLoanTitle>Borrowing</RimForex_GuideLoanTitle>
-  <RimForex_GuideLoan>With the terminal selected, the "Official lending service" gizmo offers four lenders with different rates and terms.
-
-Borrowed silver is debt, not income. If it isn't cleared by the term, the debt is charged to your balance and can push it negative.</RimForex_GuideLoan>
+  <RimForex_GuideCandle>Each candle records four prices over a period: open, high, low, close.\n\n· Body: the distance from open to close. Green up, red down.\n· Wicks: the thin lines above and below, the high and low reached.\n\nLong wicks mean price pushed up and got pushed back. Someone is fighting. Who wins is unclear.\n\nCandles report the past. They do not promise the future. Platforms that promise the future are a different kind of platform.</RimForex_GuideCandle>
+  <RimForex_GuideProfitTitle>5. How beginners make money</RimForex_GuideProfitTitle>
+  <RimForex_GuideProfit>Leverage up! Go all in! Bet on the rise!\n\nPost 100 silver as margin at 100x and your notional is 10,000 silver. A 1% move earns you 100 silver, double your money. 3% and you have tripled it.\n\nOur backend data shows the phrase our users say most is "one more trade and I'm even".\n\n(Veterans tell you to use low leverage and go slow. That is the veteran way. You are a beginner. You have plenty of time to lose.)</RimForex_GuideProfit>
+  <RimForex_GuideLoanTitle>6. Borrowing</RimForex_GuideLoanTitle>
+  <RimForex_GuideLoan>With the terminal selected, the "Official lending service" gizmo offers four lenders with different rates and terms.\n\nBorrowed silver is debt, not income. If it is not cleared by the term, it is taken from your balance at once, which can push it negative.\n\nWe wish you a pleasant borrowing experience.</RimForex_GuideLoan>
   <RimForex_GuideGlossaryTitle>Glossary</RimForex_GuideGlossaryTitle>
-  <RimForex_GuideGlossary>Margin: the silver you post.
-Notional: margin × leverage.
-Spread: the gap between buy and sell price, paid on open and close.
-Fee: 0.02% per trade, minimum 2 silver.
-Stop-out line: forced close at 30% margin health.
-Margin call: being forcibly closed.
-Blow-up: losses exceed margin, balance goes negative.
-Lock-in: you must cross one quote before you can close.</RimForex_GuideGlossary>
+  <RimForex_GuideGlossary>Margin: the silver you post.\nNotional: margin times leverage.\nSpread: the gap between buy and sell, paid on open and close.\nFee: 0.02% per trade, minimum 2 silver.\nStop-out line: the price where a position is closed at 30% margin.\nMargin call: being forcibly closed.\nBlow-up: losses exceed margin, balance goes negative.\nLock-in: you must cross one quote before you can close.</RimForex_GuideGlossary>
 
   <!-- ================= 0.3.0 world events (preview2: E1 / E3) ================= -->
   <RimForex_Ev1LetterLabel>{0}: currency surge</RimForex_Ev1LetterLabel>
@@ -380,8 +338,8 @@ Lock-in: you must cross one quote before you can close.</RimForex_GuideGlossary>
   <RimForex_Ev1ArrivedLabel>{0}: caravan arrived</RimForex_Ev1ArrivedLabel>
   <RimForex_Ev1Arrived>A caravan from {0} has arrived at the edge of your colony. They are carrying more silver than usual and are eager to buy.</RimForex_Ev1Arrived>
   <RimForex_Ev1NoCaravan>{0}'s caravan never made it.</RimForex_Ev1NoCaravan>
-  <RimForex_Ev1bLetterLabel>{0}: currency surge</RimForex_Ev1bLetterLabel>
-  <RimForex_Ev1bLetter>{0}'s currency rose {1}% in a single day. They noticed what you have been doing in the market - someone may come looking in the next few days.</RimForex_Ev1bLetter>
+  <RimForex_Ev1bLetterLabel>{0}: suspicious buildup</RimForex_Ev1bLetterLabel>
+  <RimForex_Ev1bLetter>{0}'s currency rose {1}% in a single day.\n\nYou notice they have been buying arms and ammunition on the military market in bulk. People who stock up that fast are not planning a festival.\n\nIt is reasonable to assume your colony is somewhere in their plans.</RimForex_Ev1bLetter>
   <RimForex_Ev1bRaidLabel>{0}: raid</RimForex_Ev1bRaidLabel>
   <RimForex_Ev1bRaid>Forces from {0} have appeared near your colony, hoping to cash in on the rally.</RimForex_Ev1bRaid>
   <RimForex_Ev1bQuiet>{0}'s people looked around and left without acting.</RimForex_Ev1bQuiet>
@@ -401,4 +359,12 @@ Lock-in: you must cross one quote before you can close.</RimForex_GuideGlossary>
   <RimForex_MsgTestProdigy>Fired a currency prodigy event</RimForex_MsgTestProdigy>
   <RimForex_MsgTestSurgeFail>No usable faction currency</RimForex_MsgTestSurgeFail>
   <RimForex_MsgTestRipen>Ripened {0} pending event(s)</RimForex_MsgTestRipen>
+  <RimForex_GuideHonestButton>(A veteran's advice: don't listen to them)</RimForex_GuideHonestButton>
+  <RimForex_GuideHonestTitle>A veteran's advice</RimForex_GuideHonestTitle>
+  <RimForex_GuideHonest>That last part was written by our marketing department. Here is the human version.\n\n1. Lower leverage survives longer. 1-5x rides out normal swings; 100x dies to one bad quote.\n2. Do not churn. Every round trip pays spread and fees. Churning is a donation.\n3. Watch the news. War and crash expectations beat staring at candles.\n4. Positions cost overnight interest, loans cost loan interest. The longer you hold, the more you pay.\n5. There is no sure-win strategy. Anyone who says there is, is trying to win your money.\n\n(Put this away before the platform notices you read it.)</RimForex_GuideHonest>
+  <RimForex_Ev1bRaidBlocked>{0}'s forces set out, then turned back.</RimForex_Ev1bRaidBlocked>
+  <RimForex_TestRaid>Test: force a raid</RimForex_TestRaid>
+  <RimForex_TestRaidTip>Skip the dice roll and launch a raid from a hostile faction right now. Use it to check that raids can actually fire.</RimForex_TestRaidTip>
+  <RimForex_MsgTestRaid>Raid launched</RimForex_MsgTestRaid>
+  <RimForex_MsgTestRaidFail>Raid could not be launched: no hostile faction, or the storyteller refused</RimForex_MsgTestRaidFail>
 </LanguageData>

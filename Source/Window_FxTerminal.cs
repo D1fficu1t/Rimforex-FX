@@ -1058,9 +1058,17 @@ namespace RimForex
             // 2026-10-21：基准从 margin 改成 BaseMargin。
             // 强平判据用初始保证金（追加保证金不该抬高强平线），
             // 画线必须跟判据同口径，否则补过保证金的仓位会画出一条偏远的假线。
+            // ⚠️ 2026-10-25 修：这里原来只算 `(1-stopOut) × BaseMargin`，
+            // 画出来的线**离现价太近**，而且追加保证金后完全不动。
+            //
+            // 判据是：margin + pnl <= stopOut × BaseMargin
+            //   → pnl <= -( (1-stopOut) × BaseMargin + addedMargin )
+            // 因为 margin = BaseMargin + addedMargin，追加的那部分必须加回来。
+            // 漏掉 addedMargin 的后果（作者实测）：补了保证金后线不动，
+            // 价格跌破画出来的线却没有爆仓 —— 实际强平点在一个更远的地方。
             float baseM = newest.BaseMargin;
             if (baseM < 0.01f) baseM = newest.margin;
-            float dist = (1f - FxGameComponent.StopOutFraction) * baseM
+            float dist = ((1f - FxGameComponent.StopOutFraction) * baseM + newest.addedMargin)
                        / Mathf.Abs((float)newest.units);
             float markStop = newest.isLong
                 ? newest.entryRate - dist

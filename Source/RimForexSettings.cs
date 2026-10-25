@@ -410,6 +410,21 @@ namespace RimForex
             Hint(l, "RimForex_TestRipenTip".Translate());
 
             l.Gap(6f);
+            if (l.ButtonText("RimForex_TestRaid".Translate()))
+            {
+                FxGameComponent fx = Find.World != null
+                    ? Find.World.GetComponent<FxGameComponent>() : null;
+                if (fx != null)
+                {
+                    Messages.Message(fx.DebugForceRaid()
+                            ? "RimForex_MsgTestRaid".Translate()
+                            : "RimForex_MsgTestRaidFail".Translate(),
+                        MessageTypeDefOf.TaskCompletion, false);
+                }
+            }
+            Hint(l, "RimForex_TestRaidTip".Translate());
+
+            l.Gap(6f);
             if (l.ButtonText("RimForex_TestBlowUp".Translate()))
             {
                 FxGameComponent fx = Find.World != null

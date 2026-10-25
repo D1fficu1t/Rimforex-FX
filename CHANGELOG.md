@@ -16,8 +16,15 @@
   - 敌对派系（来不了商队）：三天后有三成概率发动一次**点数更高的袭击**
 - **世界事件：外汇奇才。** 单日通过外汇赚到 10,000 银（或净值的 5%）以上时，
   各派系好感 +6；同时有三成半的概率招来一次额外袭击。
-- **托管费**：账户余额超过 20,000 的部分，每天收取 0.3%。
+- **托管费**：账户余额超过 20,000 的部分，每天收取 **3%**。
   这笔钱以前可以完全免费地存在账户里躲避袭击，现在有成本了。
+
+**修复**
+
+- **追加保证金后，K 线上的爆仓线不会移动**，而且价格跌破线也不爆仓。
+  原因是画线用的是初始保证金，强平判据用的却是含追加的保证金，两边差一个追加额。
+  现在两者同口径，补了保证金线会如实往外移。
+- 关掉「世界事件」后，已经从队列里排上的商队/袭击仍然会执行。现在关闭时会一并清空。
 
 **其他**
 
@@ -36,8 +43,15 @@
     after three days.
 - **World event: currency prodigy.** Earning 10,000 silver (or 5% of net worth) in one day
   raises every faction's goodwill by 6 — and has a 35% chance to draw an extra raid.
-- **Custody fee**: balance above 20,000 silver is charged 0.3% per day.
+- **Custody fee**: balance above 20,000 silver is charged **3%** per day.
   Parking silver in the account to dodge raids is no longer free.
+
+**Fixed**
+
+- The stop-out line on the chart did not move after adding margin, and price could cross it
+  without a liquidation. The line was drawn from the initial margin while the actual rule used
+  margin including top-ups; both now use the same basis.
+- Turning world events off did not stop caravans or raids that were already queued.
 
 **Other**
 
