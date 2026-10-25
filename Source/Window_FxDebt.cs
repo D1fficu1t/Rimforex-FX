@@ -120,7 +120,8 @@ namespace RimForex
             GUI.color = Color.white;
 
             GUI.color = new Color(0.62f, 0.78f, 0.92f);
-            Widgets.Label(new Rect(0f, y + 46f, body.width, 40f),
+            // 高度原来给 40，三行小字放不下会被裁掉（作者 2026-10-25 截图）
+            Widgets.Label(new Rect(0f, y + 46f, body.width, 76f),
                 "RimForex_Ev7CanClose".Translate());
             GUI.color = Color.white;
             Text.Font = GameFont.Small;

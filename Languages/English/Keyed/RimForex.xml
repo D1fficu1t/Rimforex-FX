@@ -491,4 +491,8 @@ We wish you a pleasant week.</RimForex_Ev7Attack>
   <RimForex_Ev7GizmoDesc>Collections is still waiting for your answer.</RimForex_Ev7GizmoDesc>
   <RimForex_FrozenWarning>Account frozen: {0} day(s) left (no positions, no withdrawals)</RimForex_FrozenWarning>
   <RimForex_LoanFrozen>Account frozen. Borrowing unlocks 30 days into the freeze.</RimForex_LoanFrozen>
+  <RimForex_Ev7FleeLabel>The collector bolted</RimForex_Ev7FleeLabel>
+  <RimForex_Ev7Flee>You were never going to talk, and neither was he. The collector turned and ran - with an entire collections department behind him.
+
+Let him reach the map edge, or put him down here. Either way, Collections will write back.</RimForex_Ev7Flee>
 </LanguageData>

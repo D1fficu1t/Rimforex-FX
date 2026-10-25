@@ -3184,6 +3184,8 @@ namespace RimForex
         public int debtDeadlineTick;
         /// <summary>收债人的 thingIDNumber。</summary>
         public int debtCollectorId = -1;
+        /// <summary>已经翻脸、正在逃跑（等着他跑掉或被打死再招机械族）。</summary>
+        public bool debtHostile;
 
         /// <summary>全局事件冷却：两次世界事件之间至少 3 游戏日。</summary>
         public const int GlobalEventCooldown = 3 * TicksPerDay;
@@ -5920,6 +5922,25 @@ namespace RimForex
             if (!debtActive) return;
             if (GenTicks.TicksGame % 250 != 0) return;
 
+            // ── 已经翻脸：等他跑出地图或被打死，再招机械族 ──
+            if (debtHostile)
+            {
+                Pawn runaway = FindPawnById(debtCollectorId);
+                bool gone = runaway == null || runaway.Destroyed || runaway.Dead || !runaway.Spawned;
+                if (!gone) return;
+
+                FxAccount debtAcc = null;
+                var ks = new List<int>(accounts.Keys);
+                for (int i = 0; i < ks.Count; i++)
+                {
+                    if (ks[i] == debtMapId) { debtAcc = accounts[ks[i]]; break; }
+                }
+                SummonCollectorPunishment(debtAcc);
+                debtHostile = false;
+                ResolveDebtCase(null, "attacked");
+                return;
+            }
+
             FxAccount acc = null;
             var keys = new List<int>(accounts.Keys);
             for (int i = 0; i < keys.Count; i++)
@@ -5949,8 +5970,54 @@ namespace RimForex
             }
         }
 
-        /// <summary>攻击/逾期：招来机械袭击 + 冻结账户一年。</summary>
+        /// <summary>
+        /// 攻击/逾期：先翻脸，再让他逃。
+        ///
+        /// 作者 2026-10-25：不能"人直接消失" —— 那像灵能。
+        /// 正确顺序是：立刻敌对 → 像袭击者那样慌忙逃窜 → 跑出地图（或被打死）
+        /// 之后才招来机械族并冻结账户。
+        /// </summary>
         private void TriggerCollectorRetaliation(FxAccount acc, Pawn collector)
+        {
+            var pf = FactionByID(platformFactionLoadID);
+            if (pf != null)
+            {
+                try
+                {
+                    Faction.OfPlayer.SetRelationDirect(pf, FactionRelationKind.Hostile,
+                        canSendHostilityLetter: false);
+                }
+                catch { }
+            }
+
+            if (collector != null && collector.Spawned && !collector.Downed)
+            {
+                try
+                {
+                    collector.mindState.mentalStateHandler.TryStartMentalState(
+                        MentalStateDefOf.PanicFlee, null, true);
+                }
+                catch
+                {
+                    try
+                    {
+                        collector.jobs.StartJob(JobMaker.MakeJob(JobDefOf.Goto, CellFinder.RandomEdgeCell(collector.Map)),
+                            JobCondition.InterruptForced);
+                    }
+                    catch { }
+                }
+            }
+
+            debtHostile = true;
+
+            Find.LetterStack.ReceiveLetter(
+                "RimForex_Ev7FleeLabel".Translate(),
+                "RimForex_Ev7Flee".Translate(),
+                LetterDefOf.ThreatSmall);
+        }
+
+        /// <summary>收债人跑掉/被打死之后：机械袭击 + 冻结一年。</summary>
+        private void SummonCollectorPunishment(FxAccount acc)
         {
             Map map = Find.AnyPlayerHomeMap;
             Faction mech = Faction.OfMechanoids;
@@ -5976,8 +6043,6 @@ namespace RimForex
                 "RimForex_Ev7AttackLabel".Translate(),
                 "RimForex_Ev7Attack".Translate(E7FreezeDays.ToString()),
                 LetterDefOf.ThreatBig);
-
-            ResolveDebtCase(collector, "attacked");
         }
 
         /// <summary>用殖民者抵债。累计市值 ≥ 债务才算数。</summary>
@@ -6731,6 +6796,7 @@ namespace RimForex
             Scribe_Values.Look(ref debtMapId, "debtMapId", -1);
             Scribe_Values.Look(ref debtDeadlineTick, "debtDeadlineTick", 0);
             Scribe_Values.Look(ref debtCollectorId, "debtCollectorId", -1);
+            Scribe_Values.Look(ref debtHostile, "debtHostile", false);
             if (retaliations == null) retaliations = new List<FxRetaliation>();
             if (pendingEvents == null) pendingEvents = new List<FxPendingEvent>();
             if (refugeePawnIds == null) refugeePawnIds = new List<int>();

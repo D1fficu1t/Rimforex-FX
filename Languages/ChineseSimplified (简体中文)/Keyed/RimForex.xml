@@ -502,4 +502,8 @@
   <RimForex_Ev7GizmoDesc>清算部的收债人还在等你答复。</RimForex_Ev7GizmoDesc>
   <RimForex_FrozenWarning>账户冻结：还要 {0} 天（不能开仓/提款）</RimForex_FrozenWarning>
   <RimForex_LoanFrozen>账户冻结中，冻结满 30 天后才能借款</RimForex_LoanFrozen>
+  <RimForex_Ev7FleeLabel>收债人翻脸了</RimForex_Ev7FleeLabel>
+  <RimForex_Ev7Flee>你没打算好好谈，他也没打算。收债人转头就跑——身后还跟着一整个清算部的账。
+
+让他跑出地图，或者在这里把他放倒。两种结局，清算部都会给你回信。</RimForex_Ev7Flee>
 </LanguageData>
