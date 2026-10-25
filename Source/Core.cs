@@ -5558,9 +5558,18 @@ namespace RimForex
                     var pos = acc.positions[i];
                     if (pos == null || pos.currencyFactionLoadID != f.loadID) continue;
 
-                    float equity = pos.Equity;   // margin + 浮动盈亏
-                    float pnl = pos.Pnl;
-                    acc.balance += equity;
+                    // 口径必须与正常平仓一致（2026-10-25 作者发现点差显示 0）：
+                    // 点差成本是**开仓时真的付过的**，不能因为是被动强平就抹成 0；
+                    // 手续费也照常收 —— 否则"派系消亡"等于给了玩家一次免费平仓。
+                    float equity = pos.Equity;
+                    float exitPrice = pos.markRate > 0f
+                        ? pos.markRate
+                        : market.ExitPriceOf(pos.currencyFactionLoadID, pos.isLong);
+                    float notional = Mathf.Abs(pos.units) * exitPrice;
+                    float fee = FeeFor(notional);
+
+                    acc.balance += equity - fee;
+                    acc.feesSinceSettle += fee;
                     acc.positions.RemoveAt(i);
 
                     acc.RecordTrade(new FxTradeRecord
@@ -5570,12 +5579,12 @@ namespace RimForex
                         isLong = pos.isLong,
                         units = pos.units,
                         entryRate = pos.entryRate,
-                        exitRate = pos.markRate > 0f ? pos.markRate : pos.entryRate,
+                        exitRate = exitPrice,
                         margin = pos.margin,
-                        pnl = pnl,
-                        totalFee = 0f,
-                        spreadCost = 0f,
-                        spreadRateAtClose = pos.entrySpreadRate,
+                        pnl = pos.Pnl,
+                        totalFee = pos.openFee + fee,
+                        spreadCost = Mathf.Abs(pos.units) * pos.spreadAtOpen,
+                        spreadRateAtClose = market.SpreadRateFor(pos.currencyFactionLoadID),
                         closedTick = GenTicks.TicksGame,
                         wasLiquidation = true
                     });
