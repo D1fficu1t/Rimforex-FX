@@ -803,6 +803,8 @@ namespace RimForex
         /// 它不卖货，只收礼（用白银换好感）。作者 2026-10-25 拍板走这条。
         /// </summary>
         TributeArrive = 6,
+        /// <summary>E6 最后一次危机：延迟 2 小时再宣布派系名存实亡。</summary>
+        CrisisDefeat = 7,
     }
 
     /// <summary>
@@ -3221,6 +3223,13 @@ namespace RimForex
         public const float E6RefugeeJoinChance = 0.35f;
         /// <summary>难民等待天数。</summary>
         public const int E6RefugeeDays = 3;
+        /// <summary>
+        /// 第五次危机到"派系消亡"的间隔：2 游戏小时。
+        ///
+        /// 直接弹窗会把第 5 封危机信盖掉（作者 2026-10-25 实测：
+        /// 只看到消亡弹窗，红信根本没出现）。先让信落地，两小时后再清算。
+        /// </summary>
+        public const int E6DefeatDelay = 2 * 2500;
 
         // ── 托管费（闲置余额的存放成本）──
         /// <summary>免收额度：20,000 银以下不收。</summary>
@@ -4343,6 +4352,21 @@ namespace RimForex
                     }
                     Messages.Message("RimForex_Ev1bQuiet".Translate(faction.Name),
                         MessageTypeDefOf.NeutralEvent, false);
+                    break;
+                }
+
+                case FxPendingKind.CrisisDefeat:
+                {
+                    DefeatFaction(faction);
+                    for (int i = retaliations.Count - 1; i >= 0; i--)
+                    {
+                        if (retaliations[i] != null && retaliations[i].factionLoadID == faction.loadID)
+                        {
+                            retaliations.RemoveAt(i);
+                        }
+                    }
+                    Find.WindowStack.Add(new Dialog_MessageBox(
+                        "RimForex_Ev6Defeat".Translate(faction.Name)));
                     break;
                 }
 
@@ -5478,21 +5502,20 @@ namespace RimForex
             var f = FactionByID(r.factionLoadID);
             string fname = f != null ? f.Name : "?";
 
-            if (f != null && r.crisisCount >= E6CrisesToDefeat)
-            {
-                DefeatFaction(f);
-                retaliations.Remove(r);
-                Find.WindowStack.Add(new Dialog_MessageBox(
-                    "RimForex_Ev6Defeat".Translate(fname)));
-                return;
-            }
-
             // 五次危机的文案各写各的，一次比一次绝望（作者 2026-10-25 要求）
             int tier = Mathf.Clamp(r.crisisCount, 1, E6CrisesToDefeat);
             Find.LetterStack.ReceiveLetter(
                 "RimForex_Ev6CrisisLabel".Translate(fname, tier.ToString()),
                 CrisisTextKeys[tier - 1].Translate(fname, count.ToString()),
                 LetterDefOf.ThreatBig);
+
+            // 先让第 5 封信落地，两小时后再宣布名存实亡。
+            // 立刻弹窗会把信盖掉（作者实测只看到弹窗）。
+            if (f != null && r.crisisCount >= E6CrisesToDefeat)
+            {
+                QueueEvent(FxPendingKind.CrisisDefeat, f.loadID, r.currencyFaction, E6DefeatDelay);
+                retaliations.Remove(r);   // 立刻停火，别在这两小时里又打一次
+            }
         }
 
         /// <summary>
