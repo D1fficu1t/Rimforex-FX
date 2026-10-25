@@ -118,6 +118,24 @@ namespace RimForex
         /// <summary>爆仓心情倍率。单独一档，因为它最狠。</summary>
         public float marginCallMoodScale = 1f;
 
+        // ================= 0.3.0：隔夜利息与世界事件 =================
+
+        /// <summary>是否收取隔夜利息。关掉后"死扛等回本"又变成免费期权。</summary>
+        public bool enableCarry = true;
+        /// <summary>
+        /// 隔夜利息率：按**名义仓位**每天收取。
+        /// 0.0002 = 0.02%/日 → 1x 下 0.02%、20x 下 0.4%、100x 下 2% 的保证金。
+        /// </summary>
+        public float carryRate = 0.0002f;
+
+        /// <summary>世界事件总开关。</summary>
+        public bool enableWorldEvents = true;
+        /// <summary>
+        /// 事件频率倍率：缩放 σ 阈值（不是概率）。
+        /// 2.0 = 阈值减半 = 更频繁；0.5 = 阈值加倍 = 更稀少。
+        /// </summary>
+        public float eventFrequency = 1f;
+
         public override void ExposeData()
         {
             Scribe_Values.Look(ref showQuotePacingHint, "showQuotePacingHint", true);
@@ -131,6 +149,10 @@ namespace RimForex
             Scribe_Values.Look(ref showTimeSpeedHint, "showTimeSpeedHint", true);
             Scribe_Values.Look(ref showSettlementCountdown, "showSettlementCountdown", true);
             Scribe_Values.Look(ref showTimeDebug, "showTimeDebug", false);
+            Scribe_Values.Look(ref enableCarry, "enableCarry", true);
+            Scribe_Values.Look(ref carryRate, "carryRate", 0.0002f);
+            Scribe_Values.Look(ref enableWorldEvents, "enableWorldEvents", true);
+            Scribe_Values.Look(ref eventFrequency, "eventFrequency", 1f);
 
             // 悬浮盈亏窗（2026-10-20）
             Scribe_Values.Look(ref showFloatingPnl, "showFloatingPnl", true);
@@ -593,6 +615,26 @@ namespace RimForex
             // 悬浮盈亏窗（2026-10-20）：关掉终端时也能看到浮动盈亏
             l.CheckboxLabeled("RimForex_Set_FloatingPnl".Translate(), ref Settings.showFloatingPnl,
                 "RimForex_Set_FloatingPnlTip".Translate());
+
+            // ── 0.3.0：隔夜利息 ──
+            l.GapLine();
+            l.Label("RimForex_Set_CarryHeader".Translate());
+            l.CheckboxLabeled("RimForex_Set_EnableCarry".Translate(), ref Settings.enableCarry,
+                "RimForex_Set_EnableCarryTip".Translate());
+            Settings.carryRate = l.SliderLabeled(
+                "RimForex_Set_CarryRate".Translate((Settings.carryRate * 100f).ToString("0.000")),
+                Settings.carryRate, 0f, 0.001f, 0.55f,
+                "RimForex_Set_CarryRateTip".Translate());
+            l.Gap(4f);
+
+            // ── 0.3.0：世界事件 ──
+            l.Label("RimForex_Set_EventsHeader".Translate());
+            l.CheckboxLabeled("RimForex_Set_EnableEvents".Translate(), ref Settings.enableWorldEvents,
+                "RimForex_Set_EnableEventsTip".Translate());
+            Settings.eventFrequency = l.SliderLabeled(
+                "RimForex_Set_EventFreq".Translate(Settings.eventFrequency.ToString("0.00")),
+                Settings.eventFrequency, 0.5f, 2f, 0.55f,
+                "RimForex_Set_EventFreqTip".Translate());
 
             l.Gap(10f);
             if (l.ButtonText("RimForex_Set_Reset".Translate()))

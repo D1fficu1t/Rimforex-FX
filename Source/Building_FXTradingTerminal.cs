@@ -58,6 +58,21 @@ namespace RimForex
                     open.Disable("RimForex_NoPower".Translate());
                 }
                 yield return open;
+
+                // ── 官方借贷服务（0.3.0）──
+                // 独立窗口，不塞进终端页签：四家的图标与简介需要很大空间。
+                var loans = new Command_Action
+                {
+                    defaultLabel = "RimForex_LoanGizmo".Translate(),
+                    defaultDesc = "RimForex_LoanGizmoDesc".Translate(),
+                    icon = ThingDefOf.Silver.uiIcon,
+                    action = OpenLoans
+                };
+                if (!Powered)
+                {
+                    loans.Disable("RimForex_NoPower".Translate());
+                }
+                yield return loans;
             }
         }
 
@@ -80,6 +95,16 @@ namespace RimForex
         private void OpenTerminal()
         {
             TryOpenTerminalWindow();
+        }
+
+        /// <summary>打开「官方借贷服务」窗口。</summary>
+        private void OpenLoans()
+        {
+            var fx = Find.World.GetComponent<FxGameComponent>();
+            if (fx == null) return;
+            var acc = fx.ColonyAccount(Map);
+            if (acc == null) return;
+            Find.WindowStack.Add(new Window_FxLoans(fx, acc));
         }
 
         public override string GetInspectString()

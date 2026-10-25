@@ -269,4 +269,50 @@ This is a blow-up: the debt must be covered. Deposit silver at the terminal to b
   <RimForex_HistoryCopy>Copy trade report</RimForex_HistoryCopy>
   <RimForex_HistoryCopyTip>Exports the {0} trades currently shown as plain text to the system clipboard, ready to paste anywhere.</RimForex_HistoryCopyTip>
   <RimForex_HistoryCopyHint>plain text, tab separated, exporting {0} trades</RimForex_HistoryCopyHint>
+  <!-- ================= 0.3.0 loans ================= -->
+  <RimForex_LoanGizmo>Official lending service</RimForex_LoanGizmo>
+  <RimForex_LoanGizmoDesc>Four institutions offer margin loans. Interest is simple interest, charged per season (15 days). Each lender handles overdue accounts in its own way.</RimForex_LoanGizmoDesc>
+  <RimForex_LoanTitle>Official lending service</RimForex_LoanTitle>
+  <RimForex_LoanSummary>Balance {0} silver   ·   Total debt {1} silver   ·   Net worth {2} silver</RimForex_LoanSummary>
+  <RimForex_LoanLimit>Limit {0} silver (borrowed {1}, available {2})</RimForex_LoanLimit>
+  <RimForex_LoanRate>Season interest {0}%   ·   {1}</RimForex_LoanRate>
+  <RimForex_LoanTerm>{0} season(s)</RimForex_LoanTerm>
+  <RimForex_LoanTermNone>No fixed term</RimForex_LoanTermNone>
+  <RimForex_LoanQuarterDue>Interest due this season: {0} silver</RimForex_LoanQuarterDue>
+  <RimForex_LoanOwed>Currently owed: {0} silver</RimForex_LoanOwed>
+  <RimForex_LoanBorrow>Borrow</RimForex_LoanBorrow>
+  <RimForex_LoanRepay>Repay</RimForex_LoanRepay>
+  <RimForex_LoanBorrowTip>Borrowed margin goes straight into your balance. Enter 0 to borrow the full available amount.</RimForex_LoanBorrowTip>
+  <RimForex_LoanRepayTip>Repay this lender from your balance: unpaid interest first, then principal.</RimForex_LoanRepayTip>
+  <RimForex_LoanBorrowed>Borrowed {0} silver</RimForex_LoanBorrowed>
+  <RimForex_LoanRepaid>Repaid</RimForex_LoanRepaid>
+  <RimForex_LoanNoAccount>No account</RimForex_LoanNoAccount>
+  <RimForex_LoanNegative>Cannot borrow while the balance is negative</RimForex_LoanNegative>
+  <RimForex_LoanLimitReached>This lender's limit is reached</RimForex_LoanLimitReached>
+  <RimForex_LoanTooSmall>Amount too small</RimForex_LoanTooSmall>
+  <RimForex_LoanInterestCharged>{0} charges {1} silver in interest. Currently owed: {2} silver</RimForex_LoanInterestCharged>
+  <RimForex_LoanDefault>{0} declares you in default: {1} silver has been charged to your account</RimForex_LoanDefault>
+  <RimForex_LoanFooter>Simple interest: a fixed share of the principal each season; interest never compounds. If the loan is not cleared by its term, or two consecutive seasons of interest go unpaid, you are in default — the debt is charged to your balance at once (and may push it negative).</RimForex_LoanFooter>
+  <RimForex_Loan0Name>Tomorrow-or-Else Bank</RimForex_Loan0Name>
+  <RimForex_Loan0Desc>Short-term liquidity with a deadline strictly defined as "tomorrow". Overdue accounts enter the Doomsday Rocket Collection Procedure: no support desk, no appeals, no grace period — only the impact point.</RimForex_Loan0Desc>
+  <RimForex_Loan1Name>Organ Futures Micro-Loan</RimForex_Loan1Name>
+  <RimForex_Loan1Desc>Underwritten by biological assets; future bodily use-rights are accepted as collateral. Interest floats with your heart rate; freshness sets your credit line. Overdue fees are settled as surgical scheduling.</RimForex_Loan1Desc>
+  <RimForex_Loan2Name>Hive Credit Union</RimForex_Loan2Name>
+  <RimForex_Loan2Desc>Community mutual aid: low interest, high breeding. Membership requirements are loose, repayment requirements are loose, and growth in member count is arranged separately. Assimilation is far more efficient than repayment.</RimForex_Loan2Desc>
+  <RimForex_Loan3Name>Last Leg Credit</RimForex_Loan3Name>
+  <RimForex_Loan3Desc>Emergency liquidity for colonists short on cash. Collateral accepted: silver, components, bio-appendages. Our overdue process is streamlined: we repossess the leg you would need to run with, and you keep the rest.</RimForex_Loan3Desc>
+  <RimForex_LetterCarry>Overnight interest −{0} silver</RimForex_LetterCarry>
+
+  <!-- 0.3.0 settings -->
+  <RimForex_Set_CarryHeader>Overnight interest (holding cost)</RimForex_Set_CarryHeader>
+  <RimForex_Set_EnableCarry>Charge overnight interest</RimForex_Set_EnableCarry>
+  <RimForex_Set_EnableCarryTip>Charged daily on notional. Disabling it makes "hold and wait" a free option again.</RimForex_Set_EnableCarryTip>
+  <RimForex_Set_CarryRate>Rate {0}%/day</RimForex_Set_CarryRate>
+  <RimForex_Set_CarryRateTip>Applied to notional: at 1x it equals the rate on your capital, at 20x it is 20 times that, at 100x a hundred times.</RimForex_Set_CarryRateTip>
+  <RimForex_Set_EventsHeader>World events</RimForex_Set_EventsHeader>
+  <RimForex_Set_EnableEvents>Enable world events</RimForex_Set_EnableEvents>
+  <RimForex_Set_EnableEventsTip>Currency spikes and crashes, war news, short-squeeze retaliation, debt collection.</RimForex_Set_EnableEventsTip>
+  <RimForex_Set_EventFreq>Frequency x{0}</RimForex_Set_EventFreq>
+  <RimForex_Set_EventFreqTip>Scales the trigger threshold (in sigma), not a probability: higher means more frequent.</RimForex_Set_EventFreqTip>
+
 </LanguageData>

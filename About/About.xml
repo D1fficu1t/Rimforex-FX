@@ -3,13 +3,13 @@
   <name>Rimforex</name>
   <author>KIWI🐀</author>
   <packageId>KIWI.Rimforex.Trading</packageId>
-  <modVersion>0.2.4</modVersion>
+  <modVersion>0.3.0-preview1</modVersion>
   <supportedVersions>
     <li>1.6</li>
   </supportedVersions>
   <description>星际外汇交易平台：每个派系拥有自己的货币，在 FX 交易终端上用白银作为保证金进行杠杆交易。
 
-0.2.4。
+0.3.0-preview1。
 
 核心循环完整：每派系独立货币、多尺度汇率模型、最高 100 倍杠杆、点差与手续费、实时盯市与强平、爆仓与穿仓（负余额）、每日结算、按单笔平仓的心情联动、K 线图与交易历史。</description>
 </ModMetaData>

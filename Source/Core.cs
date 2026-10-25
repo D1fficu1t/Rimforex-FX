@@ -50,6 +50,17 @@ namespace RimForex
         /// </summary>
         public float lastGapPct;
 
+        // ── 0.3.0 新增（定名后不可改）──
+
+        /// <summary>该货币上次触发世界事件的 tick（每货币冷却）。</summary>
+        public int lastEventTick;
+        /// <summary>E4/E5 新闻造成的额外对数漂移（每步）。0 = 无。</summary>
+        public float newsDriftLog;
+        /// <summary>新闻漂移的到期 tick。</summary>
+        public int newsDriftUntilTick;
+        /// <summary>当前空头名义仓位缓存（E6 检测用）。</summary>
+        public float shortNotional;
+
         /// <summary>
         /// 本报价步内已经推进到第几个子步（0 ~ SubSteps）。
         /// 让推进与渲染解耦：即使一帧跨过多个子步、或低帧率下漏掉若干 tick，
@@ -231,6 +242,10 @@ namespace RimForex
             Scribe_Values.Look(ref symbol, "symbol");
             Scribe_Values.Look(ref rate, "rate", 100f);
             Scribe_Values.Look(ref previousRate, "previousRate", 100f);
+            Scribe_Values.Look(ref lastEventTick, "lastEventTick", 0);
+            Scribe_Values.Look(ref newsDriftLog, "newsDriftLog", 0f);
+            Scribe_Values.Look(ref newsDriftUntilTick, "newsDriftUntilTick", 0);
+            Scribe_Values.Look(ref shortNotional, "shortNotional", 0f);
 
             // 历史字段：仅读取用于向后兼容，不再写入。
             bool legacyTribal = false;
@@ -745,6 +760,93 @@ namespace RimForex
     }
 
     /// <summary>殖民地的 FX 保证金账户。</summary>
+    /// <summary>延迟事件的类型（0.3.0 调度器）。</summary>
+    public enum FxPendingKind
+    {
+        None = 0,
+        /// <summary>E1-A：商队 2 天后到达。</summary>
+        CaravanArrive = 1,
+        /// <summary>E6：报复袭击，每 2 天一次。</summary>
+        RetaliationRaid = 2,
+        /// <summary>E7：收债期限（3 天）。</summary>
+        DebtDeadline = 3,
+        /// <summary>E1-B：3 天后掷骰决定是否发起袭击。</summary>
+        RaidChance = 4,
+    }
+
+    /// <summary>
+    /// 一条待处理的延迟事件。
+    ///
+    /// 为什么需要它：0.3.0 的事件有大量"几天后发生"的需求
+    /// （商队 2 天后到、报复每 2 天一次、收债 3 天期限）。
+    /// 没有这个队列就只能靠一堆各自的倒计时字段，加一个事件改一次结构。
+    /// </summary>
+    public class FxPendingEvent : IExposable
+    {
+        public FxPendingKind kind;
+        public int factionLoadID = -1;
+        public int currencyFaction = -1;
+        public int dueTick;
+        public int payload;
+
+        public void ExposeData()
+        {
+            Scribe_Values.Look(ref kind, "kind", FxPendingKind.None);
+            Scribe_Values.Look(ref factionLoadID, "factionLoadID", -1);
+            Scribe_Values.Look(ref currencyFaction, "currencyFaction", -1);
+            Scribe_Values.Look(ref dueTick, "dueTick", 0);
+            Scribe_Values.Look(ref payload, "payload", 0);
+        }
+    }
+
+    /// <summary>E2-B：被"经济崩溃"削弱的据点。窗口期内去打，守军少一半。</summary>
+    public class FxWeakenedSettlement : IExposable
+    {
+        /// <summary>用 <c>WorldObject.ID</c> 定位据点 —— 它稳定且永不复用。</summary>
+        public int settlementID = -1;
+        public int factionLoadID = -1;
+        public int untilTick;
+
+        public void ExposeData()
+        {
+            Scribe_Values.Look(ref settlementID, "settlementID", -1);
+            Scribe_Values.Look(ref factionLoadID, "factionLoadID", -1);
+            Scribe_Values.Look(ref untilTick, "untilTick", 0);
+        }
+    }
+
+    /// <summary>
+    /// 一笔贷款（0.3.0 借贷体系）。
+    ///
+    /// ── 单利，不是复利 ──
+    /// `principal` 是**永恒的计息基数**，每季产生的利息进 `unpaidInterest`，
+    /// **绝不滚进本金**。所以玩家能提前算清"借 20000、30%、一季 6000"。
+    /// </summary>
+    public class FxLoan : IExposable
+    {
+        public int lender;
+        public float principal;
+        public float unpaidInterest;
+        public int startTick;
+        public int quarters;
+        /// <summary>期限（季）。0 = 无期限。</summary>
+        public int termQuarters;
+        public int unpaidQuarters;
+
+        public float Owed => principal + unpaidInterest;
+
+        public void ExposeData()
+        {
+            Scribe_Values.Look(ref lender, "lender", 0);
+            Scribe_Values.Look(ref principal, "principal", 0f);
+            Scribe_Values.Look(ref unpaidInterest, "unpaidInterest", 0f);
+            Scribe_Values.Look(ref startTick, "startTick", 0);
+            Scribe_Values.Look(ref quarters, "quarters", 0);
+            Scribe_Values.Look(ref termQuarters, "termQuarters", 0);
+            Scribe_Values.Look(ref unpaidQuarters, "unpaidQuarters", 0);
+        }
+    }
+
     public class FxAccount : IExposable
     {
         public float balance;
@@ -760,6 +862,17 @@ namespace RimForex
         /// 现在直接数动作，语义更直白。
         /// </summary>
         public int activityToday;
+
+        // ── 0.3.0 新增（定名后不可改）──
+
+        /// <summary>余额转负的时刻（0 = 当前不为负）。E7 收债的触发依据。</summary>
+        public int negativeSinceTick;
+        /// <summary>账户冻结到期（E7 报复：1 游戏年）。</summary>
+        public int frozenUntilTick;
+        /// <summary>本季已扣的隔夜利息，结算信里单列一行。</summary>
+        public float carrySinceSettle;
+        /// <summary>贷款记录（四家借贷方）。</summary>
+        public List<FxLoan> loans = new List<FxLoan>();
 
         /// <summary>
         /// 上一个结算时点的账户权益（余额 + 浮动盈亏）。
@@ -961,6 +1074,11 @@ namespace RimForex
             Scribe_Values.Look(ref lastDayPositions, "lastDayPositions", 0);
             Scribe_Values.Look(ref activityToday, "activityToday", 0);
             Scribe_Collections.Look(ref history, "history", LookMode.Deep);
+            Scribe_Values.Look(ref negativeSinceTick, "negativeSinceTick", 0);
+            Scribe_Values.Look(ref frozenUntilTick, "frozenUntilTick", 0);
+            Scribe_Values.Look(ref carrySinceSettle, "carrySinceSettle", 0f);
+            Scribe_Collections.Look(ref loans, "loans", LookMode.Deep);
+            if (loans == null) loans = new List<FxLoan>();
             if (history == null) history = new List<FxTradeRecord>();
             if (positions == null) positions = new List<FxPosition>();
 
@@ -2879,6 +2997,26 @@ namespace RimForex
         public int nextSettlementTick = TicksPerDay;
         public bool initialized;
 
+        // ── 0.3.0 世界事件（定名后不可改）──
+
+        /// <summary>延迟事件队列（商队、报复袭击、收债期限…）。</summary>
+        public List<FxPendingEvent> pendingEvents = new List<FxPendingEvent>();
+        /// <summary>上一次世界事件的 tick，用于全局冷却。</summary>
+        public int lastWorldEventTick = -999999;
+        /// <summary>"外汇平台"临时派系的 loadID（0 = 还没创建过）。</summary>
+        public int platformFactionLoadID;
+        /// <summary>下次尝试 E4/E5 战争新闻的 tick。</summary>
+        public int nextNewsTick;
+        /// <summary>待判定的难民（存 thingIDNumber，不存 Pawn 引用）。</summary>
+        public List<int> refugeePawnIds = new List<int>();
+        /// <summary>E2-B 被削弱的据点。</summary>
+        public List<FxWeakenedSettlement> weakenedSettlements = new List<FxWeakenedSettlement>();
+
+        /// <summary>全局事件冷却：两次世界事件之间至少 5 游戏日。</summary>
+        public const int GlobalEventCooldown = 5 * TicksPerDay;
+        /// <summary>一季 = 15 游戏日 = 900000 tick（= GenDate.TicksPerQuadrum）。</summary>
+        public const int TicksPerQuadrum = TicksPerDay * 15;
+
         /// <summary>
         /// 待处理的"临近爆仓"预警。key = <b>持仓对象本身</b>（引用相等）。
         ///
@@ -3240,6 +3378,10 @@ namespace RimForex
             int now = GenTicks.TicksGame;
             // 强制跳空的倒计时（与报价节奏无关，所以放在采样判定之外）
             CheckForcedGap();
+
+            // 0.3.0：延迟事件与贷款利息（都放在采样判定之外，暂停时也走）
+            ProcessPendingEvents();
+            ProcessLoans();
 
             if (now != lastSampleTick)
             {
@@ -3877,6 +4019,322 @@ namespace RimForex
             Find.WindowStack.Add(new Window_MarginCall(this, key));
         }
 
+        // ══════════════════════════════════════════════════════════════
+        //  0.3.0 世界事件：调度器 + 阈值工具
+        // ══════════════════════════════════════════════════════════════
+
+        /// <summary>全局冷却是否已过（两次世界事件至少间隔 5 游戏日）。</summary>
+        public bool WorldEventAllowed()
+        {
+            return GenTicks.TicksGame - lastWorldEventTick >= GlobalEventCooldown;
+        }
+
+        /// <summary>把一条事件排进队列，延迟 <paramref name="delayTicks"/> 后触发。</summary>
+        public void QueueEvent(FxPendingKind kind, int factionID, int currencyFaction,
+            int delayTicks, int payload = 0)
+        {
+            if (delayTicks < 0) delayTicks = 0;
+            if (pendingEvents == null) pendingEvents = new List<FxPendingEvent>();
+            pendingEvents.Add(new FxPendingEvent
+            {
+                kind = kind,
+                factionLoadID = factionID,
+                currencyFaction = currencyFaction,
+                dueTick = GenTicks.TicksGame + delayTicks,
+                payload = payload
+            });
+        }
+
+        private void ProcessPendingEvents()
+        {
+            if (pendingEvents == null || pendingEvents.Count == 0) return;
+            int now = GenTicks.TicksGame;
+            for (int i = pendingEvents.Count - 1; i >= 0; i--)
+            {
+                var e = pendingEvents[i];
+                if (e == null) { pendingEvents.RemoveAt(i); continue; }
+                if (now < e.dueTick) continue;
+                pendingEvents.RemoveAt(i);
+                DispatchPendingEvent(e);
+            }
+        }
+
+        /// <summary>
+        /// 事件到期后的执行点。
+        ///
+        /// preview1 阶段这里是空的 —— 调度器先建好，E1/E2/E6/E7 在后续 preview 里
+        /// 各自往对应 case 里填实现。
+        /// </summary>
+        private void DispatchPendingEvent(FxPendingEvent e)
+        {
+            switch (e.kind)
+            {
+                case FxPendingKind.CaravanArrive:
+                    break;
+                case FxPendingKind.RetaliationRaid:
+                    break;
+                case FxPendingKind.DebtDeadline:
+                    break;
+                case FxPendingKind.RaidChance:
+                    break;
+            }
+        }
+
+        /// <summary>该货币的"一日波动"标准差（对数收益）。</summary>
+        public static float SigmaDayOf(FxCurrency c)
+        {
+            float vol = c != null && c.volatility > 0.01f ? c.volatility : 1f;
+            return FxMarket.DailyVol * vol;
+        }
+
+        /// <summary>当日对数收益（结算前调用；结算时 <c>previousRate</c> 还是昨日收盘）。</summary>
+        public static float DailyReturnOf(FxCurrency c)
+        {
+            if (c == null || c.previousRate <= 0.001f || c.rate <= 0.001f) return 0f;
+            return c.rate / c.previousRate - 1f;
+        }
+
+        // ══════════════════════════════════════════════════════════════
+        //  0.3.0 隔夜利息（swap）
+        // ══════════════════════════════════════════════════════════════
+
+        /// <summary>默认隔夜利息率：按名义仓位每天 0.02%。</summary>
+        public const float DefaultCarryRate = 0.0002f;
+
+        /// <summary>
+        /// 每日结算时收取隔夜利息：<c>Σ |units| × 现价 × 费率</c>。
+        ///
+        /// ── 为什么需要它（2026-10-23 分析）──
+        /// 没有持仓成本时，低杠杆"死扛等回本"是免费期权：
+        /// 实测 1x 下 93~97% 能在 120 日内等到 +0.35%，而输的那 3~5%
+        /// 永远不会被强制平仓。加了利息，"等"才开始有代价。
+        ///
+        /// 作用在**名义仓位**上，所以杠杆越高、每日成本占保证金的比例越大：
+        ///   1x → 0.02%/日，20x → 0.4%/日，100x → 2%/日。
+        /// </summary>
+        private void ChargeCarry(FxAccount acc)
+        {
+            if (acc == null || acc.positions == null || acc.positions.Count == 0) return;
+
+            RimForexSettings cfg = RimForexMod.Settings;
+            if (cfg != null && !cfg.enableCarry) return;
+            float rate = cfg != null ? cfg.carryRate : DefaultCarryRate;
+            if (rate <= 0f) return;
+
+            float total = 0f;
+            for (int i = 0; i < acc.positions.Count; i++)
+            {
+                var p = acc.positions[i];
+                if (p == null) continue;
+                float px = p.markRate > 0f ? p.markRate : p.entryRate;
+                total += Mathf.Abs(p.units) * px * rate;
+            }
+            if (total < 0.01f) return;
+
+            acc.balance -= total;
+            acc.carrySinceSettle += total;
+        }
+
+        // ══════════════════════════════════════════════════════════════
+        //  0.3.0 借贷体系
+        // ══════════════════════════════════════════════════════════════
+
+        /// <summary>四家借贷方的固定上限（银）。</summary>
+        public static readonly float[] LenderCap = { 2000f, 8000f, 10000f, 20000f };
+        /// <summary>四家借贷方的季利息率（单利，按本金）。</summary>
+        public static readonly float[] LenderRate = { 0.05f, 0.10f, 0.20f, 0.30f };
+        /// <summary>四家借贷方的期限（季）。0 = 无期限。</summary>
+        public static readonly int[] LenderTerm = { 1, 2, 3, 0 };
+        public const int LenderCount = 4;
+
+        /// <summary>
+        /// 某家的实际可借上限：<c>min(固定 × 3, 固定 + 净值 × 0.25)</c>。
+        ///
+        /// 固定值保底（前期够用），净值加成让后期仍有意义，×3 硬顶防失控。
+        /// </summary>
+        /// <summary>
+        /// 四家借贷方的名称与简介键。
+        ///
+        /// 写成字面量数组而不是运行时拼接键名：
+        /// audit 是逐字面量扫源码的，拼接出来的键它认不出，
+        /// 会把这些键当成"XML 里残留、代码里没用"直接判死。
+        /// </summary>
+        public static readonly string[] LenderNameKeys =
+        {
+            "RimForex_Loan0Name", "RimForex_Loan1Name", "RimForex_Loan2Name", "RimForex_Loan3Name"
+        };
+        public static readonly string[] LenderDescKeys =
+        {
+            "RimForex_Loan0Desc", "RimForex_Loan1Desc", "RimForex_Loan2Desc", "RimForex_Loan3Desc"
+        };
+
+        /// <summary>借贷方名称。</summary>
+        public static string LenderName(int lender)
+        {
+            return LenderNameKeys[Mathf.Clamp(lender, 0, LenderCount - 1)].Translate();
+        }
+
+        public float LenderLimit(int lender, FxAccount acc)
+        {
+            if (lender < 0 || lender >= LenderCount) return 0f;
+            float cap = LenderCap[lender];
+            float equity = acc != null ? Mathf.Max(0f, acc.Equity) : 0f;
+            return Mathf.Min(cap * 3f, cap + equity * 0.25f);
+        }
+
+        /// <summary>该家当前已借本金。</summary>
+        public float LenderBorrowed(int lender, FxAccount acc)
+        {
+            if (acc == null || acc.loans == null) return 0f;
+            float sum = 0f;
+            for (int i = 0; i < acc.loans.Count; i++)
+            {
+                var l = acc.loans[i];
+                if (l != null && l.lender == lender) sum += l.principal;
+            }
+            return sum;
+        }
+
+        /// <summary>账户的总欠款（本金 + 未付利息）。</summary>
+        public float TotalOwed(FxAccount acc)
+        {
+            if (acc == null || acc.loans == null) return 0f;
+            float sum = 0f;
+            for (int i = 0; i < acc.loans.Count; i++)
+            {
+                var l = acc.loans[i];
+                if (l != null) sum += l.Owed;
+            }
+            return sum;
+        }
+
+        /// <summary>借款。成功返回 true，失败时 <paramref name="error"/> 是翻译键。</summary>
+        public bool TryBorrow(FxAccount acc, int lender, float amount, out string error)
+        {
+            error = null;
+            if (acc == null) { error = "RimForex_LoanNoAccount"; return false; }
+            if (lender < 0 || lender >= LenderCount) { error = "RimForex_LoanNoAccount"; return false; }
+            if (acc.balance < 0f) { error = "RimForex_LoanNegative"; return false; }
+
+            float available = LenderLimit(lender, acc) - LenderBorrowed(lender, acc);
+            if (available < 1f) { error = "RimForex_LoanLimitReached"; return false; }
+            amount = Mathf.Floor(amount);
+            if (amount < 1f) { error = "RimForex_LoanTooSmall"; return false; }
+            if (amount > available) amount = Mathf.Floor(available);
+
+            // ── 借款是现金流，不是盈利 ──
+            // 不记进 cashFlowSinceSettle 的话，当日结算会把借来的钱算成"今天赚的"。
+            acc.balance += amount;
+            acc.cashFlowSinceSettle += amount;
+
+            acc.loans.Add(new FxLoan
+            {
+                lender = lender,
+                principal = amount,
+                unpaidInterest = 0f,
+                startTick = GenTicks.TicksGame,
+                quarters = 0,
+                termQuarters = LenderTerm[lender],
+                unpaidQuarters = 0,
+                // 第一季利息在整整一季后到期
+                // （nextDueTick 用 startTick + 一季，见 ProcessLoans）
+            });
+            // 立刻补上首次到期时间
+            acc.loans[acc.loans.Count - 1].startTick = GenTicks.TicksGame;
+            return true;
+        }
+
+        /// <summary>还款：先冲未付利息，再冲本金。</summary>
+        public void RepayLoan(FxAccount acc, FxLoan loan, float amount)
+        {
+            if (acc == null || loan == null) return;
+            amount = Mathf.Min(amount, acc.balance);
+            amount = Mathf.Min(amount, loan.Owed);
+            if (amount < 0.01f) return;
+
+            acc.balance -= amount;
+            acc.cashFlowSinceSettle -= amount;
+
+            float toInterest = Mathf.Min(amount, loan.unpaidInterest);
+            loan.unpaidInterest -= toInterest;
+            loan.principal -= (amount - toInterest);
+
+            if (loan.Owed <= 0.01f) acc.loans.Remove(loan);
+        }
+
+        /// <summary>逐笔检查到期利息。每 250 tick 调一次即可。</summary>
+        private void ProcessLoans()
+        {
+            if (GenTicks.TicksGame % 250 != 0) return;
+            if (accounts == null || accounts.Count == 0) return;
+
+            var keys = new List<int>(accounts.Keys);
+            for (int k = 0; k < keys.Count; k++)
+            {
+                var acc = accounts[keys[k]];
+                if (acc == null || acc.loans == null || acc.loans.Count == 0) continue;
+
+                for (int i = acc.loans.Count - 1; i >= 0; i--)
+                {
+                    var loan = acc.loans[i];
+                    if (loan == null) { acc.loans.RemoveAt(i); continue; }
+
+                    int due = loan.startTick + (loan.quarters + 1) * TicksPerQuadrum;
+                    if (GenTicks.TicksGame < due) continue;
+
+                    loan.quarters++;
+
+                    // 单利：基数永远是 principal
+                    float interest = loan.principal * LenderRate[loan.lender];
+                    loan.unpaidInterest += interest;
+
+                    float pay = Mathf.Min(acc.balance, loan.unpaidInterest);
+                    if (pay > 0.01f)
+                    {
+                        acc.balance -= pay;
+                        loan.unpaidInterest -= pay;
+                        loan.unpaidQuarters = 0;
+                    }
+                    else
+                    {
+                        loan.unpaidQuarters++;
+                    }
+
+                    // ── 违约：到期未清 / 连续两季付不出利息 ──
+                    bool overdue = loan.termQuarters > 0
+                                   && loan.quarters >= loan.termQuarters
+                                   && loan.Owed > 0.01f;
+                    bool broke = loan.unpaidQuarters >= 2;
+
+                    if (overdue || broke)
+                    {
+                        DefaultLoan(acc, loan);
+                        continue;
+                    }
+
+                    Messages.Message("RimForex_LoanInterestCharged".Translate(
+                        LenderName(loan.lender), interest.ToString("F0"), loan.Owed.ToString("F0")),
+                        MessageTypeDefOf.NeutralEvent, false);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 违约：把欠款一次性打进余额（可能转负），删掉贷款记录。
+        ///
+        /// 余额转负之后，E7 的收债流程会自然接管 —— 这就是"借钱不还"的下场。
+        /// </summary>
+        private void DefaultLoan(FxAccount acc, FxLoan loan)
+        {
+            if (acc == null || loan == null) return;
+            float owed = loan.Owed;
+            acc.balance -= owed;
+            acc.loans.Remove(loan);
+            Messages.Message("RimForex_LoanDefault".Translate(
+                LenderName(loan.lender), owed.ToString("F0")),
+                MessageTypeDefOf.NegativeEvent, false);
+        }
+
         /// <summary>
         /// 每日结算：只负责"世界事件"层面的事 —— 统计当日盈亏、发结算信件、给全体殖民者挂心情。
         /// 交易本身是实时的，不依赖这里。
@@ -3923,6 +4381,19 @@ namespace RimForex
                 // ② 只结算还活着的殖民地。非空但地图已消失的账户保留数据，
                 //    但不再发信、不再改状态（玩家哪天回来还能看到历史）。
                 if (!liveIds.Contains(keys[k])) continue;
+
+                // ③ 隔夜利息（0.3.0）：按名义仓位每日收取
+                ChargeCarry(acc);
+
+                // ④ 负余额计时（E7 收债用；preview1 只记录，不触发）
+                if (acc.balance < 0f)
+                {
+                    if (acc.negativeSinceTick <= 0) acc.negativeSinceTick = GenTicks.TicksGame;
+                }
+                else
+                {
+                    acc.negativeSinceTick = 0;
+                }
 
                 ReportDaily(acc);
             }
@@ -4064,6 +4535,14 @@ namespace RimForex
                     (pnl + acc.feesSinceSettle).ToString("+0;-0;0"));
             }
 
+            // 隔夜利息单独一行：它是"持仓成本"，和开平手续费不是一回事。
+            // 混在一起玩家会算不明白"为什么今天什么都没做也在亏"。
+            if (acc.carrySinceSettle >= 0.5f)
+            {
+                feeLine += "\n" + "RimForex_LetterCarry".Translate(
+                    acc.carrySinceSettle.ToString("F0"));
+            }
+
             if (pnl >= 0f)
             {
                 label = "RimForex_LetterProfit".Translate();
@@ -4089,6 +4568,15 @@ namespace RimForex
         {
             base.ExposeData();
             Scribe_Deep.Look(ref market, "market");
+            Scribe_Collections.Look(ref pendingEvents, "pendingEvents", LookMode.Deep);
+            Scribe_Values.Look(ref lastWorldEventTick, "lastWorldEventTick", -999999);
+            Scribe_Values.Look(ref platformFactionLoadID, "platformFactionLoadID", 0);
+            Scribe_Values.Look(ref nextNewsTick, "nextNewsTick", 0);
+            Scribe_Collections.Look(ref refugeePawnIds, "refugeePawnIds", LookMode.Value);
+            Scribe_Collections.Look(ref weakenedSettlements, "weakenedSettlements", LookMode.Deep);
+            if (pendingEvents == null) pendingEvents = new List<FxPendingEvent>();
+            if (refugeePawnIds == null) refugeePawnIds = new List<int>();
+            if (weakenedSettlements == null) weakenedSettlements = new List<FxWeakenedSettlement>();
             Scribe_Collections.Look(ref accounts, "accounts", LookMode.Value, LookMode.Deep);
             Scribe_Values.Look(ref nextSettlementTick, "nextSettlementTick", TicksPerDay);
             Scribe_Values.Look(ref lastSettledDay, "lastSettledDay", int.MinValue);

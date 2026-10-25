@@ -280,4 +280,50 @@
   <RimForex_HistoryCopy>复制交易报告</RimForex_HistoryCopy>
   <RimForex_HistoryCopyTip>把当前显示的 {0} 笔交易导出为纯文本并复制到系统剪贴板，可粘贴到任意外部程序。</RimForex_HistoryCopyTip>
   <RimForex_HistoryCopyHint>纯文本 · 制表符分隔 · 本次导出 {0} 笔</RimForex_HistoryCopyHint>
+  <!-- ================= 0.3.0 借贷体系 ================= -->
+  <RimForex_LoanGizmo>官方借贷服务</RimForex_LoanGizmo>
+  <RimForex_LoanGizmoDesc>四家机构提供保证金贷款。利息按季（15 日）以单利计算，逾期后果由各家自行处理。</RimForex_LoanGizmoDesc>
+  <RimForex_LoanTitle>官方借贷服务</RimForex_LoanTitle>
+  <RimForex_LoanSummary>账户余额 {0} 银　·　总负债 {1} 银　·　净资产 {2} 银</RimForex_LoanSummary>
+  <RimForex_LoanLimit>上限 {0} 银（已借 {1}，可借 {2}）</RimForex_LoanLimit>
+  <RimForex_LoanRate>季利息 {0}%　·　{1}</RimForex_LoanRate>
+  <RimForex_LoanTerm>期限 {0} 季</RimForex_LoanTerm>
+  <RimForex_LoanTermNone>无固定期限</RimForex_LoanTermNone>
+  <RimForex_LoanQuarterDue>本季应付利息：{0} 银</RimForex_LoanQuarterDue>
+  <RimForex_LoanOwed>当前欠款：{0} 银</RimForex_LoanOwed>
+  <RimForex_LoanBorrow>借款</RimForex_LoanBorrow>
+  <RimForex_LoanRepay>还款</RimForex_LoanRepay>
+  <RimForex_LoanBorrowTip>借入的保证金直接进账户余额。输入 0 表示借满可借额度。</RimForex_LoanBorrowTip>
+  <RimForex_LoanRepayTip>用账户余额还清这家：先冲未付利息，再冲本金。</RimForex_LoanRepayTip>
+  <RimForex_LoanBorrowed>已借入 {0} 银</RimForex_LoanBorrowed>
+  <RimForex_LoanRepaid>已还款</RimForex_LoanRepaid>
+  <RimForex_LoanNoAccount>账户不存在</RimForex_LoanNoAccount>
+  <RimForex_LoanNegative>余额为负时不能借款</RimForex_LoanNegative>
+  <RimForex_LoanLimitReached>已达到这家的借款上限</RimForex_LoanLimitReached>
+  <RimForex_LoanTooSmall>借款金额太小</RimForex_LoanTooSmall>
+  <RimForex_LoanInterestCharged>{0} 提醒你：本季利息 {1} 银，当前欠款 {2} 银</RimForex_LoanInterestCharged>
+  <RimForex_LoanDefault>{0} 宣布你违约：欠款 {1} 银已直接计入账户</RimForex_LoanDefault>
+  <RimForex_LoanFooter>单利：每季按本金收固定比例，利息不滚入本金。到期未清，或连续两季付不出利息，即视为违约 —— 欠款会一次性打进账户余额（可能转负）。</RimForex_LoanFooter>
+  <RimForex_Loan0Name>明日必还银行</RimForex_Loan0Name>
+  <RimForex_Loan0Desc>本行以短期周转为核心业务，还款期限严格限定为"明天"。明日复明日，明日何其多；但在本行，明日只有一个。逾期客户将自动进入"末日火箭催收程序"。该程序流程极简：客服、申诉、缓冲期一概省略，只保留落点。建议您在借款当日就完成还款，以免遭遇不必要的轨道飞行事故。</RimForex_Loan0Desc>
+  <RimForex_Loan1Name>器官期货小额贷款</RimForex_Loan1Name>
+  <RimForex_Loan1Desc>本产品以生物资产为标的，接受未来身体使用权作为还款担保。利率按心跳频率浮动，新鲜度决定授信额度。还款方式灵活：可一次性交割，也可分期摘取。请注意，逾期费用以手术排期的形式结算。我们与本地医疗团队长期合作，确保流程卫生、高效、不可逆。</RimForex_Loan1Desc>
+  <RimForex_Loan2Name>虫巢信用合作社</RimForex_Loan2Name>
+  <RimForex_Loan2Desc>本社以社区互助为宗旨，向成员提供低利率、高繁殖的信贷服务。社员资格宽松，还款要求宽松，成员数量增长则另有安排。如遇还款困难，您将有机会直接转为永久社员，融入巢穴、共享体温、从此告别钱包。我们相信，同化的效率远高于清偿。</RimForex_Loan2Desc>
+  <RimForex_Loan3Name>最后一条腿信贷</RimForex_Loan3Name>
+  <RimForex_Loan3Desc>本机构为流动性紧张的殖民者提供紧急周转方案，抵押物接受白银、零部件及生物附属肢体。我们清楚，一个人决定跑路的时候，债务最好别拖后腿。所以逾期处理流程高度简化：回收您跑路所必需的那条腿，其余部分您可自行保留。催收方式也极为克制——全程安静，只在您起跑的那一刻出现在身后。</RimForex_Loan3Desc>
+  <RimForex_LetterCarry>隔夜利息 −{0} 银</RimForex_LetterCarry>
+
+  <!-- 0.3.0 设置 -->
+  <RimForex_Set_CarryHeader>隔夜利息（持仓成本）</RimForex_Set_CarryHeader>
+  <RimForex_Set_EnableCarry>收取隔夜利息</RimForex_Set_EnableCarry>
+  <RimForex_Set_EnableCarryTip>按名义仓位每天收取。关掉后"死扛等回本"又变成免费期权。</RimForex_Set_EnableCarryTip>
+  <RimForex_Set_CarryRate>费率 {0}%/日</RimForex_Set_CarryRate>
+  <RimForex_Set_CarryRateTip>作用在名义仓位上：1x 时等于本金的费率，20x 时是 20 倍，100x 时是 100 倍。</RimForex_Set_CarryRateTip>
+  <RimForex_Set_EventsHeader>世界事件</RimForex_Set_EventsHeader>
+  <RimForex_Set_EnableEvents>启用世界事件</RimForex_Set_EnableEvents>
+  <RimForex_Set_EnableEventsTip>货币暴涨暴跌、战争新闻、做空报复、穿仓收债等。</RimForex_Set_EnableEventsTip>
+  <RimForex_Set_EventFreq>频率 ×{0}</RimForex_Set_EventFreq>
+  <RimForex_Set_EventFreqTip>缩放的是触发阈值（以 σ 为单位），不是概率：数值越大越频繁。</RimForex_Set_EventFreqTip>
+
 </LanguageData>

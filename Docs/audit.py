@@ -1401,6 +1401,46 @@ def main():
         fail += 1
         print("  !! 最小值跟随被删了 —— 1x 点最小值再拉到 100x 会保留旧金额")
 
+    # ---- 14. 0.3.0：隔夜利息 + 借贷体系（preview1）----
+    core14 = re.sub(r"//[^\n]*", "", core)
+
+    if "ChargeCarry(acc)" in core14 and "RimForex_LetterCarry" in core14:
+        print("  OK 隔夜利息在结算时收取，并写进结算信")
+    else:
+        fail += 1
+        print("  !! 隔夜利息没接进结算，或结算信没有单列一行")
+
+    # 单利：利息只能按 principal 算，不得资本化进欠款
+    if re.search(r"loan\.principal \* FxGameComponent\.LenderRate|loan\.principal \* LenderRate", core14):
+        print("  OK 利息按本金计算（单利）")
+    else:
+        fail += 1
+        print("  !! 利息不再按本金计算 —— 单利语义被改")
+    if re.search(r"owed \*= |unpaidInterest \*= |principal \+=", core14):
+        fail += 1
+        print("  !! 出现利息资本化写法（*= 或 principal +=）—— 必须是单利")
+
+    # 借款必须计入现金流，否则当日结算把借款算成盈利
+    if re.search(r"cashFlowSinceSettle \+= amount", core14):
+        print("  OK 借款计入现金流（不会被算成当日盈利）")
+    else:
+        fail += 1
+        print("  !! 借款没进 cashFlowSinceSettle —— 结算会把借款当盈利")
+
+    # 上限必须走缩放函数
+    if "LenderLimit(" in core14 and "TryBorrow" in core14:
+        print("  OK 借款上限经过 LenderLimit（随净值缩放）")
+    else:
+        fail += 1
+        print("  !! 借款上限没有走缩放函数")
+
+    # 违约必须打进余额
+    if re.search(r"acc\.balance -= owed;", core14):
+        print("  OK 违约把欠款打进余额（会转负 → 交给收债流程）")
+    else:
+        fail += 1
+        print("  !! 违约没有写进余额 —— 借钱不还会没有代价")
+
     print()
     print("结果:", "全部通过" if fail == 0 else "%d 项失败" % fail)
     return 1 if fail else 0
