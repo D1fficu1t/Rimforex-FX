@@ -411,11 +411,7 @@
   <RimForex_DiagFactions>可派陆路商队：{0} 家｜只能派轨道贸易船：{1} 家｜帝国征收队：{2} 家</RimForex_DiagFactions>
   <!-- 0.3.0 帝国征收队（Royalty：唯一不受皇家许可限制的帝国来访）-->
   <RimForex_EvTributeLetterLabel>{0}：征收队</RimForex_EvTributeLetterLabel>
-  <RimForex_Ev1TributeLetter>帝国注意到了 {0} 货币的异动，派了一支征收队前来「核实情况」。
-
-他们不卖东西。想让他们满意，就用白银换好感。
-
-（帝国的正常商队需要皇家许可，征收队不需要。）</RimForex_Ev1TributeLetter>
+  <RimForex_Ev1TributeLetter>帝国注意到了 {0} 货币的异动，派了一支征收队前来「核实情况」。\n\n他们不卖东西。想让他们满意，就用白银换好感。</RimForex_Ev1TributeLetter>
   <RimForex_Ev2TributeLetter>{0} 的货币一天之内跌了 {1}%。帝国对你的偿付能力产生了兴趣，派了一支征收队过来。
 
 他们不卖东西。想让他们满意，就用白银换好感。</RimForex_Ev2TributeLetter>
@@ -450,7 +446,7 @@
   <RimForex_MsgTestCrisisFail>当前没有进行中的报复循环</RimForex_MsgTestCrisisFail>
   <RimForex_Ev6Crisis1>{0} 的交易所今天开盘即崩盘。股民从楼顶排队，企业连夜注销，散户把棺材本换成了废纸。\n\n{1} 名公民失去资产和国籍，抢了一艘空投仓想换个地方重新开始。导航系统坏了，他们摔在你的殖民地外面。\n\n你可以救，也可以趁他们还活着把器官割下来。法律上没人会追究。</RimForex_Ev6Crisis1>
   <RimForex_Ev6Crisis2>{0} 的央行宣布「一切正常」，然后关门跑路。银行挤兑，超市被搬空，第二波跳楼潮赶在午休前完成。\n\n{1} 名难民挤进同一艘空投仓，超载警报响了十二分钟。他们摔在你的殖民地外面，还有气。\n\n救不救，看你今天心情。</RimForex_Ev6Crisis2>
-  <RimForex_Ev6Crisis3>{0} 的货币已经买不到面包。军队开始抢劫自己的补给站，公务员烧掉工牌，富人用金条点烟，然后发现金条也不值钱了。\n\n{1} 名难民在真空里飘了三天才落到你的殖民地外面。他们可能还活着。\n\n救人是笔投资，收割是笔现货。</RimForex_Ev6Crisis3>
+  <RimForex_Ev6Crisis3>{0} 的货币已经买不到面包。军队开始抢劫自己的补给站，公务员烧掉工牌，富人把金条熔了当废铁卖。\n\n{1} 名难民在真空里飘了三天才落到你的殖民地外面。他们可能还活着。\n\n救人是笔投资，收割是笔现货。</RimForex_Ev6Crisis3>
   <RimForex_Ev6Crisis4>{0} 只剩下一个名字。城市在烧，广播在循环播放「请保持冷静」，然后广播站也烧了。\n\n{1} 名难民把自己塞进逃生舱，没填目的地。他们落在你的殖民地外面，姿势不太好看。\n\n他们身上还有能用的零件。</RimForex_Ev6Crisis4>
   <RimForex_Ev6Crisis5>{0} 已经名存实亡。城市在燃烧，难民四处奔波，这个派系随时可能灰飞烟灭。\n\n他们的据点纷纷宣布独立，可外面的世界危机四伏，于是这些新生的城邦选择继续挂着旧派系的名义，抱团取暖。\n\n{1} 名难民落在你的殖民地外面。这是他们最后一次降落。\n\n救，还是拆，随你。</RimForex_Ev6Crisis5>
   <!-- 0.3.0 E7 穿仓收债 -->
@@ -505,4 +501,5 @@
   <RimForex_Ev8Letter>你的账户余额已经是负数，却还挂着 {0} 笔仓位。\n\n本平台没有义务陪你赌下去。所有持仓已按市价强制平仓，所得先用于抵债。\n\n如果还有剩下的缺口，清算部的人会面对面来找你谈。</RimForex_Ev8Letter>
   <RimForex_Ev7OverdueLabel>清算部不再等了</RimForex_Ev7OverdueLabel>
   <RimForex_Ev7Overdue>三天过去了，你既没付钱，也没交人。收债人转身就走，一句话都没说。\n\n他回去交报告了。\n\n机械族已经在路上了。</RimForex_Ev7Overdue>
+  <RimForex_Ev6Foot>你可以继续做空他们的货币，或者大发慈悲平仓，让这场金融危机停下来。\n\n如果不那样做，袭击会持续发生。</RimForex_Ev6Foot>
 </LanguageData>

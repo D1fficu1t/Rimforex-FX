@@ -5626,7 +5626,8 @@ namespace RimForex
 
             Find.LetterStack.ReceiveLetter(
                 "RimForex_Ev6LetterLabel".Translate(f.Name),
-                "RimForex_Ev6Letter".Translate(f.Name, notional.ToString("F0")),
+                "RimForex_Ev6Letter".Translate(f.Name, notional.ToString("F0"))
+                    + "\n\n" + "RimForex_Ev6Foot".Translate(),
                 LetterDefOf.ThreatBig);
         }
 
@@ -5708,7 +5709,8 @@ namespace RimForex
             int tier = Mathf.Clamp(r.crisisCount, 1, E6CrisesToDefeat);
             Find.LetterStack.ReceiveLetter(
                 "RimForex_Ev6CrisisLabel".Translate(fname, tier.ToString()),
-                CrisisTextKeys[tier - 1].Translate(fname, count.ToString()),
+                CrisisTextKeys[tier - 1].Translate(fname, count.ToString())
+                    + "\n\n" + "RimForex_Ev6Foot".Translate(),
                 LetterDefOf.ThreatBig);
 
             // 先让第 5 封信落地，两小时后再宣布名存实亡。

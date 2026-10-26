@@ -400,11 +400,7 @@ This is a blow-up: the debt must be covered. Deposit silver at the terminal to b
   <RimForex_DiagFactions>Caravan-capable: {0} | orbital only: {1} | Imperial tribute: {2}</RimForex_DiagFactions>
   <!-- 0.3.0 Imperial tribute collector (Royalty: the only Empire visit not gated by permits) -->
   <RimForex_EvTributeLetterLabel>{0}: tribute collector</RimForex_EvTributeLetterLabel>
-  <RimForex_Ev1TributeLetter>The Empire noticed the movement in {0}'s currency and has sent a tribute collector to "verify the situation".
-
-They do not sell anything. If you want them satisfied, silver buys goodwill.
-
-(The Empire's regular caravans require a royal permit. Tribute collectors do not.)</RimForex_Ev1TributeLetter>
+  <RimForex_Ev1TributeLetter>The Empire noticed the movement in {0}'s currency and has sent a tribute collector to verify the situation.\n\nThey do not sell anything. If you want them satisfied, silver buys goodwill.</RimForex_Ev1TributeLetter>
   <RimForex_Ev2TributeLetter>{0}'s currency fell {1}% in a single day. The Empire has taken an interest in your solvency and sent a tribute collector.
 
 They do not sell anything. If you want them satisfied, silver buys goodwill.</RimForex_Ev2TributeLetter>
@@ -439,17 +435,13 @@ Their settlements remain on the world as independent places that still fly the o
   <RimForex_MsgTestCrisisFail>No retaliation loop is active</RimForex_MsgTestCrisisFail>
   <RimForex_Ev6Crisis1>{0}'s exchange opened and immediately collapsed. Traders queued on the rooftops, companies dissolved overnight, and small investors traded their funeral money for wallpaper.\n\n{1} citizens lost their assets and citizenship, seized a drop pod, and tried to start over somewhere else. The navigation failed. They landed outside your colony.\n\nYou can save them, or harvest the organs while they are still breathing. Nobody will press charges.</RimForex_Ev6Crisis1>
   <RimForex_Ev6Crisis2>{0}'s central bank announced that everything was fine, then locked the doors and left. Bank run, empty shelves, and a second wave of rooftop queues finished before lunch.\n\n{1} refugees crammed into one pod. The overload alarm sounded for twelve minutes. They landed outside your colony, still breathing.\n\nWhether that is good news is up to you.</RimForex_Ev6Crisis2>
-  <RimForex_Ev6Crisis3>{0}'s currency no longer buys bread. The army is looting its own depots, officials are burning their badges, and the rich are lighting cigars with gold bars - which they have just discovered are also worthless.\n\n{1} refugees drifted in vacuum for three days before landing outside your colony. They may still be alive.\n\nRescuing them is an investment. Harvesting them is cash on delivery.</RimForex_Ev6Crisis3>
+  <RimForex_Ev6Crisis3>{0}'s currency no longer buys bread. The army is looting its own depots, officials are burning their badges, and the rich are melting down gold bars to sell as scrap.\n\n{1} refugees drifted in vacuum for three days before landing outside your colony. They may still be alive.\n\nRescuing them is an investment. Harvesting them is cash on delivery.</RimForex_Ev6Crisis3>
   <RimForex_Ev6Crisis4>Nothing is left of {0} but the name. The cities are burning, the emergency broadcast keeps repeating "please remain calm", and then the broadcast station burned too.\n\n{1} refugees stuffed themselves into escape pods without entering a destination. They landed outside your colony, in unflattering positions.\n\nThey still have usable parts.</RimForex_Ev6Crisis4>
   <RimForex_Ev6Crisis5>{0} barely exists anymore. The cities are burning, refugees are scattered, and the faction could vanish at any moment.\n\nTheir settlements have all declared independence - but the world outside is dangerous, so these newborn city-states chose to keep flying the old flag and huddle together.\n\n{1} refugees came down outside your colony. This is their last landing.\n\nSave them or take them apart. Your call.</RimForex_Ev6Crisis5>
   <!-- 0.3.0 E7 debt collection -->
   <RimForex_PlatformName>FX Exchange Collections</RimForex_PlatformName>
   <RimForex_Ev7LetterLabel>The collector has arrived</RimForex_Ev7LetterLabel>
-  <RimForex_Ev7Letter>Your account with us has blown up. You owe {0} silver.
-
-Collections has sent a man. You have {1} days to settle: pay, hand someone over, or hit him.
-
-We have seen the third option before. The paperwork is well established.</RimForex_Ev7Letter>
+  <RimForex_Ev7Letter>Your account with us has blown up. You owe {0} silver.\n\nCollections has sent a man. You have {1} days to settle: pay, hand someone over, or beat his ass up.\n\nWe have seen the third option before. The paperwork is well established.</RimForex_Ev7Letter>
   <RimForex_Ev7WindowTitle>Debt settlement</RimForex_Ev7WindowTitle>
   <RimForex_Ev7WindowSub>Outstanding {0} silver   ·   {1} day(s) left</RimForex_Ev7WindowSub>
   <RimForex_Ev7WindowBody>We offer three ways to close this. Pick one. Do not keep him waiting - he brought a gun and a great deal of patience.</RimForex_Ev7WindowBody>
@@ -494,4 +486,5 @@ Let him reach the map edge, or put him down here. Either way, Collections will w
   <RimForex_Ev8Letter>Your balance is negative and you still have {0} position(s) open.\n\nWe are under no obligation to keep betting with you. Every position has been closed at market price, and the proceeds go against the debt.\n\nIf anything is still outstanding, someone from Collections will come and discuss it with you in person.</RimForex_Ev8Letter>
   <RimForex_Ev7OverdueLabel>Collections stopped waiting</RimForex_Ev7OverdueLabel>
   <RimForex_Ev7Overdue>Three days passed. No payment, no handover. The collector turned and walked away without a word.\n\nHe has gone back to file his report.\n\nThe mechanoids are already on their way.</RimForex_Ev7Overdue>
+  <RimForex_Ev6Foot>You can keep shorting their currency, or show some mercy, close the position and let this financial crisis end.\n\nIf you do neither, the raids will continue.</RimForex_Ev6Foot>
 </LanguageData>
