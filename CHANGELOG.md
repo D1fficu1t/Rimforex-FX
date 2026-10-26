@@ -1,199 +1,101 @@
 # 更新记录 / Changelog
 
-## 0.3.0-preview4
+## 0.3.0
 
-> 第四个 preview（最后一个功能版）：**做空报复 + 穿仓收债**。
-
-### 中文
-
-**新增**
-
-- **世界事件：做空报复。** 如果某个派系的货币被你做空到
-  `max(200,000, 你的净值 × 3)` 以上并维持三天，他们会认为这是攻击：
-  好感直接压到 −100，然后每两天派一次袭击，直到你平掉空单。
-- **金融危机。** 每十次袭击触发一次：该货币**永久贬值 10%**，
-  殖民地边缘会掉下来三到五个无派系难民。连出五次，这个派系就名存实亡 ——
-  不再发动袭击、不再派商队，货币从市场上摘牌（持仓按市价强制平仓）。
-  五次危机的信件一次比一次绝望。
-- **穿仓收债。** 账户余额为负满两天后，清算部会派人上门。
-  你有三天时间：付清、交人抵债，或者动手。
-  动手的代价是一次机械族袭击加一年账户冻结（不能开仓、不能提款）。
-
-**其他**
-
-- 隔夜利息、托管费、贷款利息现在会作为**费用凭证**写进交易历史，
-  不再"扣了钱查不到"。
-- 新增四个测试按钮：做空报复 / 立即触发危机 / 触发收债。
-
-### English
-
-**Added**
-
-- **World event: short-squeeze retaliation.** Short a faction's currency up to
-  `max(200,000, 3x your net worth)` and hold it for three days, and they treat it as an attack:
-  goodwill drops to -100, and they raid every two days until you close the position.
-- **Financial crisis.** Every ten raids: the currency loses **10% permanently**, and
-  three to five factionless refugees crash-land at the edge of your colony. Five crises and
-  the faction is finished - no more raids, no more caravans, and its currency is delisted
-  (open positions are force-closed at market price). The five crisis letters get progressively
-  bleaker.
-- **Debt collection.** Two days in the red and Collections sends someone. You get three days:
-  pay, hand over people, or fight. Fighting costs you a mechanoid raid and a one-year account
-  freeze (no positions, no withdrawals).
-
-**Other**
-
-- Overnight interest, custody fees and loan interest are now recorded in the trade history
-  as fee receipts, so the money is always traceable.
-- Four new test buttons.
-
----
-
-## 0.3.0-preview3
-
-> 第三个 preview：**货币暴跌（商队 / 削守军）+ 战争新闻**。
+> 相对 0.2.4：新增了一整套**借贷、世界事件、收债**体系。
 
 ### 中文
 
 **新增**
 
-- **世界事件：货币暴跌。** 某个派系的货币单日跌幅超过 2.5σ 时：
-  - 中立/友好派系：两天后派**清库存的商队**，谈价更容易（议价优势持续 5 天）
-  - 帝国：派**征收队**（帝国正常商队要皇家许可，征收队不要）
-  - 敌对派系：挑它一个据点，**10 天内去打，守军少一半**
-- **世界事件：战争新闻。** 每 8~12 天，两个敌对派系之间会打一仗。
-  有六成概率这变成趋势：赢家的货币走强，输家的货币走弱，持续 3 天。
-  信里会写明这个概率。
-
-**其他**
-
-- 新增两个测试按钮：「测试：货币暴跌」「测试：战争新闻」。
-
-### English
-
-**Added**
-
-- **World event: currency crash.** When a faction's currency falls more than 2.5 sigma in a day:
-  - Non-hostile factions send a **clearance caravan** two days later; you get a bargaining edge
-    for 5 days.
-  - The Empire sends a **tribute collector** instead (Imperial caravans need a royal permit;
-    tribute collectors do not).
-  - Hostile factions: pick one of their settlements. **Attack within 10 days and half the
-    defenders are gone.**
-- **World event: war news.** Every 8-12 days two hostile factions fight. There is a 60% chance
-  it becomes a trend: the winner's currency strengthens, the loser's weakens, for 3 days.
-  The letter states the probability.
-
-**Other**
-
-- Two new test buttons: "currency crash" and "war news".
-
----
-
-## 0.3.0-preview2
-
-> 第二个 preview：**新手教程 + 第一个世界事件 + 托管费**。
-
-### 中文
-
-**新增**
-
-- **新手教程**：终端底部新增「新手教程」按钮，随时可以重新打开。
-  五节内容：什么时候做多、什么时候做空、为什么会爆仓与穿仓、K 线怎么看、新手怎么盈利。
-  K 线一节还画了一张示意图。
-- **世界事件：货币暴涨。** 某个派系的货币单日涨幅超过 2.5σ 时会发生：
-  - 中立/友好派系：两天后派**商队**来扫货（他们带的白银比平时多）
-  - 敌对派系（来不了商队）：三天后有三成概率发动一次**点数更高的袭击**
-- **世界事件：外汇奇才。** 单日通过外汇赚到 10,000 银（或净值的 5%）以上时，
-  各派系好感 +6；同时有三成半的概率招来一次额外袭击。
-- **托管费**：账户余额超过 20,000 的部分，每天收取 **3%**。
-  这笔钱以前可以完全免费地存在账户里躲避袭击，现在有成本了。
+- **官方借贷服务**：终端命令栏多一个入口，四家机构（2,000 / 8,000 / 10,000 / 20,000 上限），
+  利息按日累计、单利不滚本金，期限 3 / 6 / 10 日与无期限。
+  到期未清或连续 3 日付不出利息即违约，欠款一次性打进余额。
+  借款上限随净值缩放，且按「净值 − 负债」计算，借钱不会抬高自己的额度。
+- **隔夜利息**：持仓每天按名义仓位收 0.2%。终端状态行直接标出当前费率。
+- **托管费**：账户余额超过 20,000 的部分每天收 3%。
+  以前把钱存在账户里躲袭击是完全免费的。
+- **费用凭证**：隔夜利息、托管费、贷款利息每天都会作为一条记录写进交易历史，
+  不会再出现「扣了钱却查不到」。
+- **新手教程**：终端底部常驻入口。五节内容加一张现画的 K 线示意图，
+  正经建议藏在「老油条的忠告」彩蛋里。
+- **世界事件系统**（可在设置里整体开关，冷却与概率都有滑块）：
+  - **货币暴涨**：单日（盘中实时判定）涨幅越过阈值时，中立派系两天后派商队来扫货；
+    只能走轨道贸易的派系派贸易船；帝国派征收队；敌对派系则有三成到六成概率发动袭击。
+  - **货币暴跌**：中立派系派清库存的商队，谈价更占优势；
+    敌对派系的据点会在 10 天内守备空虚，去打能少一半守军。
+  - **外汇奇才**：单日赚到大钱会让各派系刮目相看（好感 +6），也可能招来不速之客。
+  - **战争新闻**：两个敌对派系开战，接下来三天双方货币会走出缓坡。
+  - **做空报复**：把某个派系的货币做空到足够大并维持三天，他们会翻脸，
+    每两天来一次袭击，直到你平仓。每十次袭击引发一次金融危机：
+    货币永久贬值 10%，殖民地边缘会掉下无派系难民；五次危机之后该派系名存实亡，
+    货币下架、持仓强制平仓，据点仍留在地图上。
+  - **穿仓收债**：余额为负满两天，清算部会派一名收债人和两名武装随从上门。
+    你可以付清、交人抵债，或者动手。动手会招来机械族袭击并冻结账户一年，
+    冻结满 30 天后仍可借款翻身。
+- **平台强制清算**：余额已经为负却还挂着仓位时，平台会直接按市价全部强平补债。
 
 **修复**
 
 - **追加保证金后，K 线上的爆仓线不会移动**，而且价格跌破线也不爆仓。
-  原因是画线用的是初始保证金，强平判据用的却是含追加的保证金，两边差一个追加额。
-  现在两者同口径，补了保证金线会如实往外移。
-- 关掉「世界事件」后，已经从队列里排上的商队/袭击仍然会执行。现在关闭时会一并清空。
+  原因是画线用初始保证金、强平判据用含追加的保证金，两边差一个追加额。
+- **极端跳空只会爆仓、不会穿仓**：跳空的幅度被盘内子步摊平，
+  价格一格格走过强平线，在中间就被平掉了。现在跳空是瞬间到位的。
 
 **其他**
 
-- 结算信会把「隔夜利息」「贷款利息」「托管费」分列，各自独立。
+- 模组设置重排：世界事件在最上面，调试用的测试按钮折叠到最下面。
+- 新增中文 / 英文对应的全部界面与信件文本。
 
 ### English
 
 **Added**
 
-- **Beginner's guide**: a new button at the bottom of the terminal; reopen it any time.
-  Five sections: when to go long, when to go short, why positions get liquidated, reading candles
-  (with a diagram), and how beginners actually make money.
-- **World event: currency surge.** When a faction's currency rises more than 2.5 sigma in one day:
-  - Non-hostile factions send a **caravan** two days later, carrying more silver than usual.
-  - Hostile factions (who cannot send caravans) have a 30% chance to launch a **stronger raid**
-    after three days.
-- **World event: currency prodigy.** Earning 10,000 silver (or 5% of net worth) in one day
-  raises every faction's goodwill by 6 — and has a 35% chance to draw an extra raid.
-- **Custody fee**: balance above 20,000 silver is charged **3%** per day.
+- **Official lending service**: four institutions (limits 2,000 / 8,000 / 10,000 / 20,000),
+  simple interest accrued daily, terms of 3 / 6 / 10 days or open-ended.
+  Default after the term, or after three unpaid days of interest, charges the debt to your balance.
+  Limits scale with net worth and are computed as net worth minus existing debt, so borrowing
+  never raises your own ceiling.
+- **Overnight interest**: 0.2% of notional per day. The current rate is shown in the terminal
+  status line.
+- **Custody fee**: 3% per day on any balance above 20,000 silver.
   Parking silver in the account to dodge raids is no longer free.
+- **Fee receipts**: overnight interest, custody fees and loan interest are now recorded in the
+  trade history, so the money is always traceable.
+- **Beginner's guide**: a permanent entry at the bottom of the terminal. Five sections plus a
+  hand-drawn candle diagram; the honest advice is hidden behind an easter egg.
+- **World events** (master switch, cooldown and probability sliders in the settings):
+  - **Currency surge**: judged intraday. Neutral factions send a caravan two days later;
+    factions that only trade from orbit send a trade ship; the Empire sends a tribute collector;
+    hostile factions have a 30-60% chance to raid.
+  - **Currency crash**: neutral factions send a clearance caravan and you get a bargaining edge;
+    hostile settlements are left under-defended for 10 days.
+  - **Currency prodigy**: a big one-day win raises goodwill by 6 across the board, and may attract
+    uninvited guests.
+  - **War news**: two hostile factions fight, and both currencies drift over the next three days.
+  - **Short-squeeze retaliation**: short a faction's currency hard enough for three days and they
+    turn hostile, raiding every two days until you close the position. Every ten raids triggers a
+    financial crisis: the currency loses 10% permanently and factionless refugees crash-land at the
+    edge of your colony. Five crises and the faction is finished - its currency is delisted and open
+    positions are force-closed, though its settlements remain on the map.
+  - **Debt collection**: two days in the red and Collections sends a collector with two armed
+    escorts. Pay, hand people over, or fight. Fighting brings a mechanoid raid and a one-year
+    account freeze; borrowing reopens 30 days into the freeze.
+- **Forced liquidation**: if the balance is negative while positions are still open, the platform
+  closes everything at market to cover the debt.
 
 **Fixed**
 
-- The stop-out line on the chart did not move after adding margin, and price could cross it
-  without a liquidation. The line was drawn from the initial margin while the actual rule used
-  margin including top-ups; both now use the same basis.
-- Turning world events off did not stop caravans or raids that were already queued.
+- **The stop-out line did not move after adding margin**, and price could cross it without a
+  liquidation. The line was drawn from the initial margin while the rule used margin including
+  top-ups; both now use the same basis.
+- **Extreme gaps only ever caused a margin call, never a blow-up**: the gap was smoothed across
+  intraday sub-steps and the position was closed halfway down. Gaps now land in one step.
 
 **Other**
 
-- Settlement letters now list overnight interest, loan interest and custody fees separately.
-
----
-
-## 0.3.0-preview1
-
-> 0.3.0 分四个 preview 逐步上线，这是第一个：**地基 + 借贷 + 隔夜利息**。
-> 世界事件（暴涨暴跌、战争新闻、做空报复、穿仓收债）在后续 preview 加入。
-
-### 中文
-
-**新增**
-
-- **官方借贷服务**：终端上多了一个 gizmo，点开是四家放贷机构。
-  借款上限随你的账户净值缩放，利息**按日**以**单利**累计（季利息率 ÷ 15，例如 5%/季 = 0.33%/日），
-  界面会直接告诉你每日利息和还剩几天。
-  - 明日必还银行：上限 2,000，季利息 5%，**期限 3 日**
-  - 器官期货小额贷款：上限 8,000，季利息 10%，期限 6 日
-  - 虫巢信用合作社：上限 10,000，季利息 20%，期限 10 日
-  - 最后一条腿信贷：上限 20,000，季利息 30%，**无固定期限**
-  到期未清、或连续两季付不出利息即视为违约，欠款会被一次性打进账户余额。
-- **隔夜利息**：持仓现在每天按名义仓位收取 **0.2%** 的持仓成本。
-  以前"死扛等回本"没有代价，现在有了。可在设置里调整费率或关掉。
-
-**其他**
-
-- 模组设置新增「隔夜利息」与「世界事件」两节：
-  隔夜利息固定为 0.2%/日（只显示，不可调）；世界事件只有一个总开关，
-  关掉后交易只影响你自己的殖民地，不波及世界上的其他派系。
-
-### English
-
-**Added**
-
-- **Official lending service**: a new gizmo on the terminal opens four lenders.
-  Borrowing limits scale with your account's net worth; interest accrues **daily** as **simple interest**
-  (season rate ÷ 15, e.g. 5%/season = 0.33%/day), and the window shows the daily cost and days left.
-  - Tomorrow-or-Else Bank: limit 2,000, 5%/season, **3 day term**
-  - Organ Futures Micro-Loan: limit 8,000, 10%/season, 6 day term
-  - Hive Credit Union: limit 10,000, 20%/season, 10 day term
-  - Last Leg Credit: limit 20,000, 30%/season, **no fixed term**
-  Unpaid at term end, or two seasons of interest missed, means default: the debt is charged to your balance.
-- **Overnight interest**: open positions now cost **0.2%** of notional per day.
-  "Hold and wait for it to come back" is no longer free. Rate and toggle live in the settings.
-
-**Other**
-
-- Two new settings sections: overnight interest is fixed at 0.2%/day (display only);
-  world events have a single master switch — turn it off and trading affects only your own colony.
+- Mod settings reordered: world events on top, debug test buttons collapsed at the bottom.
+- Full Chinese and English text for all new UI and letters.
 
 ---
 
