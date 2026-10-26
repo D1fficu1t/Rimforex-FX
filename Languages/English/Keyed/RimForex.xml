@@ -493,5 +493,5 @@ Let him reach the map edge, or put him down here. Either way, Collections will w
   <RimForex_Ev8LetterLabel>Forced liquidation</RimForex_Ev8LetterLabel>
   <RimForex_Ev8Letter>Your balance is negative and you still have {0} position(s) open.\n\nWe are under no obligation to keep betting with you. Every position has been closed at market price, and the proceeds go against the debt.\n\nIf anything is still outstanding, someone from Collections will come and discuss it with you in person.</RimForex_Ev8Letter>
   <RimForex_Ev7OverdueLabel>Collections stopped waiting</RimForex_Ev7OverdueLabel>
-  <RimForex_Ev7Overdue>Three days passed. No payment, no handover. The collector turned and walked away.\n\nHe is not giving up. He is going back to file a report.\n\nThe mechanoids are already on their way.</RimForex_Ev7Overdue>
+  <RimForex_Ev7Overdue>Three days passed. No payment, no handover. The collector turned and walked away without a word.\n\nHe has gone back to file his report.\n\nThe mechanoids are already on their way.</RimForex_Ev7Overdue>
 </LanguageData>

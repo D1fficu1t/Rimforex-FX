@@ -504,5 +504,5 @@
   <RimForex_Ev8LetterLabel>平台强制清算</RimForex_Ev8LetterLabel>
   <RimForex_Ev8Letter>你的账户余额已经是负数，却还挂着 {0} 笔仓位。\n\n本平台没有义务陪你赌下去。所有持仓已按市价强制平仓，所得先用于抵债。\n\n如果还有剩下的缺口，清算部的人会面对面来找你谈。</RimForex_Ev8Letter>
   <RimForex_Ev7OverdueLabel>清算部不再等了</RimForex_Ev7OverdueLabel>
-  <RimForex_Ev7Overdue>三天过去了，你既没付钱，也没交人。收债人转身就走。\n\n他不是放弃，是回去交报告。\n\n机械族已经在路上了。</RimForex_Ev7Overdue>
+  <RimForex_Ev7Overdue>三天过去了，你既没付钱，也没交人。收债人转身就走，一句话都没说。\n\n他回去交报告了。\n\n机械族已经在路上了。</RimForex_Ev7Overdue>
 </LanguageData>
