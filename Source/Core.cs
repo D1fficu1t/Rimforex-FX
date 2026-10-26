@@ -6085,24 +6085,29 @@ namespace RimForex
                 return;
             }
 
+            Pawn collector = FindPawnById(debtCollectorId);
+
+            // ── 攻击判定放在账户查找之前 ──
+            // 2026-10-26 实测：把判定放在 acc 之后时，一旦 acc 查不到就直接
+            // ResolveDebtCase(null, "gone") 收摊，收债人挨枪子也不会翻脸。
+            // 现在先判"有没有被打"，再找账户。
+            bool attacked = DebtGroupAttacked(collector);
+
             FxAccount acc = null;
             var keys = new List<int>(accounts.Keys);
             for (int i = 0; i < keys.Count; i++)
             {
                 if (keys[i] == debtMapId) { acc = accounts[keys[i]]; break; }
             }
+            if (acc == null) acc = ColonyAccount(null);
+
+            if (attacked)
+            {
+                TriggerCollectorRetaliation(acc, collector);
+                return;
+            }
+
             if (acc == null) { ResolveDebtCase(null, "gone"); return; }
-
-            Pawn collector = FindPawnById(debtCollectorId);
-
-            // "被攻击"不能只看敌对状态：中立 pawn 被玩家打也不会自动翻脸，
-            // 所以把"掉过血"也算进来（作者 2026-10-25：他站着挨打不还手）
-            bool attacked = collector != null
-                            && (collector.Dead || collector.Destroyed || collector.Downed
-                                || collector.HostileTo(Faction.OfPlayer)
-                                || collector.health.summaryHealth.SummaryHealthPercent < 0.999f);
-
-            if (attacked) { TriggerCollectorRetaliation(acc, collector); return; }
 
             if (acc.balance >= 0f) { ResolveDebtCase(collector, "paid"); return; }
 
@@ -6112,6 +6117,35 @@ namespace RimForex
                 // 被随后招来的机械族顺手打死（作者实测）
                 TriggerCollectorRetaliation(acc, collector, overdue: true);
             }
+        }
+
+        /// <summary>
+        /// 收债小组是否被攻击：收债人**或任何一名随从**挨打、倒地、变红、死亡都算。
+        ///
+        /// 中立 pawn 被玩家打不会自动翻脸，所以"掉过血"（summaryHealth &lt; 0.999）
+        /// 也要算进来。只看收债人的话，玩家先把随从打一顿也不会触发。
+        /// </summary>
+        private bool DebtGroupAttacked(Pawn collector)
+        {
+            if (collector != null && SingleAttacked(collector)) return true;
+
+            if (debtEscortIds != null)
+            {
+                for (int i = 0; i < debtEscortIds.Count; i++)
+                {
+                    var esc = FindPawnById(debtEscortIds[i]);
+                    if (esc != null && SingleAttacked(esc)) return true;
+                }
+            }
+            return false;
+        }
+
+        private static bool SingleAttacked(Pawn p)
+        {
+            if (p == null) return false;
+            if (p.Dead || p.Destroyed || p.Downed) return true;
+            if (p.HostileTo(Faction.OfPlayer)) return true;
+            return p.health != null && p.health.summaryHealth.SummaryHealthPercent < 0.999f;
         }
 
         /// <summary>
