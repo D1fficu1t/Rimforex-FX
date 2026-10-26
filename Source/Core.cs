@@ -5974,9 +5974,18 @@ namespace RimForex
             }
             GenSpawn.Spawn(pawn, cell, map);
 
-            // 两个武装随从（作者 2026-10-26：给突击步枪，原版就有，兼容性好）
+            // ── 收债小组：收债人 + 两名武装随从 ──
+            //
+            // 作者 2026-10-26 实测两处问题：
+            //   ① 随从各自从地图不同边缘刷出来，看着像四面包抄
+            //   ② 随从没有领主，生成后很快自己走掉了
+            // 所以改成：全部在同一边缘格落地，并且**同一批进同一个领主**，
+            // 由 LordJob_DefendPoint 拖着一起走、一起留下。
+            var group = new List<Pawn> { pawn };
+
             if (debtEscortIds == null) debtEscortIds = new List<int>();
             debtEscortIds.Clear();
+
             for (int e = 0; e < 2; e++)
             {
                 var ereq = new PawnGenerationRequest(
@@ -5987,10 +5996,8 @@ namespace RimForex
 
                 try
                 {
-                    // 作者实测：不改原版随机生成的派系武器（比如 PLA_TypeFiftySix）时，
-                    // 直接 AddEquipment 会刷红字 "got primaryInt equipment ... while
-                    // already having primaryInt equipment ..."。
-                    // 先把自带装备清掉，再发步枪。
+                    // 先卸掉随机生成的派系武器，再发步枪，否则会刷
+                    // "got primaryInt equipment ... while already having ..."
                     if (escort.equipment != null)
                     {
                         escort.equipment.DestroyAllEquipment(DestroyMode.Vanish);
@@ -6005,23 +6012,18 @@ namespace RimForex
                 }
                 catch { }
 
-                try { escort.mindState.exitMapAfterTick = int.MaxValue; } catch { }
-
-                IntVec3 ecell;
-                if (!CellFinder.TryFindRandomEdgeCellWith(
-                        c => c.Standable(map) && !c.Roofed(map), map,
-                        CellFinder.EdgeRoadChance_Ignore, out ecell))
-                {
-                    ecell = cell;
-                }
-                GenSpawn.Spawn(escort, ecell, map);
+                GenSpawn.Spawn(escort, cell, map);
+                group.Add(escort);
                 debtEscortIds.Add(escort.thingIDNumber);
             }
 
-            // 让他留在图上：不设这个，没有领主的中立 pawn 会自己走向地图边缘离开
-            try { pawn.mindState.exitMapAfterTick = int.MaxValue; } catch { }
+            // 整组留在图上
+            for (int i = 0; i < group.Count; i++)
+            {
+                try { group[i].mindState.exitMapAfterTick = int.MaxValue; } catch { }
+            }
 
-            // 像商队一样走到殖民地外围，然后用一个"守点"领主把他钉在那里
+            // 走位目标：殖民地外围
             IntVec3 target = pawn.Position;
             try
             {
@@ -6033,24 +6035,26 @@ namespace RimForex
             }
             catch { }
 
+            // 一个领主带全组
+            bool lordOk = false;
             try
             {
-                var lord = LordMaker.MakeNewLord(faction, new LordJob_DefendPoint(target),
-                    map, new List<Pawn> { pawn });
-                if (lord == null)
-                {
-                    pawn.jobs.StartJob(JobMaker.MakeJob(JobDefOf.Goto, target),
-                        JobCondition.InterruptForced);
-                }
+                var lord = LordMaker.MakeNewLord(faction, new LordJob_DefendPoint(target), map, group);
+                lordOk = lord != null;
             }
-            catch
+            catch { lordOk = false; }
+
+            if (!lordOk)
             {
-                try
+                for (int i = 0; i < group.Count; i++)
                 {
-                    pawn.jobs.StartJob(JobMaker.MakeJob(JobDefOf.Goto, target),
-                        JobCondition.InterruptForced);
+                    try
+                    {
+                        group[i].jobs.StartJob(JobMaker.MakeJob(JobDefOf.Goto, target),
+                            JobCondition.InterruptForced);
+                    }
+                    catch { }
                 }
-                catch { }
             }
 
             return pawn;
