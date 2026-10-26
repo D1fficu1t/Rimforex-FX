@@ -450,7 +450,7 @@ Their settlements remain on the world as independent places that still fly the o
   <RimForex_Ev7NeedSilver>The balance is still negative. Deposit silver at the terminal first.</RimForex_Ev7NeedSilver>
   <RimForex_Ev7HostageBtn>Settle with people</RimForex_Ev7HostageBtn>
   <RimForex_Ev7Refuse>Refuse / fight</RimForex_Ev7Refuse>
-  <RimForex_Ev7RefuseTip>Refusing brings a mechanoid raid and freezes the account for one year: no new positions, no withdrawals.</RimForex_Ev7RefuseTip>
+  <RimForex_Ev7RefuseTip>Consequences of refusal: your account is frozen for one year, plus a little parting gift we have prepared to commemorate the time we spent together.</RimForex_Ev7RefuseTip>
   <RimForex_Ev7HostageSum>Selected worth {0} / {1} silver required</RimForex_Ev7HostageSum>
   <RimForex_Ev7Confirm>Confirm handover</RimForex_Ev7Confirm>
   <RimForex_Ev7HostageShort>Not enough value selected, or nothing selected at all.</RimForex_Ev7HostageShort>

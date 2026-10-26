@@ -465,7 +465,7 @@
   <RimForex_Ev7NeedSilver>余额还是负的。先去终端存白银，把账填平再来。</RimForex_Ev7NeedSilver>
   <RimForex_Ev7HostageBtn>交人抵债</RimForex_Ev7HostageBtn>
   <RimForex_Ev7Refuse>拒绝 / 动手</RimForex_Ev7Refuse>
-  <RimForex_Ev7RefuseTip>拒绝的后果：招来一次机械族袭击，账户冻结一年（不能开仓、不能提款）。</RimForex_Ev7RefuseTip>
+  <RimForex_Ev7RefuseTip>拒绝的后果：账户冻结一年，还有一份我们精心准备的「临别大礼」，以纪念我们曾经度过的时光。</RimForex_Ev7RefuseTip>
   <RimForex_Ev7HostageSum>已选市值 {0} / 需要 {1} 银</RimForex_Ev7HostageSum>
   <RimForex_Ev7Confirm>确认交割</RimForex_Ev7Confirm>
   <RimForex_Ev7HostageShort>选的人不够值钱，或者你一个都没选。</RimForex_Ev7HostageShort>
