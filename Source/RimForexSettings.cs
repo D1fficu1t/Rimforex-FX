@@ -355,10 +355,231 @@ namespace RimForex
             Text.Font = GameFont.Tiny;
             GUI.color = Color.gray;
             l.Label("RimForex_SettingsVersion".Translate(RimForexBootstrap.VersionLabel));
+            // 版本号那行是灰色小字，这里把样式复位，否则下面的世界事件会继承它
+            GUI.color = Color.white;
+            Text.Font = GameFont.Small;
+            l.Gap(8f);
+
+            // ── 0.3.0：世界事件（放页面最上面，作者 2026-10-26 要求）──
+            l.Label("RimForex_Set_EventsHeader".Translate());
+            l.CheckboxLabeled("RimForex_Set_EnableEvents".Translate(), ref Settings.enableWorldEvents,
+                "RimForex_Set_EnableEventsTip".Translate());
+
+            float cdSingle = l.Slider(Settings.eventCooldownDays,
+                RimForexSettings.MinEventCooldownDays, RimForexSettings.MaxEventCooldownDays);
+            Settings.eventCooldownDays = Mathf.RoundToInt(cdSingle);
+            Hint(l, "RimForex_Set_EventCdSingle".Translate(Settings.eventCooldownDays.ToString()));
+
+            float cdGlobal = l.Slider(Settings.globalCooldownDays,
+                RimForexSettings.MinGlobalCooldownDays, RimForexSettings.MaxGlobalCooldownDays);
+            Settings.globalCooldownDays = Mathf.RoundToInt(cdGlobal);
+            Hint(l, "RimForex_Set_EventCdGlobal".Translate(Settings.globalCooldownDays.ToString()));
+
+            Settings.e3RaidChance = l.Slider(Settings.e3RaidChance, 0f, 1f);
+            Hint(l, "RimForex_Set_E3RaidChance".Translate(
+                (Settings.e3RaidChance * 100f).ToString("0")));
+
+            Settings.e1RaidChance = l.Slider(Settings.e1RaidChance, 0f, 1f);
+            Hint(l, "RimForex_Set_E1RaidChance".Translate(
+                (Settings.e1RaidChance * 100f).ToString("0")));
             GUI.color = Color.white;
             Text.Font = GameFont.Small;
 
-            // ---- 测试专用（放最上面，因为它就是要频繁按的）----
+
+            // ---- 玩法参数 ----
+            Text.Font = GameFont.Medium;
+            l.Label("RimForex_SettingsGameplay".Translate());
+            Text.Font = GameFont.Small;
+            l.GapLine();
+            l.Label("RimForex_SettingsGameplayDesc".Translate());
+            l.Gap(6f);
+
+            // 报价间隔：滑块用整数百分比避免浮点抖动
+            float sec = Settings.secondsPerQuote;
+            l.Label("RimForex_Set_QuoteInterval".Translate(sec.ToString("0.0")));
+            sec = l.Slider(sec, RimForexSettings.MinSecondsPerQuote, RimForexSettings.MaxSecondsPerQuote);
+            Settings.secondsPerQuote = Mathf.Round(sec * 10f) / 10f;
+            Hint(l, "RimForex_Set_QuoteIntervalTip".Translate(
+                FxMarket.TicksPerStep.ToString(),
+                FxMarket.StepsPerDay.ToString(),
+                FxMarket.SubSteps.ToString()));
+
+            // 每根 K 线几次报价
+            l.Gap(4f);
+            l.Label("RimForex_Set_QuotesPerCandle".Translate(Settings.quotesPerCandle.ToString()));
+            float qpc = l.Slider(Settings.quotesPerCandle,
+                RimForexSettings.MinQuotesPerCandle, RimForexSettings.MaxQuotesPerCandle);
+            Settings.quotesPerCandle = Mathf.RoundToInt(qpc);
+            Hint(l, "RimForex_Set_QuotesPerCandleTip".Translate(
+                (FxMarket.TicksPerCandle / (float)FxGameComponent.TicksPerRealSecond).ToString("0.#")));
+
+            // 跳空强度
+            l.Gap(4f);
+            string gapLabel = Settings.gapIntensity < 0.34f
+                ? "RimForex_GapRealistic".Translate().ToString()
+                : Settings.gapIntensity < 0.67f
+                    ? "RimForex_GapBalanced".Translate().ToString()
+                    : "RimForex_GapDegenerate".Translate().ToString();
+            l.Label("RimForex_Set_GapIntensity".Translate(
+                (Settings.gapIntensity * 100f).ToString("0"), gapLabel));
+            Settings.gapIntensity = l.Slider(Settings.gapIntensity, 0f, 1f);
+            Hint(l, "RimForex_Set_GapIntensityTip".Translate(
+                (FxMarket.GapChancePerDay * 100f).ToString("0.0"),
+                (FxMarket.ExtremeGapChancePerDay * 100f).ToString("0.00")));
+
+            // ── 慢周期行情（锚价正弦摆动）──
+            // 决定"图上能不能看出趋势"。设为 0 就是关闭，退回原来的纯均值回归。
+            l.Gap(10f);
+            l.Label("RimForex_Set_TrendAmp".Translate(
+                (Settings.trendAmp * 100f).ToString("0.0"),
+                Settings.trendAmp <= 0.0001f
+                    ? "RimForex_TrendOff".Translate().ToString()
+                    : "RimForex_TrendOn".Translate().ToString()));
+            Settings.trendAmp = l.Slider(Settings.trendAmp, 0f, RimForexSettings.MaxTrendAmp);
+            Hint(l, "RimForex_Set_TrendAmpTip".Translate(TrendSwingPct().ToString("0.0")));
+
+            l.Gap(4f);
+            l.Label("RimForex_Set_TrendPeriod".Translate(Settings.trendPeriodDays.ToString("0.#")));
+            Settings.trendPeriodDays = l.Slider(Settings.trendPeriodDays,
+                RimForexSettings.MinTrendPeriodDays, RimForexSettings.MaxTrendPeriodDays);
+            Hint(l, "RimForex_Set_TrendPeriodTip".Translate(
+                (Settings.trendPeriodDays / 2f).ToString("0.#")));
+
+            // ── 平仓心情强度 ──
+            l.Gap(10f);
+            l.Label("RimForex_Set_MoodHeader".Translate());
+
+            l.Label("RimForex_Set_LossMoodScale".Translate(Settings.lossMoodScale.ToString("0.00")));
+            Settings.lossMoodScale = l.Slider(Settings.lossMoodScale,
+                RimForexSettings.MinMoodScale, RimForexSettings.MaxMoodScale);
+            l.Label("RimForex_Set_LossMoodScaleHint".Translate());
+
+            l.Label("RimForex_Set_GainMoodScale".Translate(Settings.gainMoodScale.ToString("0.00")));
+            Settings.gainMoodScale = l.Slider(Settings.gainMoodScale,
+                RimForexSettings.MinMoodScale, RimForexSettings.MaxMoodScale);
+            l.Label("RimForex_Set_GainMoodScaleHint".Translate());
+
+            l.Label("RimForex_Set_MarginCallMoodScale".Translate(Settings.marginCallMoodScale.ToString("0.00")));
+            Settings.marginCallMoodScale = l.Slider(Settings.marginCallMoodScale,
+                RimForexSettings.MinMoodScale, RimForexSettings.MaxMoodScale);
+            l.Label("RimForex_Set_MarginCallMoodScaleHint".Translate());
+
+            Settings.ClampAll();
+
+            // ---- 货币名字 / 图表维护：归入测试选项，默认隐藏 ----
+            if (Settings.showTestOptions)
+            {
+            l.Gap(12f);
+            Text.Font = GameFont.Medium;
+            l.Label("RimForex_SettingsNameTest".Translate());
+            Text.Font = GameFont.Small;
+            l.GapLine();
+            l.Label("RimForex_Set_NameDesc".Translate());
+            l.Gap(4f);
+
+            // 重掷：换全局种子，并把新名字写回所有已存在的货币。
+            // 这是关键 —— 光换种子只影响"之后新生成的"派系，
+            // 已经在终端里的货币不会变，玩家会以为按钮没生效。
+            if (l.ButtonText("RimForex_Set_RerollNames".Translate()))
+            {
+                Settings.nameSeed = Rand.Int;
+                int changed = FxCurrencyGenerator.ApplyToExisting();
+                NameSamples.Clear();
+                FxCurrencyGenerator.SampleNames(NameSamples, 12);
+                Messages.Message("RimForex_MsgNamesRerolled".Translate(changed),
+                    MessageTypeDefOf.TaskCompletion, false);
+            }
+            TooltipHandler.TipRegion(l.GetRect(24f), "RimForex_Set_RerollNamesTip".Translate());
+
+            l.Gap(4f);
+            if (l.ButtonText("RimForex_Set_GenNames".Translate()))
+            {
+                NameSamples.Clear();
+                FxCurrencyGenerator.SampleNames(NameSamples, 12);
+            }
+
+            if (NameSamples.Count > 0)
+            {
+                Text.Font = GameFont.Tiny;
+                for (int i = 0; i < NameSamples.Count; i++)
+                {
+                    l.Label("  " + NameSamples[i]);
+                }
+                Text.Font = GameFont.Small;
+            }
+            else
+            {
+                Hint(l, "RimForex_Set_GenNamesHint".Translate());
+            }
+
+            // ---- 图表维护 ----
+            Text.Font = GameFont.Medium;
+            l.Label("RimForex_SettingsChartTools".Translate());
+            Text.Font = GameFont.Small;
+            l.GapLine();
+            l.Label("RimForex_Set_ClearDesc".Translate());
+            l.Gap(4f);
+
+            // 清空 K 线：唯一放在设置里而不是终端里的功能按钮。
+            //
+            // 为什么不在终端：
+            //   1. 图表区第一行已经排满（倒计时 + 时K + 日K + 重置视图），
+            //      再放按钮会把标题挤到约 80px，长货币名必被截断；
+            //   2. 试过放第二行，结果**被 K 线图的背景盖住**，肉眼找不到。
+            // 而它本来就是"调参后才用一次"的工具，放设置里反而更顺手。
+            if (l.ButtonText("RimForex_ClearCandles".Translate()))
+            {
+                int cleared = ClearCandlesNow();
+                Messages.Message("RimForex_MsgCandlesCleared".Translate(cleared),
+                    MessageTypeDefOf.TaskCompletion, false);
+            }
+            Hint(l, "RimForex_ClearCandlesTip".Translate());
+
+            }   // end of 货币名字 / 图表维护
+            l.Gap(12f);
+            // ---- 界面提示开关 ----
+            Text.Font = GameFont.Medium;
+            l.Label("RimForex_SettingsHints".Translate());
+            Text.Font = GameFont.Small;
+            l.GapLine();
+            l.Label("RimForex_SettingsHintsDesc".Translate());
+            l.Gap(6f);
+
+            l.CheckboxLabeled("RimForex_Set_QuotePacing".Translate(), ref Settings.showQuotePacingHint,
+                "RimForex_Set_QuotePacingTip".Translate());
+            l.CheckboxLabeled("RimForex_Set_ChartLegend".Translate(), ref Settings.showChartEntryLegend,
+                "RimForex_Set_ChartLegendTip".Translate());
+            l.CheckboxLabeled("RimForex_Set_BreakevenLine".Translate(), ref Settings.showBreakevenLine,
+                "RimForex_Set_BreakevenLineTip".Translate());
+            l.CheckboxLabeled("RimForex_Set_StopOutLine".Translate(), ref Settings.showStopOutLine,
+                "RimForex_Set_StopOutLineTip".Translate());
+            l.CheckboxLabeled("RimForex_Set_SettleCountdown".Translate(), ref Settings.showSettlementCountdown,
+                "RimForex_Set_SettleCountdownTip".Translate());
+            l.CheckboxLabeled("RimForex_Set_TimeDebug".Translate(), ref Settings.showTimeDebug,
+                "RimForex_Set_TimeDebugTip".Translate());
+            l.CheckboxLabeled("RimForex_Set_CostBreakdown".Translate(), ref Settings.showCostBreakdown,
+                "RimForex_Set_CostBreakdownTip".Translate());
+            l.CheckboxLabeled("RimForex_Set_TimeSpeed".Translate(), ref Settings.showTimeSpeedHint,
+                "RimForex_Set_TimeSpeedTip".Translate());
+
+            // 悬浮盈亏窗（2026-10-20）：关掉终端时也能看到浮动盈亏
+            l.CheckboxLabeled("RimForex_Set_FloatingPnl".Translate(), ref Settings.showFloatingPnl,
+                "RimForex_Set_FloatingPnlTip".Translate());
+
+            // 隔夜利息的说明已移到交易终端的状态行，这里不再重复
+            l.GapLine();
+
+
+            l.Gap(10f);
+            if (l.ButtonText("RimForex_Set_Reset".Translate()))
+            {
+                Settings.ResetToDefaults();
+            }
+
+            // 注意：这里【不】调用 l.End() / EndScrollView()。
+            // 它们由调用方 DrawSettingsWindowContents 统一负责 ——
+            // 因为那边要在 l.End() 之后读 CurHeight 来实测内容高度。
+                    // ---- 测试专用（放最上面，因为它就是要频繁按的）----
             // 这两个按钮覆盖的是"必须验证但正常游玩验不到"的路径：
             // 心情叠加/过期要跨游戏日，穿仓要等约 1000 游戏日一次。
             // 详见 Core.cs 里测试板块的说明。
@@ -613,223 +834,7 @@ namespace RimForex
             Hint(l, "RimForex_TestClearGhostTip".Translate());
 
             }   // end of 测试选项
-
-            // ---- 玩法参数 ----
-            Text.Font = GameFont.Medium;
-            l.Label("RimForex_SettingsGameplay".Translate());
-            Text.Font = GameFont.Small;
-            l.GapLine();
-            l.Label("RimForex_SettingsGameplayDesc".Translate());
-            l.Gap(6f);
-
-            // 报价间隔：滑块用整数百分比避免浮点抖动
-            float sec = Settings.secondsPerQuote;
-            l.Label("RimForex_Set_QuoteInterval".Translate(sec.ToString("0.0")));
-            sec = l.Slider(sec, RimForexSettings.MinSecondsPerQuote, RimForexSettings.MaxSecondsPerQuote);
-            Settings.secondsPerQuote = Mathf.Round(sec * 10f) / 10f;
-            Hint(l, "RimForex_Set_QuoteIntervalTip".Translate(
-                FxMarket.TicksPerStep.ToString(),
-                FxMarket.StepsPerDay.ToString(),
-                FxMarket.SubSteps.ToString()));
-
-            // 每根 K 线几次报价
-            l.Gap(4f);
-            l.Label("RimForex_Set_QuotesPerCandle".Translate(Settings.quotesPerCandle.ToString()));
-            float qpc = l.Slider(Settings.quotesPerCandle,
-                RimForexSettings.MinQuotesPerCandle, RimForexSettings.MaxQuotesPerCandle);
-            Settings.quotesPerCandle = Mathf.RoundToInt(qpc);
-            Hint(l, "RimForex_Set_QuotesPerCandleTip".Translate(
-                (FxMarket.TicksPerCandle / (float)FxGameComponent.TicksPerRealSecond).ToString("0.#")));
-
-            // 跳空强度
-            l.Gap(4f);
-            string gapLabel = Settings.gapIntensity < 0.34f
-                ? "RimForex_GapRealistic".Translate().ToString()
-                : Settings.gapIntensity < 0.67f
-                    ? "RimForex_GapBalanced".Translate().ToString()
-                    : "RimForex_GapDegenerate".Translate().ToString();
-            l.Label("RimForex_Set_GapIntensity".Translate(
-                (Settings.gapIntensity * 100f).ToString("0"), gapLabel));
-            Settings.gapIntensity = l.Slider(Settings.gapIntensity, 0f, 1f);
-            Hint(l, "RimForex_Set_GapIntensityTip".Translate(
-                (FxMarket.GapChancePerDay * 100f).ToString("0.0"),
-                (FxMarket.ExtremeGapChancePerDay * 100f).ToString("0.00")));
-
-            // ── 慢周期行情（锚价正弦摆动）──
-            // 决定"图上能不能看出趋势"。设为 0 就是关闭，退回原来的纯均值回归。
-            l.Gap(10f);
-            l.Label("RimForex_Set_TrendAmp".Translate(
-                (Settings.trendAmp * 100f).ToString("0.0"),
-                Settings.trendAmp <= 0.0001f
-                    ? "RimForex_TrendOff".Translate().ToString()
-                    : "RimForex_TrendOn".Translate().ToString()));
-            Settings.trendAmp = l.Slider(Settings.trendAmp, 0f, RimForexSettings.MaxTrendAmp);
-            Hint(l, "RimForex_Set_TrendAmpTip".Translate(TrendSwingPct().ToString("0.0")));
-
-            l.Gap(4f);
-            l.Label("RimForex_Set_TrendPeriod".Translate(Settings.trendPeriodDays.ToString("0.#")));
-            Settings.trendPeriodDays = l.Slider(Settings.trendPeriodDays,
-                RimForexSettings.MinTrendPeriodDays, RimForexSettings.MaxTrendPeriodDays);
-            Hint(l, "RimForex_Set_TrendPeriodTip".Translate(
-                (Settings.trendPeriodDays / 2f).ToString("0.#")));
-
-            // ── 平仓心情强度 ──
-            l.Gap(10f);
-            l.Label("RimForex_Set_MoodHeader".Translate());
-
-            l.Label("RimForex_Set_LossMoodScale".Translate(Settings.lossMoodScale.ToString("0.00")));
-            Settings.lossMoodScale = l.Slider(Settings.lossMoodScale,
-                RimForexSettings.MinMoodScale, RimForexSettings.MaxMoodScale);
-            l.Label("RimForex_Set_LossMoodScaleHint".Translate());
-
-            l.Label("RimForex_Set_GainMoodScale".Translate(Settings.gainMoodScale.ToString("0.00")));
-            Settings.gainMoodScale = l.Slider(Settings.gainMoodScale,
-                RimForexSettings.MinMoodScale, RimForexSettings.MaxMoodScale);
-            l.Label("RimForex_Set_GainMoodScaleHint".Translate());
-
-            l.Label("RimForex_Set_MarginCallMoodScale".Translate(Settings.marginCallMoodScale.ToString("0.00")));
-            Settings.marginCallMoodScale = l.Slider(Settings.marginCallMoodScale,
-                RimForexSettings.MinMoodScale, RimForexSettings.MaxMoodScale);
-            l.Label("RimForex_Set_MarginCallMoodScaleHint".Translate());
-
-            Settings.ClampAll();
-
-            // ---- 货币名字 / 图表维护：归入测试选项，默认隐藏 ----
-            if (Settings.showTestOptions)
-            {
-            l.Gap(12f);
-            Text.Font = GameFont.Medium;
-            l.Label("RimForex_SettingsNameTest".Translate());
-            Text.Font = GameFont.Small;
-            l.GapLine();
-            l.Label("RimForex_Set_NameDesc".Translate());
-            l.Gap(4f);
-
-            // 重掷：换全局种子，并把新名字写回所有已存在的货币。
-            // 这是关键 —— 光换种子只影响"之后新生成的"派系，
-            // 已经在终端里的货币不会变，玩家会以为按钮没生效。
-            if (l.ButtonText("RimForex_Set_RerollNames".Translate()))
-            {
-                Settings.nameSeed = Rand.Int;
-                int changed = FxCurrencyGenerator.ApplyToExisting();
-                NameSamples.Clear();
-                FxCurrencyGenerator.SampleNames(NameSamples, 12);
-                Messages.Message("RimForex_MsgNamesRerolled".Translate(changed),
-                    MessageTypeDefOf.TaskCompletion, false);
-            }
-            TooltipHandler.TipRegion(l.GetRect(24f), "RimForex_Set_RerollNamesTip".Translate());
-
-            l.Gap(4f);
-            if (l.ButtonText("RimForex_Set_GenNames".Translate()))
-            {
-                NameSamples.Clear();
-                FxCurrencyGenerator.SampleNames(NameSamples, 12);
-            }
-
-            if (NameSamples.Count > 0)
-            {
-                Text.Font = GameFont.Tiny;
-                for (int i = 0; i < NameSamples.Count; i++)
-                {
-                    l.Label("  " + NameSamples[i]);
-                }
-                Text.Font = GameFont.Small;
-            }
-            else
-            {
-                Hint(l, "RimForex_Set_GenNamesHint".Translate());
-            }
-
-            // ---- 图表维护 ----
-            Text.Font = GameFont.Medium;
-            l.Label("RimForex_SettingsChartTools".Translate());
-            Text.Font = GameFont.Small;
-            l.GapLine();
-            l.Label("RimForex_Set_ClearDesc".Translate());
-            l.Gap(4f);
-
-            // 清空 K 线：唯一放在设置里而不是终端里的功能按钮。
-            //
-            // 为什么不在终端：
-            //   1. 图表区第一行已经排满（倒计时 + 时K + 日K + 重置视图），
-            //      再放按钮会把标题挤到约 80px，长货币名必被截断；
-            //   2. 试过放第二行，结果**被 K 线图的背景盖住**，肉眼找不到。
-            // 而它本来就是"调参后才用一次"的工具，放设置里反而更顺手。
-            if (l.ButtonText("RimForex_ClearCandles".Translate()))
-            {
-                int cleared = ClearCandlesNow();
-                Messages.Message("RimForex_MsgCandlesCleared".Translate(cleared),
-                    MessageTypeDefOf.TaskCompletion, false);
-            }
-            Hint(l, "RimForex_ClearCandlesTip".Translate());
-
-            }   // end of 货币名字 / 图表维护
-            l.Gap(12f);
-            // ---- 界面提示开关 ----
-            Text.Font = GameFont.Medium;
-            l.Label("RimForex_SettingsHints".Translate());
-            Text.Font = GameFont.Small;
-            l.GapLine();
-            l.Label("RimForex_SettingsHintsDesc".Translate());
-            l.Gap(6f);
-
-            l.CheckboxLabeled("RimForex_Set_QuotePacing".Translate(), ref Settings.showQuotePacingHint,
-                "RimForex_Set_QuotePacingTip".Translate());
-            l.CheckboxLabeled("RimForex_Set_ChartLegend".Translate(), ref Settings.showChartEntryLegend,
-                "RimForex_Set_ChartLegendTip".Translate());
-            l.CheckboxLabeled("RimForex_Set_BreakevenLine".Translate(), ref Settings.showBreakevenLine,
-                "RimForex_Set_BreakevenLineTip".Translate());
-            l.CheckboxLabeled("RimForex_Set_StopOutLine".Translate(), ref Settings.showStopOutLine,
-                "RimForex_Set_StopOutLineTip".Translate());
-            l.CheckboxLabeled("RimForex_Set_SettleCountdown".Translate(), ref Settings.showSettlementCountdown,
-                "RimForex_Set_SettleCountdownTip".Translate());
-            l.CheckboxLabeled("RimForex_Set_TimeDebug".Translate(), ref Settings.showTimeDebug,
-                "RimForex_Set_TimeDebugTip".Translate());
-            l.CheckboxLabeled("RimForex_Set_CostBreakdown".Translate(), ref Settings.showCostBreakdown,
-                "RimForex_Set_CostBreakdownTip".Translate());
-            l.CheckboxLabeled("RimForex_Set_TimeSpeed".Translate(), ref Settings.showTimeSpeedHint,
-                "RimForex_Set_TimeSpeedTip".Translate());
-
-            // 悬浮盈亏窗（2026-10-20）：关掉终端时也能看到浮动盈亏
-            l.CheckboxLabeled("RimForex_Set_FloatingPnl".Translate(), ref Settings.showFloatingPnl,
-                "RimForex_Set_FloatingPnlTip".Translate());
-
-            // 隔夜利息的说明已移到交易终端的状态行，这里不再重复
-            l.GapLine();
-
-            // ── 0.3.0：世界事件 ──
-            l.Label("RimForex_Set_EventsHeader".Translate());
-            l.CheckboxLabeled("RimForex_Set_EnableEvents".Translate(), ref Settings.enableWorldEvents,
-                "RimForex_Set_EnableEventsTip".Translate());
-
-            float cdSingle = l.Slider(Settings.eventCooldownDays,
-                RimForexSettings.MinEventCooldownDays, RimForexSettings.MaxEventCooldownDays);
-            Settings.eventCooldownDays = Mathf.RoundToInt(cdSingle);
-            Hint(l, "RimForex_Set_EventCdSingle".Translate(Settings.eventCooldownDays.ToString()));
-
-            float cdGlobal = l.Slider(Settings.globalCooldownDays,
-                RimForexSettings.MinGlobalCooldownDays, RimForexSettings.MaxGlobalCooldownDays);
-            Settings.globalCooldownDays = Mathf.RoundToInt(cdGlobal);
-            Hint(l, "RimForex_Set_EventCdGlobal".Translate(Settings.globalCooldownDays.ToString()));
-
-            Settings.e3RaidChance = l.Slider(Settings.e3RaidChance, 0f, 1f);
-            Hint(l, "RimForex_Set_E3RaidChance".Translate(
-                (Settings.e3RaidChance * 100f).ToString("0")));
-
-            Settings.e1RaidChance = l.Slider(Settings.e1RaidChance, 0f, 1f);
-            Hint(l, "RimForex_Set_E1RaidChance".Translate(
-                (Settings.e1RaidChance * 100f).ToString("0")));
-
-            l.Gap(10f);
-            if (l.ButtonText("RimForex_Set_Reset".Translate()))
-            {
-                Settings.ResetToDefaults();
-            }
-
-            // 注意：这里【不】调用 l.End() / EndScrollView()。
-            // 它们由调用方 DrawSettingsWindowContents 统一负责 ——
-            // 因为那边要在 l.End() 之后读 CurHeight 来实测内容高度。
-        }
+}
 
         /// <summary>滑块下方的灰色小字说明。</summary>
         private static void Hint(Listing_Standard l, string text)
