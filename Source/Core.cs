@@ -5987,8 +5987,17 @@ namespace RimForex
 
                 try
                 {
+                    // 作者实测：不改原版随机生成的派系武器（比如 PLA_TypeFiftySix）时，
+                    // 直接 AddEquipment 会刷红字 "got primaryInt equipment ... while
+                    // already having primaryInt equipment ..."。
+                    // 先把自带装备清掉，再发步枪。
+                    if (escort.equipment != null)
+                    {
+                        escort.equipment.DestroyAllEquipment(DestroyMode.Vanish);
+                    }
+
                     var gunDef = DefDatabase<ThingDef>.GetNamedSilentFail("Gun_AssaultRifle");
-                    if (gunDef != null)
+                    if (gunDef != null && escort.equipment != null && escort.equipment.Primary == null)
                     {
                         var gun = (ThingWithComps)ThingMaker.MakeThing(gunDef, null);
                         escort.equipment.AddEquipment(gun);
