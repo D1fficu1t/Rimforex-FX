@@ -341,11 +341,11 @@
 
   <!-- ================= 0.3.0 世界事件（preview2：E1 / E3）================= -->
   <RimForex_Ev1LetterLabel>{0}：货币暴涨</RimForex_Ev1LetterLabel>
-  <RimForex_Ev1Letter>{0} 的货币一天之内涨了 {1}%。这样的涨幅让市场很兴奋，他们的商队已经在路上了——预计两天后抵达你的殖民地。</RimForex_Ev1Letter>
+  <RimForex_Ev1Letter>{0} 的货币今日已涨 {1}%。这样的涨幅让市场很兴奋，他们的商队已经在路上了——预计两天后抵达你的殖民地。</RimForex_Ev1Letter>
   <RimForex_Ev1ArrivedLabel>{0}：商队抵达</RimForex_Ev1ArrivedLabel>
   <RimForex_Ev1Arrived>{0} 的商队抵达了殖民地边缘。他们带的白银比平时多，收购意愿很强。</RimForex_Ev1Arrived>
   <RimForex_Ev1bLetterLabel>{0}：军备采购异常</RimForex_Ev1bLetterLabel>
-  <RimForex_Ev1bLetter>{0} 的货币一天之内涨了 {1}%。\n\n你在军备市场上注意到，他们这几天在大笔采购军械和弹药。买家这么急着进货，通常不是为了过节。\n\n有理由认为，你的殖民地就在他们接下来的计划里。</RimForex_Ev1bLetter>
+  <RimForex_Ev1bLetter>{0} 的货币今日已涨 {1}%。\n\n你在军备市场上注意到，他们这几天在大笔采购军械和弹药。买家这么急着进货，通常不是为了过节。\n\n有理由认为，你的殖民地就在他们接下来的计划里。</RimForex_Ev1bLetter>
   <RimForex_Ev1bRaidLabel>{0}：突袭</RimForex_Ev1bRaidLabel>
   <RimForex_Ev1bRaid>{0} 的部队出现在殖民地附近。他们想趁着这波行情捞一笔。</RimForex_Ev1bRaid>
   <RimForex_Ev1bQuiet>{0} 的人在附近转了一圈，没有动手。</RimForex_Ev1bQuiet>
@@ -375,24 +375,16 @@
   <RimForex_MsgTestRaidFail>袭击发不出去：没有敌对派系，或被 storyteller 拦下</RimForex_MsgTestRaidFail>
   <!-- 0.3.0 世界事件（preview3：E2 / E4-E5）-->
   <RimForex_Ev2LetterLabel>{0}：货币下跌</RimForex_Ev2LetterLabel>
-  <RimForex_Ev2Letter>{0} 的货币一天之内跌了 {1}%。他们急着把库存换成硬通货，商队两天后到，东西会比平时便宜。
-
-到时候谈价会容易些。</RimForex_Ev2Letter>
+  <RimForex_Ev2Letter>{0} 的货币今日已跌 {1}%。他们急着把库存换成硬通货，商队两天后到，东西会比平时便宜。\n\n到时候谈价会容易些。</RimForex_Ev2Letter>
   <RimForex_Ev2ArrivedLabel>{0}：清库存的商队抵达</RimForex_Ev2ArrivedLabel>
   <RimForex_Ev2Arrived>{0} 的商队到了，正在低价甩货。接下来 {1} 天，你在谈价时更有底气。</RimForex_Ev2Arrived>
   <RimForex_Ev2bLetterLabel>{0}：防御空虚</RimForex_Ev2bLetterLabel>
-  <RimForex_Ev2bLetter>{0} 的货币一天之内跌了 {2}%，他们的 {1} 已经发不出军饷，守备力量大打折扣。
-
-据估计，这个状态能持续 {3} 天。现在去打，守军会少一半。</RimForex_Ev2bLetter>
+  <RimForex_Ev2bLetter>{0} 的货币今日已跌 {2}%，他们的 {1} 已经发不出军饷，守备力量大打折扣。\n\n据估计，这个状态能持续 {3} 天。现在去打，守军会少一半。</RimForex_Ev2bLetter>
   <RimForex_Ev2bNoSettlementLabel>{0}：走投无路</RimForex_Ev2bNoSettlementLabel>
   <RimForex_Ev2bNoSettlement>{0} 的货币一天之内跌了 {1}%，而他们已经没有据点可以收缩。绝望的人通常会选择抢劫。</RimForex_Ev2bNoSettlement>
   <RimForex_Ev2bThinned>据点守备已经松动，{0} 名守军离队。</RimForex_Ev2bThinned>
   <RimForex_Ev4LetterLabel>{0} 击败 {1}</RimForex_Ev4LetterLabel>
-  <RimForex_Ev4Letter>{0} 在边境打赢了 {1}。
-
-分析人士认为，这有 {2}% 的概率演变成趋势：{1} 的货币会走弱，{0} 的货币会走强。
-
-这是概率，不是保证。</RimForex_Ev4Letter>
+  <RimForex_Ev4Letter>{0} 在边境打赢了 {1}。\n\n分析人士普遍认为，这轮冲突有可能演变成长期趋势：{1} 的货币会承压走弱，{0} 的货币则会走强。\n\n当然，市场从来不按分析人士说的走。</RimForex_Ev4Letter>
   <RimForex_TestCrash>测试：货币暴跌</RimForex_TestCrash>
   <RimForex_TestCrashTip>立刻触发一次 E2：中立派系派商队来清库存；敌对派系则削弱其据点守军。</RimForex_TestCrashTip>
   <RimForex_MsgTestCrash>已触发一次货币暴跌事件</RimForex_MsgTestCrash>
@@ -403,11 +395,11 @@
   <RimForex_DiagEventStats>诊断：最近结算最大波动 {0}%（{1}σ）｜历史峰值 {2}%（{3}σ）｜已统计 {4} 天｜当前触发阈值 {5}σ</RimForex_DiagEventStats>
   <!-- 0.3.0 轨道贸易船（帝国 / 轨道贸易联盟）-->
   <RimForex_Ev1OrbitalLetterLabel>{0}：货币暴涨</RimForex_Ev1OrbitalLetterLabel>
-  <RimForex_Ev1OrbitalLetter>{0} 的货币一天之内涨了 {1}%。他们的贸易船正在赶来，预计两天后进入轨道。</RimForex_Ev1OrbitalLetter>
+  <RimForex_Ev1OrbitalLetter>{0} 的货币今日已涨 {1}%。他们的贸易船正在赶来，预计两天后进入轨道。</RimForex_Ev1OrbitalLetter>
   <RimForex_Ev1OrbitalArrivedLabel>{0}：贸易船抵达</RimForex_Ev1OrbitalArrivedLabel>
   <RimForex_Ev1OrbitalArrived>{0} 的贸易船进入了轨道，正等着和你交易。他们带来的白银比平时多。\n\n（轨道交易需要一台通电的通讯台。还没造出来的话，这艘船会一直停在轨道上等你。）</RimForex_Ev1OrbitalArrived>
   <RimForex_Ev2OrbitalLetterLabel>{0}：货币下跌</RimForex_Ev2OrbitalLetterLabel>
-  <RimForex_Ev2OrbitalLetter>{0} 的货币一天之内跌了 {1}%。他们的贸易船正带着一批货赶来，预计两天后到。到时候东西会比平时便宜。</RimForex_Ev2OrbitalLetter>
+  <RimForex_Ev2OrbitalLetter>{0} 的货币今日已跌 {1}%。他们的贸易船正带着一批货赶来，预计两天后到。到时候东西会比平时便宜。</RimForex_Ev2OrbitalLetter>
   <RimForex_Ev2OrbitalArrivedLabel>{0}：贸易船抵达</RimForex_Ev2OrbitalArrivedLabel>
   <RimForex_Ev2OrbitalArrived>{0} 的贸易船到了，正在低价出货。接下来你在谈价时更有底气。\n\n（轨道交易需要一台通电的通讯台。还没造出来的话，这艘船会一直停在轨道上等你。）</RimForex_Ev2OrbitalArrived>
   <!-- 0.3.0 费用凭证 -->
@@ -505,4 +497,12 @@
   <RimForex_Set_ShowTest>显示测试选项</RimForex_Set_ShowTest>
   <RimForex_Set_ShowTestTip>调试用按钮，正常游玩不需要开。</RimForex_Set_ShowTestTip>
   <RimForex_CarryRateInline>隔夜利息 {0}%/日</RimForex_CarryRateInline>
+  <RimForex_Set_EventCdSingle>单货币冷却：{0} 日</RimForex_Set_EventCdSingle>
+  <RimForex_Set_EventCdGlobal>全局冷却：{0} 日</RimForex_Set_EventCdGlobal>
+  <RimForex_Set_E3RaidChance>外汇奇才招来袭击的概率：{0}%</RimForex_Set_E3RaidChance>
+  <RimForex_Set_E1RaidChance>军备采购异常触发袭击的概率：{0}%</RimForex_Set_E1RaidChance>
+  <RimForex_Ev8LetterLabel>平台强制清算</RimForex_Ev8LetterLabel>
+  <RimForex_Ev8Letter>你的账户余额已经是负数，却还挂着 {0} 笔仓位。\n\n本平台没有义务陪你赌下去。所有持仓已按市价强制平仓，所得先用于抵债。\n\n剩下的缺口，清算部会来找你谈。</RimForex_Ev8Letter>
+  <RimForex_Ev7OverdueLabel>清算部不再等了</RimForex_Ev7OverdueLabel>
+  <RimForex_Ev7Overdue>三天过去了，你既没付钱，也没交人。收债人转身就走——不是放弃，是回去交报告。\n\n机械族已经在路上了。</RimForex_Ev7Overdue>
 </LanguageData>

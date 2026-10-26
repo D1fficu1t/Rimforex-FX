@@ -330,11 +330,11 @@ This is a blow-up: the debt must be covered. Deposit silver at the terminal to b
 
   <!-- ================= 0.3.0 world events (preview2: E1 / E3) ================= -->
   <RimForex_Ev1LetterLabel>{0}: currency surge</RimForex_Ev1LetterLabel>
-  <RimForex_Ev1Letter>{0}'s currency rose {1}% in a single day. That kind of move excites the market, and their caravan is already on the road - it should reach your colony in about two days.</RimForex_Ev1Letter>
+  <RimForex_Ev1Letter>{0}'s currency is up {1}% today. That kind of move excites the market, and their caravan is already on the road - it should reach your colony in about two days.</RimForex_Ev1Letter>
   <RimForex_Ev1ArrivedLabel>{0}: caravan arrived</RimForex_Ev1ArrivedLabel>
   <RimForex_Ev1Arrived>A caravan from {0} has arrived at the edge of your colony. They are carrying more silver than usual and are eager to buy.</RimForex_Ev1Arrived>
   <RimForex_Ev1bLetterLabel>{0}: suspicious buildup</RimForex_Ev1bLetterLabel>
-  <RimForex_Ev1bLetter>{0}'s currency rose {1}% in a single day.\n\nYou notice they have been buying arms and ammunition on the military market in bulk. People who stock up that fast are not planning a festival.\n\nIt is reasonable to assume your colony is somewhere in their plans.</RimForex_Ev1bLetter>
+  <RimForex_Ev1bLetter>{0}'s currency is up {1}% today.\n\nYou notice they have been buying arms and ammunition on the military market in bulk. People who stock up that fast are not planning a festival.\n\nIt is reasonable to assume your colony is somewhere in their plans.</RimForex_Ev1bLetter>
   <RimForex_Ev1bRaidLabel>{0}: raid</RimForex_Ev1bRaidLabel>
   <RimForex_Ev1bRaid>Forces from {0} have appeared near your colony, hoping to cash in on the rally.</RimForex_Ev1bRaid>
   <RimForex_Ev1bQuiet>{0}'s people looked around and left without acting.</RimForex_Ev1bQuiet>
@@ -364,24 +364,16 @@ This is a blow-up: the debt must be covered. Deposit silver at the terminal to b
   <RimForex_MsgTestRaidFail>Raid could not be launched: no hostile faction, or the storyteller refused</RimForex_MsgTestRaidFail>
   <!-- 0.3.0 world events (preview3: E2 / E4-E5) -->
   <RimForex_Ev2LetterLabel>{0}: currency fall</RimForex_Ev2LetterLabel>
-  <RimForex_Ev2Letter>{0}'s currency fell {1}% in a single day. They are in a hurry to turn stock into hard currency, and a caravan will arrive in two days with goods cheaper than usual.
-
-Bargaining should be easier when it does.</RimForex_Ev2Letter>
+  <RimForex_Ev2Letter>{0}'s currency is down {1}% today. They are in a hurry to turn stock into hard currency, and a caravan will arrive in two days with goods cheaper than usual.\n\nBargaining should be easier when it does.</RimForex_Ev2Letter>
   <RimForex_Ev2ArrivedLabel>{0}: clearance caravan arrived</RimForex_Ev2ArrivedLabel>
   <RimForex_Ev2Arrived>The caravan from {0} has arrived and is dumping stock. For the next {1} days you have the upper hand in negotiations.</RimForex_Ev2Arrived>
   <RimForex_Ev2bLetterLabel>{0}: defenses thin</RimForex_Ev2bLetterLabel>
-  <RimForex_Ev2bLetter>{0}'s currency fell {2}% in a single day. {1} can no longer pay its garrison, and the defenses have suffered for it.
-
-That state should last about {3} days. Strike now and half the defenders will be gone.</RimForex_Ev2bLetter>
+  <RimForex_Ev2bLetter>{0}'s currency is down {2}% today. {1} can no longer pay its garrison, and the defenses have suffered for it.\n\nThat state should last about {3} days. Strike now and half the defenders will be gone.</RimForex_Ev2bLetter>
   <RimForex_Ev2bNoSettlementLabel>{0}: nothing left to lose</RimForex_Ev2bNoSettlementLabel>
   <RimForex_Ev2bNoSettlement>{0}'s currency fell {1}%, and they have no settlements left to fall back on. Desperate people tend to turn to raiding.</RimForex_Ev2bNoSettlement>
   <RimForex_Ev2bThinned>The garrison has thinned: {0} defenders left their posts.</RimForex_Ev2bThinned>
   <RimForex_Ev4LetterLabel>{0} defeats {1}</RimForex_Ev4LetterLabel>
-  <RimForex_Ev4Letter>{0} has beaten {1} on the border.
-
-Analysts put a {2}% chance on this becoming a trend: {1}'s currency weakens, {0}'s strengthens.
-
-A probability, not a promise.</RimForex_Ev4Letter>
+  <RimForex_Ev4Letter>{0} has beaten {1} on the border.\n\nAnalysts broadly expect this to turn into a lasting trend: {1}'s currency should weaken, while {0}'s should strengthen.\n\nOf course, markets never do what analysts expect.</RimForex_Ev4Letter>
   <RimForex_TestCrash>Test: currency crash</RimForex_TestCrash>
   <RimForex_TestCrashTip>Fire E2 now: non-hostile factions send a clearance caravan; hostile factions get their settlement garrison thinned.</RimForex_TestCrashTip>
   <RimForex_MsgTestCrash>Fired a currency crash event</RimForex_MsgTestCrash>
@@ -392,11 +384,11 @@ A probability, not a promise.</RimForex_Ev4Letter>
   <RimForex_DiagEventStats>Diagnostics: last settlement peak {0}% ({1} sigma) | all-time peak {2}% ({3} sigma) | {4} days sampled | trigger threshold {5} sigma</RimForex_DiagEventStats>
   <!-- 0.3.0 orbital traders (Empire / orbital trade league) -->
   <RimForex_Ev1OrbitalLetterLabel>{0}: currency surge</RimForex_Ev1OrbitalLetterLabel>
-  <RimForex_Ev1OrbitalLetter>{0}'s currency rose {1}% in a single day. Their trade ship is on its way and should reach orbit in about two days.</RimForex_Ev1OrbitalLetter>
+  <RimForex_Ev1OrbitalLetter>{0}'s currency is up {1}% today. Their trade ship is on its way and should reach orbit in about two days.</RimForex_Ev1OrbitalLetter>
   <RimForex_Ev1OrbitalArrivedLabel>{0}: trade ship arrived</RimForex_Ev1OrbitalArrivedLabel>
   <RimForex_Ev1OrbitalArrived>{0}'s trade ship is in orbit and waiting to trade. They are carrying more silver than usual.\n\n(Orbital trading requires a powered comms console. If you do not have one yet, the ship will wait in orbit.)</RimForex_Ev1OrbitalArrived>
   <RimForex_Ev2OrbitalLetterLabel>{0}: currency fall</RimForex_Ev2OrbitalLetterLabel>
-  <RimForex_Ev2OrbitalLetter>{0}'s currency fell {1}% in a single day. Their trade ship is on its way with a load of stock, due in about two days. Goods should be cheaper than usual.</RimForex_Ev2OrbitalLetter>
+  <RimForex_Ev2OrbitalLetter>{0}'s currency is down {1}% today. Their trade ship is on its way with a load of stock, due in about two days. Goods should be cheaper than usual.</RimForex_Ev2OrbitalLetter>
   <RimForex_Ev2OrbitalArrivedLabel>{0}: trade ship arrived</RimForex_Ev2OrbitalArrivedLabel>
   <RimForex_Ev2OrbitalArrived>{0}'s trade ship has arrived and is dumping stock. You have the upper hand in negotiations while it is here.\n\n(Orbital trading requires a powered comms console. If you do not have one yet, the ship will wait in orbit.)</RimForex_Ev2OrbitalArrived>
   <!-- 0.3.0 fee receipts -->
@@ -494,4 +486,12 @@ Let him reach the map edge, or put him down here. Either way, Collections will w
   <RimForex_Set_ShowTest>Show test options</RimForex_Set_ShowTest>
   <RimForex_Set_ShowTestTip>Debug buttons. Not needed for normal play.</RimForex_Set_ShowTestTip>
   <RimForex_CarryRateInline>Overnight interest {0}%/day</RimForex_CarryRateInline>
+  <RimForex_Set_EventCdSingle>Per-currency cooldown: {0} days</RimForex_Set_EventCdSingle>
+  <RimForex_Set_EventCdGlobal>Global cooldown: {0} days</RimForex_Set_EventCdGlobal>
+  <RimForex_Set_E3RaidChance>Chance a prodigy draws a raid: {0}%</RimForex_Set_E3RaidChance>
+  <RimForex_Set_E1RaidChance>Chance a buildup turns into a raid: {0}%</RimForex_Set_E1RaidChance>
+  <RimForex_Ev8LetterLabel>Forced liquidation</RimForex_Ev8LetterLabel>
+  <RimForex_Ev8Letter>Your balance is negative and you still have {0} position(s) open.\n\nWe are under no obligation to keep betting with you. Every position has been closed at market price, and the proceeds go against the debt.\n\nCollections will discuss the remainder with you.</RimForex_Ev8Letter>
+  <RimForex_Ev7OverdueLabel>Collections stopped waiting</RimForex_Ev7OverdueLabel>
+  <RimForex_Ev7Overdue>Three days passed. No payment, no handover. The collector turned and walked away - not giving up, going back to file a report.\n\nThe mechanoids are already on their way.</RimForex_Ev7Overdue>
 </LanguageData>

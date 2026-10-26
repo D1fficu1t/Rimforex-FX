@@ -3186,9 +3186,19 @@ namespace RimForex
         public int debtCollectorId = -1;
         /// <summary>已经翻脸、正在逃跑（等着他跑掉或被打死再招机械族）。</summary>
         public bool debtHostile;
+        /// <summary>收债人的武装随从（thingIDNumber）。</summary>
+        public List<int> debtEscortIds = new List<int>();
 
         /// <summary>全局事件冷却：两次世界事件之间至少 3 游戏日。</summary>
-        public const int GlobalEventCooldown = 3 * TicksPerDay;
+        public static int GlobalEventCooldownNow
+        {
+            get
+            {
+                var cfg = RimForexMod.Settings;
+                int d = cfg != null ? cfg.globalCooldownDays : 3;
+                return Mathf.Clamp(d, 1, 15) * TicksPerDay;
+            }
+        }
 
         // ── E1 / E3 参数（作者已拍板）──
         /// <summary>
@@ -3201,7 +3211,15 @@ namespace RimForex
         /// </summary>
         public const float EventSigma = 2.0f;
         /// <summary>每货币的事件冷却。</summary>
-        public const int EventCooldownPerCurrency = 20 * TicksPerDay;
+        public static int EventCooldownPerCurrencyNow
+        {
+            get
+            {
+                var cfg = RimForexMod.Settings;
+                int d = cfg != null ? cfg.eventCooldownDays : 20;
+                return Mathf.Clamp(d, 10, 30) * TicksPerDay;
+            }
+        }
         /// <summary>E1 商队延迟。</summary>
         public const int E1CaravanDelay = 2 * TicksPerDay;
         /// <summary>E1-B 袭击掷骰延迟。</summary>
@@ -3663,6 +3681,7 @@ namespace RimForex
             ProcessWarNews();
             ProcessRetaliation();
             ProcessDebtCase();
+            ProcessForcedLiquidation();
 
             if (now != lastSampleTick)
             {
@@ -3723,7 +3742,12 @@ namespace RimForex
                 market.AdvanceSubSteps(wantSub, lastStepTick);
 
                 // 跳空提示：幅度够大才通知，否则每次跳空都刷屏
-                if (steps > 0) AnnounceGaps();
+                if (steps > 0)
+                {
+                    AnnounceGaps();
+                    // 盘中实时判定：越过 2σ 立刻触发，不等 0 点收盘
+                    CheckIntradayEvents();
+                }
 
                 // 实时估值都挂在每个模拟 tick 上：
                 // 持仓在汇率变动的瞬间就重估，浮盈浮亏与爆仓都是实时的，不等每日结算。
@@ -4307,7 +4331,7 @@ namespace RimForex
         /// <summary>全局冷却是否已过（两次世界事件至少间隔 5 游戏日）。</summary>
         public bool WorldEventAllowed()
         {
-            return GenTicks.TicksGame - lastWorldEventTick >= GlobalEventCooldown;
+            return GenTicks.TicksGame - lastWorldEventTick >= GlobalEventCooldownNow;
         }
 
         /// <summary>把一条事件排进队列，延迟 <paramref name="delayTicks"/> 后触发。</summary>
@@ -4378,7 +4402,9 @@ namespace RimForex
                 case FxPendingKind.RaidChance:
                 {
                     // E1-B：3 天后掷骰，30% 来一次点数更高的袭击
-                    if (Rand.Chance(E1RaidChance))
+                    var cfgRaid = RimForexMod.Settings;
+                    float e1Chance = cfgRaid != null ? cfgRaid.e1RaidChance : E1RaidChance;
+                    if (Rand.Chance(e1Chance))
                     {
                         Map map = Find.AnyPlayerHomeMap;
                         float pts = map != null
@@ -4753,7 +4779,7 @@ namespace RimForex
                 if (absZ > maxAbsZ) { maxAbsZ = absZ; maxPct = pct; }
 
                 // 冷却中的货币不参与触发，但**参与诊断**（否则峰值会偏小）
-                if (now - c.lastEventTick < EventCooldownPerCurrency) continue;
+                if (now - c.lastEventTick < EventCooldownPerCurrencyNow) continue;
                 if (absZ < EventSigma) continue;
 
                 // ⚠️ 必须在**挑选阶段**就筛掉"做不出任何效果"的派系
@@ -5177,7 +5203,8 @@ namespace RimForex
             }
 
             // ② 35% 概率招来一次袭击（3 天后）
-            bool raid = Rand.Chance(E3RaidChance);
+            var cfg3 = RimForexMod.Settings;
+            bool raid = Rand.Chance(cfg3 != null ? cfg3.e3RaidChance : E3RaidChance);
             if (raid)
             {
                 Faction target = null;
@@ -5491,6 +5518,70 @@ namespace RimForex
             }
         }
 
+        /// <summary>
+        /// 负余额还挂着仓位 → 平台立刻强平补债（作者 2026-10-26：平台要更黑心）。
+        ///
+        /// 只在这一种情况下动手：余额已经为负、且还有持仓。
+        /// 平时余额为负（穿仓后空仓）不受影响，那是 E7 收债的领域。
+        /// </summary>
+        private void ProcessForcedLiquidation()
+        {
+            if (GenTicks.TicksGame % 250 != 0) return;
+            if (accounts == null || accounts.Count == 0) return;
+
+            var keys = new List<int>(accounts.Keys);
+            for (int k = 0; k < keys.Count; k++)
+            {
+                var acc = accounts[keys[k]];
+                if (acc == null || acc.balance >= 0f) continue;
+                if (acc.positions == null || acc.positions.Count == 0) continue;
+
+                int closed = 0;
+                for (int i = acc.positions.Count - 1; i >= 0; i--)
+                {
+                    var pos = acc.positions[i];
+                    if (pos == null) { acc.positions.RemoveAt(i); continue; }
+
+                    float equity = pos.Equity;
+                    float exitPrice = pos.markRate > 0f
+                        ? pos.markRate
+                        : market.ExitPriceOf(pos.currencyFactionLoadID, pos.isLong);
+                    float notional = Mathf.Abs(pos.units) * exitPrice;
+                    float fee = FeeFor(notional);
+
+                    acc.balance += equity - fee;
+                    acc.feesSinceSettle += fee;
+                    acc.positions.RemoveAt(i);
+                    closed++;
+
+                    acc.RecordTrade(new FxTradeRecord
+                    {
+                        currencyName = pos.currencyName,
+                        pairLabel = pos.currencyName + "/" + FxCurrency.QuoteCode,
+                        isLong = pos.isLong,
+                        units = pos.units,
+                        entryRate = pos.entryRate,
+                        exitRate = exitPrice,
+                        margin = pos.margin,
+                        pnl = pos.Pnl,
+                        totalFee = pos.openFee + fee,
+                        spreadCost = Mathf.Abs(pos.units) * pos.spreadAtOpen,
+                        spreadRateAtClose = market.SpreadRateFor(pos.currencyFactionLoadID),
+                        closedTick = GenTicks.TicksGame,
+                        wasLiquidation = true
+                    });
+                }
+
+                if (closed > 0)
+                {
+                    Find.LetterStack.ReceiveLetter(
+                        "RimForex_Ev8LetterLabel".Translate(),
+                        "RimForex_Ev8Letter".Translate(closed.ToString()),
+                        LetterDefOf.NegativeEvent);
+                }
+            }
+        }
+
         /// <summary>实时统计某个货币的空头名义仓位（不依赖每日结算的缓存）。</summary>
         private float ShortNotionalFor(int factionLoadID)
         {
@@ -5578,7 +5669,12 @@ namespace RimForex
                 // 报复期间不允许"花钱消灾" —— 开打前把关系重新压回去。
                 ForceHostile(f);
 
-                if (TryFireRaid(f, 0f)) r.raidCount++;
+                // 点数下限 6000：玩家 all in 之后基地财富可能塌得叫不来人
+                Map raidMap = Find.AnyPlayerHomeMap;
+                float pts = raidMap != null
+                    ? Mathf.Max(6000f, StorytellerUtility.DefaultThreatPointsNow(raidMap))
+                    : 6000f;
+                if (TryFireRaid(f, pts)) r.raidCount++;
 
                 if (r.raidCount >= E6RaidsPerCrisis) TriggerCrisis(r, cur);
             }
@@ -5878,6 +5974,41 @@ namespace RimForex
             }
             GenSpawn.Spawn(pawn, cell, map);
 
+            // 两个武装随从（作者 2026-10-26：给突击步枪，原版就有，兼容性好）
+            if (debtEscortIds == null) debtEscortIds = new List<int>();
+            debtEscortIds.Clear();
+            for (int e = 0; e < 2; e++)
+            {
+                var ereq = new PawnGenerationRequest(
+                    PawnKindDefOf.Villager, faction,
+                    PawnGenerationContext.NonPlayer, map.Tile);
+                Pawn escort = PawnGenerator.GeneratePawn(ereq);
+                if (escort == null) continue;
+
+                try
+                {
+                    var gunDef = DefDatabase<ThingDef>.GetNamedSilentFail("Gun_AssaultRifle");
+                    if (gunDef != null)
+                    {
+                        var gun = (ThingWithComps)ThingMaker.MakeThing(gunDef, null);
+                        escort.equipment.AddEquipment(gun);
+                    }
+                }
+                catch { }
+
+                try { escort.mindState.exitMapAfterTick = int.MaxValue; } catch { }
+
+                IntVec3 ecell;
+                if (!CellFinder.TryFindRandomEdgeCellWith(
+                        c => c.Standable(map) && !c.Roofed(map), map,
+                        CellFinder.EdgeRoadChance_Ignore, out ecell))
+                {
+                    ecell = cell;
+                }
+                GenSpawn.Spawn(escort, ecell, map);
+                debtEscortIds.Add(escort.thingIDNumber);
+            }
+
             // 让他留在图上：不设这个，没有领主的中立 pawn 会自己走向地图边缘离开
             try { pawn.mindState.exitMapAfterTick = int.MaxValue; } catch { }
 
@@ -5966,7 +6097,7 @@ namespace RimForex
             {
                 // 逾期：先让他走人，再算账。否则他会一直杵在殖民地
                 // 被随后招来的机械族顺手打死（作者实测）
-                TriggerCollectorRetaliation(acc, collector);
+                TriggerCollectorRetaliation(acc, collector, overdue: true);
             }
         }
 
@@ -5977,7 +6108,7 @@ namespace RimForex
         /// 正确顺序是：立刻敌对 → 像袭击者那样慌忙逃窜 → 跑出地图（或被打死）
         /// 之后才招来机械族并冻结账户。
         /// </summary>
-        private void TriggerCollectorRetaliation(FxAccount acc, Pawn collector)
+        private void TriggerCollectorRetaliation(FxAccount acc, Pawn collector, bool overdue = false)
         {
             var pf = FactionByID(platformFactionLoadID);
             if (pf != null)
@@ -6008,11 +6139,27 @@ namespace RimForex
                 }
             }
 
+            if (debtEscortIds != null)
+            {
+                for (int e = 0; e < debtEscortIds.Count; e++)
+                {
+                    var esc = FindPawnById(debtEscortIds[e]);
+                    if (esc == null || !esc.Spawned || esc.Downed) continue;
+                    try
+                    {
+                        esc.mindState.mentalStateHandler.TryStartMentalState(
+                            MentalStateDefOf.PanicFlee, null, true);
+                    }
+                    catch { }
+                }
+            }
+
             debtHostile = true;
 
+            // 逾期和"动手"是两回事，用不同的信
             Find.LetterStack.ReceiveLetter(
-                "RimForex_Ev7FleeLabel".Translate(),
-                "RimForex_Ev7Flee".Translate(),
+                (overdue ? "RimForex_Ev7OverdueLabel" : "RimForex_Ev7FleeLabel").Translate(),
+                (overdue ? "RimForex_Ev7Overdue" : "RimForex_Ev7Flee").Translate(),
                 LetterDefOf.ThreatSmall);
         }
 
@@ -6099,6 +6246,33 @@ namespace RimForex
             {
                 bool walkAway = reason == "paid" || reason == "hostage";
 
+                // 随从跟着走/一起清掉
+                if (debtEscortIds != null)
+                {
+                    for (int e = 0; e < debtEscortIds.Count; e++)
+                    {
+                        var esc = FindPawnById(debtEscortIds[e]);
+                        if (esc == null || !esc.Spawned || esc.Destroyed || esc.Dead) continue;
+                        if (walkAway)
+                        {
+                            try
+                            {
+                                esc.mindState.exitMapAfterTick = GenTicks.TicksGame + 2 * 2500;
+                                esc.jobs.StartJob(
+                                    JobMaker.MakeJob(JobDefOf.Goto, CellFinder.RandomEdgeCell(esc.Map)),
+                                    JobCondition.InterruptForced);
+                            }
+                            catch { }
+                        }
+                        else
+                        {
+                            esc.DeSpawn();
+                            Find.WorldPawns.PassToWorld(esc, PawnDiscardDecideMode.Discard);
+                        }
+                    }
+                    if (!walkAway) debtEscortIds.Clear();
+                }
+
                 if (walkAway)
                 {
                     // 结清之后他该"走出去"，不是凭空消失（作者 2026-10-25）。
@@ -6159,6 +6333,62 @@ namespace RimForex
                 }
             }
             return null;
+        }
+
+        /// <summary>
+        /// 盘中实时事件判定（作者 2026-10-26 要求）。
+        ///
+        /// 原来只在每日 0 点比"收盘 vs 昨收"，盘中冲高回落完全不算 ——
+        /// 一个货币当天涨 5% 又跌回去，等于什么都没发生。
+        /// 现在每个报价步检查一次：只要当前价相对**今日开盘**的偏离越过 2σ，
+        /// 立刻触发，不看收盘。
+        ///
+        /// 冷却（单货币 / 全局）照旧；触发后 lastEventTick 会让它安静一段时间，
+        /// 所以同一个货币不会一天里反复响。
+        /// </summary>
+        private void CheckIntradayEvents()
+        {
+            RimForexSettings cfg = RimForexMod.Settings;
+            if (cfg != null && !cfg.enableWorldEvents) return;
+            if (!WorldEventAllowed()) return;
+
+            int now = GenTicks.TicksGame;
+            FxCurrency best = null;
+            float bestZ = 0f;
+
+            var keys = new List<int>(market.currencies.Keys);
+            for (int i = 0; i < keys.Count; i++)
+            {
+                var c = market.currencies[keys[i]];
+                if (c == null) continue;
+                if (c.factionLoadID == Faction.OfPlayer.loadID) continue;
+                if (now - c.lastEventTick < EventCooldownPerCurrencyNow) continue;
+
+                float sigma = SigmaDayOf(c);
+                if (sigma <= 0f) continue;
+                float z = DailyReturnOf(c) / sigma;
+                if (Mathf.Abs(z) < EventSigma) continue;
+
+                var cand = FactionByID(c.factionLoadID);
+                if (cand == null || cand.temporary || cand.IsPlayer) continue;
+                if (!cand.HostileTo(Faction.OfPlayer)
+                    && !CanSendCaravan(cand) && !CanSendOrbitalTrade(cand)
+                    && !CanSendTributeCollector(cand)) continue;
+
+                if (Mathf.Abs(z) > Mathf.Abs(bestZ)) { best = c; bestZ = z; }
+            }
+
+            if (best == null) return;
+
+            var faction = FactionByID(best.factionLoadID);
+            if (faction == null) return;
+
+            best.lastEventTick = now;
+            lastWorldEventTick = now;
+
+            float pctMove = DailyReturnOf(best) * 100f;
+            if (bestZ > 0f) QueueE1(best, faction, pctMove);
+            else QueueE2(best, faction, pctMove);
         }
 
         /// <summary>重新统计能做贸易的派系数量（诊断用，UI 随时可调）。</summary>
@@ -6832,6 +7062,8 @@ namespace RimForex
             Scribe_Values.Look(ref debtDeadlineTick, "debtDeadlineTick", 0);
             Scribe_Values.Look(ref debtCollectorId, "debtCollectorId", -1);
             Scribe_Values.Look(ref debtHostile, "debtHostile", false);
+            Scribe_Collections.Look(ref debtEscortIds, "debtEscortIds", LookMode.Value);
+            if (debtEscortIds == null) debtEscortIds = new List<int>();
             if (retaliations == null) retaliations = new List<FxRetaliation>();
             if (pendingEvents == null) pendingEvents = new List<FxPendingEvent>();
             if (refugeePawnIds == null) refugeePawnIds = new List<int>();
