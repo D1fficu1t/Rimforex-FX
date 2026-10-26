@@ -8,94 +8,91 @@
 
 **新增**
 
-- **官方借贷服务**：终端命令栏多一个入口，四家机构（2,000 / 8,000 / 10,000 / 20,000 上限），
+- 官方借贷服务：终端命令栏多一个入口，四家机构（2,000 / 8,000 / 10,000 / 20,000 上限），
   利息按日累计、单利不滚本金，期限 3 / 6 / 10 日与无期限。
   到期未清或连续 3 日付不出利息即违约，欠款一次性打进余额。
   借款上限随净值缩放，且按「净值 − 负债」计算，借钱不会抬高自己的额度。
-- **隔夜利息**：持仓每天按名义仓位收 0.2%。终端状态行直接标出当前费率。
-- **托管费**：账户余额超过 20,000 的部分每天收 3%。
+- 隔夜利息：持仓每天按名义仓位收 0.2%。终端状态行直接标出当前费率。
+- 托管费：账户余额超过 20,000 的部分每天收 3%。
   以前把钱存在账户里躲袭击是完全免费的。
-- **费用凭证**：隔夜利息、托管费、贷款利息每天都会作为一条记录写进交易历史，
+- 费用凭证：隔夜利息、托管费、贷款利息每天都会作为一条记录写进交易历史，
   不会再出现「扣了钱却查不到」。
-- **新手教程**：终端底部常驻入口。五节内容加一张现画的 K 线示意图，
-  正经建议藏在「老油条的忠告」彩蛋里。
-- **世界事件系统**（可在设置里整体开关，冷却与概率都有滑块）：
-  - **货币暴涨**：单日（盘中实时判定）涨幅越过阈值时，中立派系两天后派商队来扫货；
+- 新手教程：终端底部常驻入口。五节内容加一张现画的 K 线示意图。
+- 世界事件系统（可在设置里整体开关，冷却与概率都有滑块）：
+  - 货币暴涨：单日（盘中实时判定）涨幅越过阈值时，中立派系两天后派商队来扫货；
     只能走轨道贸易的派系派贸易船；帝国派征收队；敌对派系则有三成到六成概率发动袭击。
-  - **货币暴跌**：中立派系派清库存的商队，谈价更占优势；
+  - 货币暴跌：中立派系派清库存的商队，谈价更占优势；
     敌对派系的据点会在 10 天内守备空虚，去打能少一半守军。
-  - **外汇奇才**：单日赚到大钱会让各派系刮目相看（好感 +6），也可能招来不速之客。
-  - **战争新闻**：两个敌对派系开战，接下来三天双方货币会走出缓坡。
-  - **做空报复**：把某个派系的货币做空到足够大并维持三天，他们会翻脸，
+  - 外汇奇才：单日赚到大钱会让各派系刮目相看（好感 +6），也可能招来不速之客。
+  - 战争新闻：两个敌对派系开战，接下来三天双方货币会走出缓坡。
+  - 做空报复：把某个派系的货币做空到足够大并维持三天，他们会翻脸，
     每两天来一次袭击，直到你平仓。每十次袭击引发一次金融危机：
     货币永久贬值 10%，殖民地边缘会掉下无派系难民；五次危机之后该派系名存实亡，
     货币下架、持仓强制平仓，据点仍留在地图上。
-  - **穿仓收债**：余额为负满两天，清算部会派一名收债人和两名武装随从上门。
+  - 穿仓收债：余额为负满两天，清算部会派一名收债人和两名武装随从上门。
     你可以付清、交人抵债，或者动手。动手会招来机械族袭击并冻结账户一年，
     冻结满 30 天后仍可借款翻身。
-- **平台强制清算**：余额已经为负却还挂着仓位时，平台会直接按市价全部强平补债。
+- 平台强制清算：余额已经为负却还挂着仓位时，平台会直接按市价全部强平补债。
 
 **修复**
 
-- **追加保证金后，K 线上的爆仓线不会移动**，而且价格跌破线也不爆仓。
+- 追加保证金后，K 线上的爆仓线不会移动，而且价格跌破线也不爆仓。
   原因是画线用初始保证金、强平判据用含追加的保证金，两边差一个追加额。
-- **极端跳空只会爆仓、不会穿仓**：跳空的幅度被盘内子步摊平，
+- 极端跳空只会爆仓、不会穿仓：跳空的幅度被盘内子步摊平，
   价格一格格走过强平线，在中间就被平掉了。现在跳空是瞬间到位的。
 
 **其他**
 
 - 模组设置重排：世界事件在最上面，调试用的测试按钮折叠到最下面。
-- 新增中文 / 英文对应的全部界面与信件文本。
 
 ### English
 
 **Added**
 
-- **Official lending service**: four institutions (limits 2,000 / 8,000 / 10,000 / 20,000),
+- Official lending service: four institutions (limits 2,000 / 8,000 / 10,000 / 20,000),
   simple interest accrued daily, terms of 3 / 6 / 10 days or open-ended.
   Default after the term, or after three unpaid days of interest, charges the debt to your balance.
   Limits scale with net worth and are computed as net worth minus existing debt, so borrowing
   never raises your own ceiling.
-- **Overnight interest**: 0.2% of notional per day. The current rate is shown in the terminal
+- Overnight interest: 0.2% of notional per day. The current rate is shown in the terminal
   status line.
-- **Custody fee**: 3% per day on any balance above 20,000 silver.
+- Custody fee: 3% per day on any balance above 20,000 silver.
   Parking silver in the account to dodge raids is no longer free.
-- **Fee receipts**: overnight interest, custody fees and loan interest are now recorded in the
+- Fee receipts: overnight interest, custody fees and loan interest are now recorded in the
   trade history, so the money is always traceable.
-- **Beginner's guide**: a permanent entry at the bottom of the terminal. Five sections plus a
+- Beginner's guide: a permanent entry at the bottom of the terminal. Five sections plus a
   hand-drawn candle diagram; the honest advice is hidden behind an easter egg.
-- **World events** (master switch, cooldown and probability sliders in the settings):
-  - **Currency surge**: judged intraday. Neutral factions send a caravan two days later;
+- World events (master switch, cooldown and probability sliders in the settings):
+  - Currency surge: judged intraday. Neutral factions send a caravan two days later;
     factions that only trade from orbit send a trade ship; the Empire sends a tribute collector;
     hostile factions have a 30-60% chance to raid.
-  - **Currency crash**: neutral factions send a clearance caravan and you get a bargaining edge;
+  - Currency crash: neutral factions send a clearance caravan and you get a bargaining edge;
     hostile settlements are left under-defended for 10 days.
-  - **Currency prodigy**: a big one-day win raises goodwill by 6 across the board, and may attract
+  - Currency prodigy: a big one-day win raises goodwill by 6 across the board, and may attract
     uninvited guests.
-  - **War news**: two hostile factions fight, and both currencies drift over the next three days.
-  - **Short-squeeze retaliation**: short a faction's currency hard enough for three days and they
+  - War news: two hostile factions fight, and both currencies drift over the next three days.
+  - Short-squeeze retaliation: short a faction's currency hard enough for three days and they
     turn hostile, raiding every two days until you close the position. Every ten raids triggers a
     financial crisis: the currency loses 10% permanently and factionless refugees crash-land at the
     edge of your colony. Five crises and the faction is finished - its currency is delisted and open
     positions are force-closed, though its settlements remain on the map.
-  - **Debt collection**: two days in the red and Collections sends a collector with two armed
+  - Debt collection: two days in the red and Collections sends a collector with two armed
     escorts. Pay, hand people over, or fight. Fighting brings a mechanoid raid and a one-year
     account freeze; borrowing reopens 30 days into the freeze.
-- **Forced liquidation**: if the balance is negative while positions are still open, the platform
+- Forced liquidation: if the balance is negative while positions are still open, the platform
   closes everything at market to cover the debt.
 
 **Fixed**
 
-- **The stop-out line did not move after adding margin**, and price could cross it without a
+- The stop-out line did not move after adding margin, and price could cross it without a
   liquidation. The line was drawn from the initial margin while the rule used margin including
   top-ups; both now use the same basis.
-- **Extreme gaps only ever caused a margin call, never a blow-up**: the gap was smoothed across
+- Extreme gaps only ever caused a margin call, never a blow-up: the gap was smoothed across
   intraday sub-steps and the position was closed halfway down. Gaps now land in one step.
 
 **Other**
 
 - Mod settings reordered: world events on top, debug test buttons collapsed at the bottom.
-- Full Chinese and English text for all new UI and letters.
 
 ---
 
