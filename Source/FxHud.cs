@@ -67,6 +67,8 @@ namespace RimForex
 
         /// <summary>本帧画过的按钮，拖动/点击判定要避开它们。</summary>
         private static readonly List<Rect> buttonRects = new List<Rect>();
+        /// <summary>当前打开的小 K 线窗口（同一时间只留一个）。</summary>
+        private static Window_FxMiniChart miniChart;
 
         /// <summary>
         /// 画悬浮窗。
@@ -191,10 +193,18 @@ namespace RimForex
                     // 该笔盈亏（右对齐，压住平仓按钮左侧）
                     string pnlStr = p.Pnl.ToString("+0;-0;0");
                     float pw = Text.CalcSize(pnlStr).x;
-                    Rect pnlR = new Rect(box.xMax - CloseBtnW - 8f - pw, rowY + 2f, pw, lineH);
+                    Rect pnlR = new Rect(box.xMax - CloseBtnW - 34f - pw, rowY + 2f, pw, lineH);
                     GUI.color = Window_FxTerminal.PnlGuiColor(p.Pnl);
                     Widgets.Label(pnlR, pnlStr);
                     GUI.color = Color.white;
+
+                    // K 线按钮：打开/关闭这一笔货币的小 K 线窗口
+                    Rect kBtn = new Rect(box.xMax - CloseBtnW - 28f, rowY + 1f, 24f, RowH - 4f);
+                    if (Widgets.ButtonText(kBtn, "K"))
+                    {
+                        ToggleMiniChart(fx, acc, p);
+                    }
+                    TooltipHandler.TipRegion(kBtn, "RimForex_HudKLineTip".Translate());
 
                     // 平仓：需要 ①通电的终端 ②跨过一次报价 ③组件在
                     Rect closeBtn = new Rect(box.xMax - CloseBtnW - 4f, rowY + 1f, CloseBtnW, RowH - 4f);
@@ -246,6 +256,24 @@ namespace RimForex
         }
 
         /// <summary>找当前地图上第一台可用的终端并打开。返回是否成功。</summary>
+        /// <summary>同一个货币再点一次 = 关闭；换一个货币 = 换内容。</summary>
+        private static void ToggleMiniChart(FxGameComponent fx, FxAccount acc, FxPosition pos)
+        {
+            if (fx == null || pos == null) return;
+
+            bool open = miniChart != null && Find.WindowStack.IsOpen(miniChart);
+            if (open && miniChart.FactionId == pos.currencyFactionLoadID)
+            {
+                miniChart.Close();
+                miniChart = null;
+                return;
+            }
+            if (open) miniChart.Close();
+
+            miniChart = new Window_FxMiniChart(fx, acc, pos.currencyFactionLoadID);
+            Find.WindowStack.Add(miniChart);
+        }
+
         private static bool OpenTerminal(Map map)
         {
             if (map == null) return false;

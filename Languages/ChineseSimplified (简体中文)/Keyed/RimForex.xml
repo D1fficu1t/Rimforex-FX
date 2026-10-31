@@ -502,4 +502,5 @@
   <RimForex_TpSlClose>关闭</RimForex_TpSlClose>
   <RimForex_TpSlInvalid>价格方向不对：做多的止盈要在现价之上、止损之下，做空反过来。</RimForex_TpSlInvalid>
   <RimForex_TpSlEditTip>点击这一行可以设置止盈 / 止损。</RimForex_TpSlEditTip>
+  <RimForex_HudKLineTip>打开/关闭这个货币的小 K 线窗口。</RimForex_HudKLineTip>
 </LanguageData>
