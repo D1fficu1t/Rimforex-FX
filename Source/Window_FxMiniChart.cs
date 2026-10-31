@@ -45,6 +45,9 @@ namespace RimForex
         public override void DoWindowContents(Rect inRect)
         {
             if (fx == null || fx.market == null) { Close(); return; }
+
+            // 终端断电后这个窗口必须自己消失（作者 2026-10-31 实测：断电还能看）
+            if (!AnyTerminalUsable()) { Close(); return; }
             FxCurrency cur = fx.market.Get(FactionId);
             if (cur == null) { Close(); return; }
 
@@ -150,7 +153,10 @@ namespace RimForex
                         if (baseM < 0.01f) baseM = pos.margin;
                         float dist = ((1f - FxGameComponent.StopOutFraction) * baseM + pos.addedMargin) / units;
                         float markStop = pos.isLong ? pos.entryRate - dist : pos.entryRate + dist;
-                        DrawLine(area, min, max, markStop / denom, new Color(1f, 0.45f, 0.40f, 0.9f));
+                        // 爆仓线经常落在可视区外（100x 时距现价只有 0.7%），
+                        // 贴边画一条，别让它凭空消失 —— 与终端一致
+                        DrawLine(area, min, max, markStop / denom,
+                            new Color(1f, 0.45f, 0.40f, 0.9f), true);
                     }
                 }
             }
@@ -168,6 +174,23 @@ namespace RimForex
             Text.Font = GameFont.Small;
         }
 
+        /// <summary>任意地图上是否存在通电的终端。</summary>
+        private static bool AnyTerminalUsable()
+        {
+            var maps = Find.Maps;
+            if (maps == null) return false;
+            for (int i = 0; i < maps.Count; i++)
+            {
+                var buildings = maps[i].listerBuildings
+                    .AllBuildingsColonistOfClass<Building_FXTradingTerminal>();
+                foreach (var b in buildings)
+                {
+                    if (b != null && b.Usable) return true;
+                }
+            }
+            return false;
+        }
+
         private FxPosition LatestPosition()
         {
             if (account == null) return null;
@@ -179,10 +202,24 @@ namespace RimForex
             return null;
         }
 
-        private static void DrawLine(Rect area, float min, float max, float price, Color col)
+        private static void DrawLine(Rect area, float min, float max, float price, Color col,
+            bool clampToEdge = false)
         {
-            if (price < min || price > max) return;
-            float y = PriceToY(price, min, max, area);
+            float y;
+            if (price < min)
+            {
+                if (!clampToEdge) return;
+                y = area.yMax - 0.5f;
+            }
+            else if (price > max)
+            {
+                if (!clampToEdge) return;
+                y = area.y + 0.5f;
+            }
+            else
+            {
+                y = PriceToY(price, min, max, area);
+            }
             Widgets.DrawBoxSolid(new Rect(area.x, y, area.width, 1f), col);
         }
 

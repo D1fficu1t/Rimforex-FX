@@ -53,9 +53,6 @@
 中间价必须走到 {2} 才回本。</RimForex_ChartBreakevenTip>
   <RimForex_ChartNoData>历史数据还不够。</RimForex_ChartNoData>
   <RimForex_SpanHour>时K</RimForex_SpanHour>
-  <RimForex_SpanDay>日K</RimForex_SpanDay>
-  <RimForex_SpanBtnTip>{0}：每根K线覆盖 {1}</RimForex_SpanBtnTip>
-  <RimForex_SpanClickToMinute>再点一次回到分K</RimForex_SpanClickToMinute>
   <RimForex_SpanUnitHour>1 游戏小时</RimForex_SpanUnitHour>
   <RimForex_SpanUnitDay>1 游戏日</RimForex_SpanUnitDay>
   <RimForex_SpanUnitMinute>{0} 游戏分钟</RimForex_SpanUnitMinute>

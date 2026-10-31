@@ -213,9 +213,10 @@ namespace RimForex
             float midH = orderY - Gap - midY;
             if (midH < 120f) midH = 120f;
 
-            // 货币表的列宽是固定的，54% 时"盈亏"右侧会空出一大块（作者 2026-10-31 截图）。
-            // 收到 46%，把空出来的宽度让给 K 线。
-            float leftW = Mathf.Clamp(content.width * 0.46f, 360f, content.width - 320f);
+            // 货币表各列是**固定像素**偏移，最右一列（盈亏）到 386+72=458 才结束，
+            // 加上内边距需要约 486px。按百分比分配时要么空一块、要么把盈亏列切掉
+            // （作者 2026-10-31 两次截图）。这里直接按内容宽度定死，剩下的全给 K 线。
+            float leftW = Mathf.Clamp(486f, 360f, content.width - 300f);
             Rect leftRect = new Rect(content.x, midY, leftW, midH);
             Rect rightRect = new Rect(content.x + leftW + Gap, midY, content.width - leftW - Gap, midH);
 
@@ -457,9 +458,11 @@ namespace RimForex
             if (outRect.height <= 0f) return;
 
             float viewH = Mathf.Max(outRect.height, currencies.Count * MarketRowH + 4f);
-            Rect viewRect = new Rect(0f, 0f, outRect.width - 18f, viewH);
+            // 不画滚动条（作者 2026-10-31 要求：滚轮就够了）。
+            // 原来扣掉 18px 给滚动条，正好把"盈亏"那一列挤没。
+            Rect viewRect = new Rect(0f, 0f, outRect.width, viewH);
 
-            Widgets.BeginScrollView(outRect, ref currencyScroll, viewRect);
+            Widgets.BeginScrollView(outRect, ref currencyScroll, viewRect, false);
             float y = 0f;
             for (int i = 0; i < currencies.Count; i++)
             {
@@ -610,13 +613,11 @@ namespace RimForex
             RimForexSettings cfg = RimForexMod.Settings;
 
             // 右侧控件从左到右：倒计时 | 时K | 日K | 重置视图
-            const float SpanW = 44f;
-            const float SpanGap = 4f;
             float resetW = 96f;
-            float spanBlock = (SpanW + SpanGap) * 2f;   // 两个周期按钮 + 间距
+            // 周期切换已挪到左侧竖排开关，顶部只留"重置视图"
+            float spanBlock = 0f;
             Rect resetBtn = new Rect(r.xMax - resetW, r.y, resetW, 22f);
-            Rect dayBtn = new Rect(resetBtn.x - spanBlock, resetBtn.y, SpanW, resetBtn.height);
-            Rect hourBtn = new Rect(dayBtn.xMax + SpanGap, resetBtn.y, SpanW, resetBtn.height);
+            // dayBtn / hourBtn 已移除
 
             // 倒计时（与推进逻辑同源：基于 lastStepTick；1x 下 60 tick = 1 现实秒）
             //
@@ -646,12 +647,7 @@ namespace RimForex
             }
             TooltipHandler.TipRegion(resetBtn, "RimForex_ChartNavTip".Translate());
 
-            // ── 周期切换按钮（时K / 日K），在"重置视图"左边 ──
-            // 三级各有独立缓冲，切换后看到的是各自的历史长度，不是同一批数据换标签。
-            DrawSpanButton(hourBtn, FxChartSpan.Hour, "RimForex_SpanHour");
-            DrawSpanButton(dayBtn, FxChartSpan.Day, "RimForex_SpanDay");
-
-            float hintH = 0f;
+float hintH = 0f;
             Text.Font = GameFont.Small;
 
             float plotY = r.y + 22f + hintH;
@@ -772,29 +768,7 @@ namespace RimForex
             return d;
         }
 
-        /// <summary>
-        /// 画一个周期切换按钮。
-        ///
-        /// 分K 是默认态，它没有自己的按钮 —— 只在时K/日K 按钮上体现"当前不在此周期"。
-        /// 再点一次当前已选中的周期按钮 = 回到分K，这样不用为"分K"多占一个按钮位。
-        /// </summary>
-        private void DrawSpanButton(Rect btn, FxChartSpan span, string labelKey)
-        {
-            bool active = chartSpan == span;
-            if (active) GUI.color = new Color(0.62f, 0.78f, 0.95f);
-            else GUI.color = new Color(0.80f, 0.80f, 0.80f);
 
-            if (Widgets.ButtonText(btn, labelKey.Translate()))
-            {
-                // 再点一次取消 → 回到分K
-                chartSpan = active ? FxChartSpan.Minute : span;
-                chartCandles = 60;     // 换周期后根数重置（各周期的合理视窗不同）
-            }
-            GUI.color = Color.white;
-
-            TooltipHandler.TipRegion(btn, "RimForex_SpanBtnTip".Translate(
-                labelKey.Translate(), active ? "RimForex_SpanClickToMinute".Translate() : ""));
-        }
 
         /// <summary>当前周期每根 K 线覆盖的游戏时间，用于绘图区提示。</summary>
         private string SpanPeriodText()

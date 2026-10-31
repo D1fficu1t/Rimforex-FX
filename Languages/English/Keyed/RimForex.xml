@@ -45,9 +45,6 @@ Floating P/L {2} silver</RimForex_PosLineTip>
   <RimForex_ChartBreakevenTip>Break-even line for your {0} position, in mid price.\n\nYou filled at {1}, but since you pay the spread on both sides,\nmid must reach {2} before you are flat.</RimForex_ChartBreakevenTip>
   <RimForex_ChartNoData>Not enough history yet.</RimForex_ChartNoData>
   <RimForex_SpanHour>H</RimForex_SpanHour>
-  <RimForex_SpanDay>D</RimForex_SpanDay>
-  <RimForex_SpanBtnTip>{0}: each candle covers {1}</RimForex_SpanBtnTip>
-  <RimForex_SpanClickToMinute>click again to return to minutes</RimForex_SpanClickToMinute>
   <RimForex_SpanUnitHour>1 game hour</RimForex_SpanUnitHour>
   <RimForex_SpanUnitDay>1 game day</RimForex_SpanUnitDay>
   <RimForex_SpanUnitMinute>{0} game minutes</RimForex_SpanUnitMinute>
