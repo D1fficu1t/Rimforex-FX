@@ -286,7 +286,11 @@ namespace RimForex
             HoldCommon(minus, plus, target, (dir, t01) =>
             {
                 // t01 == 0 表示"刚按下"那一次：只走 1
-                int step = t01 <= 0f ? 1 : (t01 > 2.5f ? 100 : (t01 > 1.2f ? 10 : 5));
+                // 之后按 5 → 10 → 50 → 200 逐档加速（阈值放宽，手感更可控）
+                int step = t01 <= 0f ? 1
+                    : t01 > 6f ? 200
+                    : t01 > 4f ? 50
+                    : t01 > 2f ? 10 : 5;
                 apply(dir, step);
             });
         }
@@ -298,7 +302,10 @@ namespace RimForex
             HoldCommon(minus, plus, target, (dir, t01) =>
             {
                 // t01 == 0 表示"刚按下"那一次：只走 0.01
-                float step = t01 <= 0f ? 0.01f : (t01 > 2.5f ? 5f : (t01 > 1.2f ? 0.5f : 0.05f));
+                float step = t01 <= 0f ? 0.01f
+                    : t01 > 6f ? 20f
+                    : t01 > 4f ? 5f
+                    : t01 > 2f ? 0.5f : 0.05f;
                 apply(dir, step);
             });
         }
@@ -359,13 +366,16 @@ namespace RimForex
             if (holdTarget != target || holdDir == 0) return;
 
             holdTime += UnityEngine.Time.unscaledDeltaTime;
-            // 没有 InputLegacyModule 可引用，拿不到"鼠标是否仍按住"；
-            // 用 6 秒硬上限兜底，防止 MouseUp 丢失后一直连发
-            if (holdTime > 6f) { holdTarget = 0; return; }
+            // 没有 InputLegacyModule 可引用，拿不到"鼠标是否仍按住"。
+            // 用 30 秒硬上限兜底（原来 6 秒，作者反馈"按到 8600 就停"就是它）；
+            // 正常松手会收到 MouseUp 立即结束。
+            if (holdTime > 30f) { holdTarget = 0; return; }
             if (holdTime < 0.30f) return;          // 短按只算那一次
 
             holdAcc += UnityEngine.Time.unscaledDeltaTime;
-            float interval = holdTime > 2.5f ? 0.04f : (holdTime > 1.2f ? 0.07f : 0.11f);
+            float interval = holdTime > 6f ? 0.04f
+                : holdTime > 4f ? 0.05f
+                : holdTime > 2f ? 0.08f : 0.12f;
             if (holdAcc < interval) return;
             holdAcc = 0f;
             apply(holdDir, holdTime);

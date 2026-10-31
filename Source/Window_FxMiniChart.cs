@@ -129,10 +129,14 @@ namespace RimForex
             //   蜡烛是**中间价**，而持仓的 entryRate 是**方向价**，
             //   必须先按入场时的半价差换回中间价，否则线会整体偏半个点差。
             FxPosition pos = LatestPosition();
-            if (pos != null && pos.entrySpreadRate > 0.0001f)
+            if (pos != null)
             {
                 float units = Mathf.Abs((float)pos.units);
-                float half = pos.entrySpreadRate * 0.5f;
+                // 老存档的持仓可能没存 entrySpreadRate，退回当前品种的点差
+                float spreadRate = pos.entrySpreadRate > 0.0001f
+                    ? pos.entrySpreadRate
+                    : FxMarket.SpreadRateFor(cur);
+                float half = spreadRate * 0.5f;
                 float denom = pos.isLong ? (1f - half) : (1f + half);
                 if (denom > 0.0001f)
                 {
@@ -145,7 +149,9 @@ namespace RimForex
                     if (showBreakeven)
                     {
                         float beMid = mid0 * (pos.isLong ? (1f + half) : (1f - half)) / denom;
-                        DrawLine(area, min, max, beMid, new Color(0.55f, 0.72f, 0.98f, 0.95f));
+                        // 回本线与开仓线只差半个点差，小窗口里常常压成 1px 看不出来；
+                        // 画成 2px 并先画，保证不被盖住
+                        DrawLine(area, min, max, beMid, new Color(0.55f, 0.72f, 0.98f, 0.95f), false, 2f);
                     }
                     if (showStopOut && units > 0.0001f)
                     {
@@ -242,7 +248,7 @@ namespace RimForex
         }
 
         private static void DrawLine(Rect area, float min, float max, float price, Color col,
-            bool clampToEdge = false)
+            bool clampToEdge = false, float thickness = 1f)
         {
             float y;
             if (price < min)
@@ -259,7 +265,7 @@ namespace RimForex
             {
                 y = PriceToY(price, min, max, area);
             }
-            Widgets.DrawBoxSolid(new Rect(area.x, y, area.width, 1f), col);
+            Widgets.DrawBoxSolid(new Rect(area.x, y - (thickness - 1f) * 0.5f, area.width, thickness), col);
         }
 
         private void DrawSideButtons(Rect strip)
