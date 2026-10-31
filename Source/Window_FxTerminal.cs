@@ -97,13 +97,20 @@ namespace RimForex
 
         private const float Pad = 8f;
         private const float Gap = 8f;
-        private const float AccountH = 198f;
-        private const float StatRowH = 52f;
+        // ── 高度一律按字体行高推导，不写死像素 ──
+        //
+        // 作者实测：UI 缩放调高之后，Medium 字号的行高比写死的 26/24 高，
+        // 抬头和数字都会被裁；下单区底部的说明行同理。
+        // 用 Text.LineHeightOf 现算，任何缩放下都不会削字。
+        private static float LhS => Text.LineHeightOf(GameFont.Small);
+        private static float LhM => Text.LineHeightOf(GameFont.Medium);
+        private static float AccountH => Pad * 2f + TitleH + StatRowH + 46f + LhS + 16f;
+        private static float StatRowH => LhS + 4f + LhM + 6f;
         private const float BtnH = 28f;
         private const float MarketRowH = 28f;
-        private const float OrderH = 336f;
+        private static float OrderH => 120f + 10f * LhS;
         private const float TimeBarH = 32f;
-        private const float TitleH = 34f;
+        private static float TitleH => LhM + 10f;
         /// <summary>底部留白，避免与主按钮栏 / 原版时间控制重叠。</summary>
         private const float BottomOffset = 78f;
 
@@ -242,7 +249,7 @@ namespace RimForex
             Rect r = zone.ContractedBy(Pad);
 
             Text.Font = GameFont.Medium;
-            Widgets.Label(new Rect(r.x, r.y, 200f, 26f), "RimForex_Title".Translate());
+            Widgets.Label(new Rect(r.x, r.y, 200f, LhM + 2f), "RimForex_Title".Translate());
             Text.Font = GameFont.Small;
 
             // 累计手续费已从这一行移除（2026-10-23，作者认为这个统计没有意义）。
@@ -253,7 +260,7 @@ namespace RimForex
                 account.lastDayPositions)
                 + "　·　" + "RimForex_CarryRateInline".Translate(
                     (FxGameComponent.DefaultCarryRate * 100f).ToString("0.##"));
-            Widgets.Label(new Rect(r.x + 210f, r.y + 4f, r.width - 400f, 22f), status);
+            Widgets.Label(new Rect(r.x + 210f, r.y + 4f, r.width - 400f, LhS + 2f), status);
 
             // 距下次每日结算的倒计时 —— 便于验证"每天 0 时结算一次"。
             // 数值直接来自 GenDate（原版 API），所以与游戏内时钟是恒等关系。
@@ -291,8 +298,8 @@ namespace RimForex
                 }
             }
 
-            // 净值行
-            float rowY = r.y + 30f;
+            // 净值行：起点跟着标题高度走（标题改按行高算，不能再用写死的 30）
+            float rowY = r.y + TitleH;
             float w = (r.width - 3f * Gap) / 4f;
             DrawStat(new Rect(r.x + (w + Gap) * 0f, rowY, w, StatRowH), "RimForex_Equity", account.Equity, "RimForex_TipEquity");
             DrawStat(new Rect(r.x + (w + Gap) * 1f, rowY, w, StatRowH), "RimForex_FreeMargin", account.balance, null);
@@ -390,7 +397,7 @@ namespace RimForex
         {
             string label = labelKey.Translate();
             if (tipKey != null) label += " " + "RimForex_TipMark".Translate();
-            Rect labelRect = new Rect(rect.x, rect.y, rect.width, 20f);
+            Rect labelRect = new Rect(rect.x, rect.y, rect.width, LhS + 2f);
             Widgets.Label(labelRect, label);
             // GUIContent 的 tooltip 只有 IMGUI 控件会弹，Widgets.Label 不吃这一套，
             // 必须显式挂 TipRegion —— 否则净值/浮动盈亏后面的问号永远没反应
@@ -402,7 +409,7 @@ namespace RimForex
             string text = value.ToString("F0");
             if (colorize) text = ColorizeBySign(text, value);
             Text.Font = GameFont.Medium;
-            Widgets.Label(new Rect(rect.x, rect.y + 20f, rect.width, 28f), text);
+            Widgets.Label(new Rect(rect.x, rect.y + LhS + 2f, rect.width, LhM + 6f), text);
             Text.Font = GameFont.Small;
         }
 
@@ -1767,7 +1774,9 @@ namespace RimForex
             else if (!enough)
             {
                 GUI.color = new Color(1f, 0.62f, 0.55f);
-                Widgets.Label(new Rect(left.x, y, left.width, 18f), "RimForex_NotEnoughMargin".Translate());
+                string warnText = "RimForex_NotEnoughMargin".Translate();
+                float warnH = Text.CalcHeight(warnText, left.width);
+                Widgets.Label(new Rect(left.x, y, left.width, warnH), warnText);
                 GUI.color = Color.white;
             }
 
