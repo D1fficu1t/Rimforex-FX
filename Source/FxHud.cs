@@ -213,6 +213,18 @@ namespace RimForex
                         ? "RimForex_HudCloseNoPower".Translate()
                         : (closable ? "RimForex_HudCloseTip".Translate()
                                     : "RimForex_HudCloseLocked".Translate()));
+
+                    // 悬停整行：与终端持仓行同一份详情（作者 2026-10-31 要求）
+                    Rect rowTipRect = new Rect(box.x, rowY, box.width - CloseBtnW - 6f, RowH);
+                    TooltipHandler.TipRegion(rowTipRect,
+                        "RimForex_PosRowTip".Translate(
+                            p.units,
+                            p.entryRate.ToString("F2"),
+                            p.markRate.ToString("F2"),
+                            p.leverage.ToString("F0"),
+                            p.Pnl.ToString("+0;-0;0"),
+                            p.MarketPnl.ToString("+0;-0;0"),
+                            p.SpreadCost.ToString("F0")).ToString());
                 }
             }
             else

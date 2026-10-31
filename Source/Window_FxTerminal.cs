@@ -842,6 +842,30 @@ namespace RimForex
                 text += "\n\n" + "RimForex_HoverForming".Translate(SpanPeriodText());
             }
 
+            // ── 十字光标（作者 2026-10-31 要求）──
+            // 竖线落在当前蜡烛的中心，横线跟鼠标；右侧再挂一个价格标签。
+            Vector2 m = e.mousePosition;
+            float cx = area.x + LastSlotWidth * (idx + 0.5f);
+            Color cross = new Color(1f, 1f, 1f, 0.35f);
+            Widgets.DrawBoxSolid(new Rect(cx - 0.5f, area.y, 1f, area.height), cross);
+            Widgets.DrawBoxSolid(new Rect(area.x, m.y, area.width, 1f), cross);
+
+            // 横线对应的价格：把 y 反解回价格区间
+            float t01 = Mathf.Clamp01((m.y - area.y) / Mathf.Max(1f, area.height));
+            float hoverPrice = Mathf.Lerp(ChartMax, ChartMin, t01);
+            string priceStr = hoverPrice.ToString("F2");
+
+            Text.Font = GameFont.Tiny;
+            Vector2 sz = Text.CalcSize(priceStr);
+            Rect tag = new Rect(area.xMax + 2f, m.y - sz.y * 0.5f - 1f, sz.x + 6f, sz.y + 2f);
+            if (tag.yMax > plot.yMax - 2f) tag.y = plot.yMax - tag.height - 2f;
+            if (tag.y < plot.y + 2f) tag.y = plot.y + 2f;
+            Widgets.DrawBoxSolid(tag, new Color(0.20f, 0.22f, 0.26f, 0.95f));
+            GUI.color = new Color(0.92f, 0.94f, 0.98f);
+            Widgets.Label(new Rect(tag.x + 3f, tag.y + 1f, tag.width, tag.height), priceStr);
+            GUI.color = Color.white;
+            Text.Font = GameFont.Small;
+
             TooltipHandler.TipRegion(area, new TipSignal(title + "\n\n" + text));
         }
 
