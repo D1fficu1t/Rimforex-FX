@@ -172,6 +172,32 @@ namespace RimForex
             }
             Text.Anchor = TextAnchor.UpperLeft;
             Text.Font = GameFont.Small;
+
+            // ── 十字光标（与终端一致）──
+            Event e = Event.current;
+            if (e != null && area.Contains(e.mousePosition))
+            {
+                Vector2 m = e.mousePosition;
+                int idx = Mathf.Clamp((int)((m.x - area.x) / Mathf.Max(0.01f, slot)), 0, n - 1);
+                float cx = area.x + slot * idx + slot * 0.5f;
+
+                Color cross = new Color(1f, 1f, 1f, 0.35f);
+                Widgets.DrawBoxSolid(new Rect(cx - 0.5f, area.y, 1f, area.height), cross);
+                Widgets.DrawBoxSolid(new Rect(area.x, m.y, area.width, 1f), cross);
+
+                float t01 = Mathf.Clamp01((m.y - area.y) / Mathf.Max(1f, area.height));
+                Text.Font = GameFont.Tiny;
+                string priceStr = Mathf.Lerp(max, min, t01).ToString("F2");
+                Vector2 sz = Text.CalcSize(priceStr);
+                Rect tag = new Rect(area.xMax + 2f, m.y - sz.y * 0.5f - 1f, sz.x + 6f, sz.y + 2f);
+                if (tag.yMax > plot.yMax - 2f) tag.y = plot.yMax - tag.height - 2f;
+                if (tag.y < plot.y + 2f) tag.y = plot.y + 2f;
+                Widgets.DrawBoxSolid(tag, new Color(0.20f, 0.22f, 0.26f, 0.95f));
+                GUI.color = new Color(0.92f, 0.94f, 0.98f);
+                Widgets.Label(new Rect(tag.x + 3f, tag.y + 1f, tag.width, tag.height), priceStr);
+                GUI.color = Color.white;
+                Text.Font = GameFont.Small;
+            }
         }
 
         /// <summary>任意地图上是否存在通电的终端。</summary>

@@ -509,4 +509,5 @@
   <RimForex_LineOffSo>爆仓✗</RimForex_LineOffSo>
   <RimForex_SpanDay>日K</RimForex_SpanDay>
   <RimForex_SplitterTip>拖动这里可以调整货币表和 K 线的宽度。</RimForex_SplitterTip>
+  <RimForex_HSplitterTip>拖动这里可以压缩/放大下单区，K 线与货币表同步变高变矮。</RimForex_HSplitterTip>
 </LanguageData>

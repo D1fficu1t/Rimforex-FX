@@ -203,10 +203,18 @@ namespace RimForex
             Rect timeRect = new Rect(content.x, content.yMax - TimeBarH, content.width, TimeBarH);
             DrawTimeBar(timeRect);
 
-            // 下单区（时间条之上，固定高）
-            float orderY = timeRect.y - Gap - OrderH;
-            Rect orderRect = new Rect(content.x, orderY, content.width, OrderH);
+            // 下单区（时间条之上，高度可拖；默认值由字体行高推导）
+            float maxOrderH = content.height - AccountH - 160f;
+            float orderH = orderPanelH > 0f
+                ? Mathf.Clamp(orderPanelH, 240f, Mathf.Max(300f, maxOrderH))
+                : OrderH;
+            float orderY = timeRect.y - Gap - orderH;
+            Rect orderRect = new Rect(content.x, orderY, content.width, orderH);
             DrawOrderZone(orderRect, fx);
+
+            // 中间区与下单区之间的横向分隔条：往上拖压缩下单区、放大图表
+            DrawHSplitter(new Rect(content.x, orderY - 4f, content.width, 8f),
+                ref orderPanelH, orderH, 240f, Mathf.Max(300f, maxOrderH));
 
             // 中间区：左表格 + 右K线
             float midY = accountRect.yMax + Gap;
@@ -229,8 +237,43 @@ namespace RimForex
             DrawMarketSplitter(new Rect(content.x + leftW - 3f, midY, 6f, midH), content.width);
         }
 
+        // ── 中间区 / 下单区之间的可拖动分隔条 ──
+        private void DrawHSplitter(Rect handle, ref float heightField, float currentH,
+            float minH, float maxH)
+        {
+            Event e = Event.current;
+            bool hover = e != null && handle.Contains(e.mousePosition);
+
+            Widgets.DrawBoxSolid(handle,
+                hover || draggingHSplit
+                    ? new Color(0.55f, 0.75f, 0.95f, 0.85f)
+                    : new Color(1f, 1f, 1f, 0.10f));
+            TooltipHandler.TipRegion(handle, "RimForex_HSplitterTip".Translate());
+
+            if (e == null) return;
+            if (e.type == EventType.MouseDown && e.button == 0 && hover)
+            {
+                draggingHSplit = true;
+                heightField = currentH;
+                e.Use();
+            }
+            else if (draggingHSplit && e.type == EventType.MouseDrag)
+            {
+                // 往下拖 = 下单区变矮 = 图表变高
+                heightField = Mathf.Clamp(heightField - e.delta.y, minH, maxH);
+                e.Use();
+            }
+            else if (e.type == EventType.MouseUp)
+            {
+                draggingHSplit = false;
+            }
+        }
+
         // ── 货币表 / K 线之间的可拖动分隔条 ──
         private float marketPanelW = 486f;
+        /// <summary>下单区高度（可上下拖动，−1 = 用默认值）。</summary>
+        private float orderPanelH = -1f;
+        private bool draggingHSplit;
         private bool draggingSplitter;
 
         private void DrawMarketSplitter(Rect handle, float contentWidth)
