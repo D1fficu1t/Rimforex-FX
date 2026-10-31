@@ -488,4 +488,5 @@ Let him reach the map edge, or put him down here. Either way, Collections will w
   <RimForex_SpanDay>D</RimForex_SpanDay>
   <RimForex_SplitterTip>Drag to resize the market table and the chart.</RimForex_SplitterTip>
   <RimForex_HSplitterTip>Drag to resize the order panel; the table and chart resize with it.</RimForex_HSplitterTip>
+  <RimForex_MsgTpSlReversed>Take-profit / stop-loss are on the wrong side: for a long, TP must be above the current price and SL below; for a short, the reverse. The reversed value is ignored for this order.</RimForex_MsgTpSlReversed>
 </LanguageData>

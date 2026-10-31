@@ -503,4 +503,5 @@
   <RimForex_SpanDay>日K</RimForex_SpanDay>
   <RimForex_SplitterTip>拖动这里可以调整货币表和 K 线的宽度。</RimForex_SplitterTip>
   <RimForex_HSplitterTip>拖动这里可以压缩/放大下单区，K 线与货币表同步变高变矮。</RimForex_HSplitterTip>
+  <RimForex_MsgTpSlReversed>止盈 / 止损填反了方向：做多的止盈要高于现价、止损要低于现价，做空反过来。这次下单会忽略填反的那一项。</RimForex_MsgTpSlReversed>
 </LanguageData>

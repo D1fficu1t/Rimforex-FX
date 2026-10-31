@@ -2006,11 +2006,21 @@ float hintH = 0f;
             GUI.color = canOpen ? new Color(0.55f, 0.92f, 0.60f) : Color.gray;
             if (Widgets.ButtonText(longR, "RimForex_GoLong".Translate()) && canOpen)
             {
+                if (TpSlDirectionBad(sel, true, orderTp, orderSl))
+                {
+                    Messages.Message("RimForex_MsgTpSlReversed".Translate(),
+                        MessageTypeDefOf.RejectInput, false);
+                }
                 OpenPosition(sel, true, units, orderLeverage, orderTp, orderSl);
             }
             GUI.color = canOpen ? new Color(1f, 0.52f, 0.48f) : Color.gray;
             if (Widgets.ButtonText(shortR, "RimForex_GoShort".Translate()) && canOpen)
             {
+                if (TpSlDirectionBad(sel, false, orderTp, orderSl))
+                {
+                    Messages.Message("RimForex_MsgTpSlReversed".Translate(),
+                        MessageTypeDefOf.RejectInput, false);
+                }
                 OpenPosition(sel, false, units, orderLeverage, orderTp, orderSl);
             }
             GUI.color = Color.white;
@@ -2214,6 +2224,21 @@ float hintH = 0f;
             GUI.color = pct > 0f ? new Color(0.55f, 0.90f, 0.60f) : new Color(1f, 0.55f, 0.50f);
             Widgets.Label(r, pct.ToString("+0.0;-0.0;0.0") + "%");
             GUI.color = Color.white;
+        }
+
+        /// <summary>
+        /// 止盈/止损方向是否填反：只提示，不阻止下单。
+        /// 做多：止盈要高于入场价、止损要低于；做空反过来。
+        /// </summary>
+        private bool TpSlDirectionBad(FxCurrency cur, bool isLong, float tp, float sl)
+        {
+            if (cur == null) return false;
+            float entry = Fx.market.EntryPriceOf(cur.factionLoadID, isLong);
+            if (entry <= 0.001f) return false;
+
+            bool badTp = tp > 0f && (isLong ? tp <= entry : tp >= entry);
+            bool badSl = sl > 0f && (isLong ? sl >= entry : sl <= entry);
+            return badTp || badSl;
         }
 
         private void OpenPosition(FxCurrency cur, bool isLong, int units, float leverage,
