@@ -1,5 +1,82 @@
 # 更新记录 / Changelog
 
+## 0.3.1
+
+> 相对 0.3.0：主要是图表与下单交互的补完。
+
+### 中文
+
+**新增**
+
+- 止盈止损：下单时可顺手填止盈价和止损价，也可以开好仓之后再改。
+  按方向价判定、触发时按市价成交 —— 跳空越过设定价时，多赚或少赚都是真实滑点。
+  填反了方向会提示，但不会阻止下单（该项直接忽略）。
+- 小 K 线窗口：浮动盈亏窗每笔持仓多一个 `K` 按钮，点开就是该货币的迷你图表，
+  再点一次关闭。里面也有分K/时K/日K、三条参考线、十字光标和悬停详情。
+  开着它照样能拖地图、干别的活。
+- 图表左侧多了一排开关：分K / 时K / 日K，以及开仓线、盈亏平衡线、爆仓线三条线各自的开关。
+  关掉的开关会变红，一眼能看出哪条线被藏起来了。
+- 货币表和 K 线之间的竖条、中间区和下单区之间的横条，现在都能拖着调宽度和高度。
+- 保证金输入框下面那排加减档位，换成两个按钮 `+` / `−`：
+  单击是 1，按住不放会越加越快（5 → 10 → 50 → 200）。止盈止损输入框旁边也各配了一对。
+- 梭哈警告：保证金吃掉几乎全部净值时，下单区会变色提醒 ——
+  明天的隔夜利息就能把余额推成负数，接着就是强制清算。
+
+**修复**
+
+- UI 缩放调大之后，终端抬头、那四个数字、以及下单区底部的提示会被裁掉半个字。
+  现在这些高度按字体行高现算，任何缩放下都完整。
+- 鼠标悬停在「净值」和「浮动盈亏」后面的问号上没有任何反应，现在会弹出说明。
+- 货币表「盈亏」那一列被右侧的滚动条和空白挤掉，看不全。现在没有滚动条（滚轮照旧能滚），列宽也放得下了。
+
+**其他**
+
+- 删掉了三处界面提示：账户区右上角的结算倒计时、K 线上方的报价节奏、以及一行时间诊断。
+- 图例和 K 线左下角的最新价都去掉了（最新价挪到标题后面）；模组设置里对应的
+  「盈亏平衡线」「爆仓线」「K 线图例说明」三个开关也一并删除 —— 现在由图表左侧的按钮控制。
+- 做多按钮改绿、做空按钮改红。
+- 借贷窗口底部那段「单利：利息按日累计……」的规则说明删掉了。
+
+### English
+
+**Added**
+
+- Take-profit and stop-loss: set them while placing an order, or change them later on an open
+  position. Judged on the directional price and filled at market when hit, so a gap past your
+  level is real slippage. A reversed value warns you but never blocks the order - it is ignored.
+- Mini chart: every position in the floating P/L panel now has a `K` button that opens a compact
+  chart for that currency; click again to close. It has minute/hour/day candles, the three
+  reference lines, a crosshair and hover details, and you can still drag the map while it is open.
+- A button strip on the left of the chart: minute / hour / day candles, plus individual toggles for
+  the entry, break-even and stop-out lines. A disabled toggle turns red so it is obvious which
+  line is hidden.
+- The bar between the market table and the chart, and the one between the chart and the order
+  panel, are now draggable to resize both directions.
+- The row of margin step buttons is now `+` / `−`: a single click moves 1, holding accelerates
+  (5 then 10, 50, 200). The take-profit and stop-loss fields get the same pair.
+- All-in warning: when the margin eats almost all of your equity, the order panel changes colour
+  and warns you that tomorrow's overnight interest will push the balance negative.
+
+**Fixed**
+
+- At a larger UI scale the terminal title, the four stat numbers and the note at the bottom of the
+  order panel were clipped. Those heights now derive from the font's line height.
+- Hovering the question mark after "Equity" and "Floating P/L" did nothing; it now shows the tip.
+- The "P/L" column of the market table was cut off by the scrollbar and leftover space. The
+  scrollbar is gone (the wheel still scrolls) and the column now fits.
+
+**Other**
+
+- Removed three readouts: the settlement countdown in the account area, the quote pacing note above
+  the chart, and the time diagnostics line.
+- The chart legend and the price in the bottom-left corner are gone; the price now sits after the
+  title. The matching settings toggles (break-even line, stop-out line, chart legend) were removed
+  too - the chart's own buttons control them now.
+- The buy button is green and the sell button is red.
+- The "simple interest accrues daily..." footnote at the bottom of the loan window is gone.
+
+---
+
 ## 0.3.0
 
 > 相对 0.2.4：新增了一整套**借贷、世界事件、收债**体系。
