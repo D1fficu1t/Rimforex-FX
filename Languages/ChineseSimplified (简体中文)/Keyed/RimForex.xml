@@ -503,4 +503,11 @@
   <RimForex_TpSlInvalid>价格方向不对：做多的止盈要在现价之上、止损之下，做空反过来。</RimForex_TpSlInvalid>
   <RimForex_TpSlEditTip>点击这一行可以设置止盈 / 止损。</RimForex_TpSlEditTip>
   <RimForex_HudKLineTip>打开/关闭这个货币的小 K 线窗口。</RimForex_HudKLineTip>
+  <RimForex_SpanMinuteShort>分K</RimForex_SpanMinuteShort>
+  <RimForex_LineOnEntry>开仓✓</RimForex_LineOnEntry>
+  <RimForex_LineOffEntry>开仓✗</RimForex_LineOffEntry>
+  <RimForex_LineOnBe>回本✓</RimForex_LineOnBe>
+  <RimForex_LineOffBe>回本✗</RimForex_LineOffBe>
+  <RimForex_LineOnSo>爆仓✓</RimForex_LineOnSo>
+  <RimForex_LineOffSo>爆仓✗</RimForex_LineOffSo>
 </LanguageData>

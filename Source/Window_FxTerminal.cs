@@ -205,7 +205,9 @@ namespace RimForex
             float midH = orderY - Gap - midY;
             if (midH < 120f) midH = 120f;
 
-            float leftW = Mathf.Clamp(content.width * 0.54f, 380f, content.width - 260f);
+            // 货币表的列宽是固定的，54% 时"盈亏"右侧会空出一大块（作者 2026-10-31 截图）。
+            // 收到 46%，把空出来的宽度让给 K 线。
+            float leftW = Mathf.Clamp(content.width * 0.46f, 360f, content.width - 320f);
             Rect leftRect = new Rect(content.x, midY, leftW, midH);
             Rect rightRect = new Rect(content.x + leftW + Gap, midY, content.width - leftW - Gap, midH);
 
@@ -524,6 +526,59 @@ namespace RimForex
 
         // ============================ K 线 ============================
 
+        // ── 图表左侧竖排开关（0.3.1，作者要求与小窗口一致）──
+        /// <summary>开仓价线是否显示。</summary>
+        private bool chartShowEntry = true;
+        /// <summary>盈亏平衡线是否显示。</summary>
+        private bool chartShowBreakeven = true;
+        /// <summary>爆仓线是否显示。</summary>
+        private bool chartShowStopOut = true;
+
+        /// <summary>画一组竖向开关：第一组是周期，后面三项是各类参考线。</summary>
+        private void DrawChartSideButtons(Rect strip)
+        {
+            float bh = 24f;
+            float y = strip.y;
+
+            GUI.color = chartSpan == FxChartSpan.Minute
+                ? new Color(0.70f, 0.80f, 0.95f) : Color.white;
+            if (Widgets.ButtonText(new Rect(strip.x, y, strip.width, bh), "RimForex_SpanMinuteShort".Translate()))
+            {
+                chartSpan = FxChartSpan.Minute;
+            }
+            GUI.color = Color.white;
+            y += bh + 4f;
+
+            GUI.color = chartSpan == FxChartSpan.Hour
+                ? new Color(0.70f, 0.80f, 0.95f) : Color.white;
+            if (Widgets.ButtonText(new Rect(strip.x, y, strip.width, bh), "RimForex_SpanHour".Translate()))
+            {
+                chartSpan = FxChartSpan.Hour;
+            }
+            GUI.color = Color.white;
+            y += bh + 10f;
+
+            if (Widgets.ButtonText(new Rect(strip.x, y, strip.width, bh),
+                    chartShowEntry ? "RimForex_LineOnEntry".Translate() : "RimForex_LineOffEntry".Translate()))
+            {
+                chartShowEntry = !chartShowEntry;
+            }
+            y += bh + 4f;
+
+            if (Widgets.ButtonText(new Rect(strip.x, y, strip.width, bh),
+                    chartShowBreakeven ? "RimForex_LineOnBe".Translate() : "RimForex_LineOffBe".Translate()))
+            {
+                chartShowBreakeven = !chartShowBreakeven;
+            }
+            y += bh + 4f;
+
+            if (Widgets.ButtonText(new Rect(strip.x, y, strip.width, bh),
+                    chartShowStopOut ? "RimForex_LineOnSo".Translate() : "RimForex_LineOffSo".Translate()))
+            {
+                chartShowStopOut = !chartShowStopOut;
+            }
+        }
+
         private void DrawChartZone(Rect zone, FxGameComponent fx)
         {
             Widgets.DrawMenuSection(zone);
@@ -592,7 +647,14 @@ namespace RimForex
             Text.Font = GameFont.Small;
 
             float plotY = r.y + 22f + hintH;
-            Rect plot = new Rect(r.x, plotY, r.width, r.yMax - plotY);
+
+            // 左侧竖排开关占一列，K 线本体整块左移
+            const float StripW = 54f;
+            Rect strip = new Rect(r.x, plotY, StripW, Mathf.Min(r.yMax - plotY, 24f * 5 + 26f));
+            DrawChartSideButtons(strip);
+
+            float chartX = r.x + StripW + 6f;
+            Rect plot = new Rect(chartX, plotY, r.width - StripW - 6f, r.yMax - plotY);
             if (plot.height < 60f) return;
 
             HandleChartInput(plot);
@@ -606,9 +668,9 @@ namespace RimForex
             //（它会把价格区间记下来），否则不知道 K 线的 y 轴范围，线会画错位置。
             if (ChartHasData)
             {
-                DrawPositionLines(ChartArea, ChartMin, ChartMax);
-                DrawBreakevenLine(ChartArea, ChartMin, ChartMax);
-                DrawStopOutLine(ChartArea, ChartMin, ChartMax);
+                if (chartShowEntry) DrawPositionLines(ChartArea, ChartMin, ChartMax);
+                if (chartShowBreakeven) DrawBreakevenLine(ChartArea, ChartMin, ChartMax);
+                if (chartShowStopOut) DrawStopOutLine(ChartArea, ChartMin, ChartMax);
             }
             DrawChartOverlay(plot, view);
 

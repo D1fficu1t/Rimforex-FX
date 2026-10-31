@@ -18,6 +18,11 @@ namespace RimForex
 
         public int FactionId { get; private set; }
 
+        private FxChartSpan span = FxChartSpan.Hour;
+        private bool showEntry = true;
+        private bool showBreakeven = true;
+        private bool showStopOut = true;
+
         public Window_FxMiniChart(FxGameComponent fx, FxAccount account, int factionId)
         {
             this.fx = fx;
@@ -54,12 +59,19 @@ namespace RimForex
             Widgets.Label(new Rect(tw + 10f, 0f, 110f, lhS + 2f), cur.rate.ToString("F2"));
             GUI.color = Color.white;
 
+            // ---- 左侧竖排开关（与终端一致）----
+            float plotTop = lhS + 6f;
+            const float StripW = 52f;
+            Rect strip = new Rect(0f, plotTop, StripW, Mathf.Max(80f, inRect.height - plotTop));
+            DrawSideButtons(strip);
+
             // ---- 图 ----
-            Rect plot = new Rect(0f, lhS + 6f, inRect.width, inRect.height - lhS - 6f);
+            Rect plot = new Rect(StripW + 6f, plotTop,
+                inRect.width - StripW - 6f, inRect.height - plotTop);
             if (plot.height < 60f) return;
             Widgets.DrawBoxSolid(plot, new Color(0.10f, 0.11f, 0.13f, 1f));
 
-            List<FxCandle> candles = fx.market.GetCandles(FactionId, 40, FxChartSpan.Hour);
+            List<FxCandle> candles = fx.market.GetCandles(FactionId, 40, span);
             if (candles == null || candles.Count == 0)
             {
                 Widgets.Label(plot.ContractedBy(6f), "RimForex_ChartNoData".Translate());
@@ -107,20 +119,31 @@ namespace RimForex
                     bodyW, Mathf.Max(1f, Mathf.Abs(yClose - yOpen))), col);
             }
 
-            // 该货币持仓的开仓线（只画最新一笔）
-            if (account != null)
+            // 三条参考线：开仓 / 盈亏平衡 / 爆仓（只取该货币最新一笔持仓）
+            FxPosition pos = LatestPosition();
+            if (pos != null)
             {
-                for (int i = account.positions.Count - 1; i >= 0; i--)
+                float units = Mathf.Abs(pos.units);
+                float sign = pos.isLong ? 1f : -1f;
+
+                if (showEntry)
                 {
-                    var p = account.positions[i];
-                    if (p == null || p.currencyFactionLoadID != FactionId) continue;
-                    if (p.entryRate >= min && p.entryRate <= max)
-                    {
-                        float ey = PriceToY(p.entryRate, min, max, area);
-                        Widgets.DrawBoxSolid(new Rect(area.x, ey, area.width, 1f),
-                            new Color(0.85f, 0.85f, 0.55f, 0.8f));
-                    }
-                    break;
+                    DrawLine(area, min, max, pos.entryRate, new Color(0.85f, 0.85f, 0.55f, 0.85f));
+                }
+                if (showBreakeven && units > 0.0001f)
+                {
+                    // 回本价 ≈ 入场价 ± (开仓费 + 点差) / 单位数，平仓费按同额估
+                    float cost = (pos.openFee + pos.SpreadCost) / units;
+                    float be = pos.entryRate + sign * cost;
+                    DrawLine(area, min, max, be, new Color(0.55f, 0.80f, 0.95f, 0.85f));
+                }
+                if (showStopOut && units > 0.0001f)
+                {
+                    // 与终端同口径：距离 = (1 − StopOut) × 初始保证金 / 单位数
+                    float dist = (1f - FxGameComponent.StopOutFraction) * pos.BaseMargin / units
+                                 + pos.addedMargin / units;
+                    float so = pos.entryRate - sign * dist;
+                    DrawLine(area, min, max, so, new Color(1f, 0.45f, 0.40f, 0.9f));
                 }
             }
 
@@ -135,6 +158,66 @@ namespace RimForex
             }
             Text.Anchor = TextAnchor.UpperLeft;
             Text.Font = GameFont.Small;
+        }
+
+        private FxPosition LatestPosition()
+        {
+            if (account == null) return null;
+            for (int i = account.positions.Count - 1; i >= 0; i--)
+            {
+                var p = account.positions[i];
+                if (p != null && p.currencyFactionLoadID == FactionId) return p;
+            }
+            return null;
+        }
+
+        private static void DrawLine(Rect area, float min, float max, float price, Color col)
+        {
+            if (price < min || price > max) return;
+            float y = PriceToY(price, min, max, area);
+            Widgets.DrawBoxSolid(new Rect(area.x, y, area.width, 1f), col);
+        }
+
+        private void DrawSideButtons(Rect strip)
+        {
+            float bh = 24f;
+            float y = strip.y;
+
+            GUI.color = span == FxChartSpan.Minute ? new Color(0.70f, 0.80f, 0.95f) : Color.white;
+            if (Widgets.ButtonText(new Rect(strip.x, y, strip.width, bh), "RimForex_SpanMinuteShort".Translate()))
+            {
+                span = FxChartSpan.Minute;
+            }
+            GUI.color = Color.white;
+            y += bh + 4f;
+
+            GUI.color = span == FxChartSpan.Hour ? new Color(0.70f, 0.80f, 0.95f) : Color.white;
+            if (Widgets.ButtonText(new Rect(strip.x, y, strip.width, bh), "RimForex_SpanHour".Translate()))
+            {
+                span = FxChartSpan.Hour;
+            }
+            GUI.color = Color.white;
+            y += bh + 8f;
+
+            if (Widgets.ButtonText(new Rect(strip.x, y, strip.width, bh),
+                    showEntry ? "RimForex_LineOnEntry".Translate() : "RimForex_LineOffEntry".Translate()))
+            {
+                showEntry = !showEntry;
+            }
+            y += bh + 4f;
+
+            if (Widgets.ButtonText(new Rect(strip.x, y, strip.width, bh),
+                    showBreakeven ? "RimForex_LineOnBe".Translate() : "RimForex_LineOffBe".Translate()))
+            {
+                showBreakeven = !showBreakeven;
+            }
+            y += bh + 4f;
+
+            if (Widgets.ButtonText(new Rect(strip.x, y, strip.width, bh),
+                    showStopOut ? "RimForex_LineOnSo".Translate() : "RimForex_LineOffSo".Translate()))
+            {
+                showStopOut = !showStopOut;
+            }
         }
 
         private static float PriceToY(float price, float min, float max, Rect area)

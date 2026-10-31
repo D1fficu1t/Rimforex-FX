@@ -488,4 +488,11 @@ Let him reach the map edge, or put him down here. Either way, Collections will w
   <RimForex_TpSlInvalid>Wrong side of the price: a long take-profit must be above the current price and its stop below, and vice versa for shorts.</RimForex_TpSlInvalid>
   <RimForex_TpSlEditTip>Click this row to set take-profit / stop-loss.</RimForex_TpSlEditTip>
   <RimForex_HudKLineTip>Open or close the mini candlestick chart for this currency.</RimForex_HudKLineTip>
+  <RimForex_SpanMinuteShort>M</RimForex_SpanMinuteShort>
+  <RimForex_LineOnEntry>Entry on</RimForex_LineOnEntry>
+  <RimForex_LineOffEntry>Entry off</RimForex_LineOffEntry>
+  <RimForex_LineOnBe>B/E on</RimForex_LineOnBe>
+  <RimForex_LineOffBe>B/E off</RimForex_LineOffBe>
+  <RimForex_LineOnSo>Stop on</RimForex_LineOnSo>
+  <RimForex_LineOffSo>Stop off</RimForex_LineOffSo>
 </LanguageData>
