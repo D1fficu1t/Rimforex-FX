@@ -35,6 +35,9 @@ namespace RimForex
             resizeable = true;
             absorbInputAroundWindow = false;
             forcePause = false;
+            // 不挡住镜头移动：玩家开着这个窗口也要能拖地图
+            // （作者 2026-10-31：窗口开着地图拖不动，违背"边看行情边干活"的设计初衷）
+            preventCameraMotion = false;
         }
 
         public override Vector2 InitialSize
@@ -159,10 +162,26 @@ namespace RimForex
                         if (baseM < 0.01f) baseM = pos.margin;
                         float dist = ((1f - FxGameComponent.StopOutFraction) * baseM + pos.addedMargin) / units;
                         float markStop = pos.isLong ? pos.entryRate - dist : pos.entryRate + dist;
+                        float soMid = markStop / denom;
+
                         // 爆仓线经常落在可视区外（100x 时距现价只有 0.7%），
-                        // 贴边画一条，别让它凭空消失 —— 与终端一致
-                        DrawLine(area, min, max, markStop / denom,
-                            new Color(1f, 0.45f, 0.40f, 0.9f), true);
+                        // 贴边画一条，并在旁边标出"在框外 X%" —— 与终端一致
+                        DrawLine(area, min, max, soMid, new Color(1f, 0.45f, 0.40f, 0.9f), true);
+
+                        if (soMid < min || soMid > max)
+                        {
+                            bool above = soMid > max;
+                            float edgeY = above ? area.y : area.yMax;
+                            float offPct = (soMid / cur.rate - 1f) * 100f;
+                            Text.Font = GameFont.Tiny;
+                            GUI.color = new Color(1f, 0.55f, 0.50f);
+                            string txt = "RimForex_ChartStopOutOff".Translate(
+                                soMid.ToString("F2"), offPct.ToString("+0.00;-0.00;0.00"));
+                            Widgets.Label(new Rect(area.x + 2f,
+                                above ? edgeY + 1f : edgeY - 15f, area.width - 4f, 14f), txt);
+                            GUI.color = Color.white;
+                            Text.Font = GameFont.Small;
+                        }
                     }
                 }
             }

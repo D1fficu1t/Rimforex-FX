@@ -843,6 +843,9 @@ namespace RimForex
             if (Widgets.ButtonText(resetBtn, "RimForex_ChartReset".Translate()))
             {
                 chartCandles = 60;
+                // 作者要求：重置视图顺带把各板块的宽高也恢复默认
+                marketPanelW = 486f;
+                orderPanelH = -1f;
             }
             TooltipHandler.TipRegion(resetBtn, "RimForex_ChartNavTip".Translate());
 
@@ -2208,13 +2211,19 @@ float hintH = 0f;
             return v > 0f ? v : 0f;
         }
 
-        /// <summary>价格相对某个方向入场价的百分比（正 = 盈利方向）。</summary>
-        private float PctVs(FxCurrency cur, float price, bool asLong)
+        /// <summary>
+        /// 价格相对**当前市价**的百分比（正 = 在上方）。
+        ///
+        /// 以前用开仓时的入场价做基准，价格动了百分比也不动 ——
+        /// 玩家会以为止盈距离还是当初那个数（作者 2026-10-31 指出）。
+        /// 现在跟着现价走，随时反映"离触发还有多远"。
+        /// </summary>
+        private static float PctVs(FxCurrency cur, float price, bool asLong)
         {
             if (cur == null || price <= 0f) return 0f;
-            float entry = Fx.market.EntryPriceOf(cur.factionLoadID, asLong);
-            if (entry <= 0.001f) return 0f;
-            return (price / entry - 1f) * 100f;
+            float mid = cur.rate;
+            if (mid <= 0.001f) return 0f;
+            return (price / mid - 1f) * 100f;
         }
 
         /// <summary>正绿负红，接近 0 不画。</summary>
