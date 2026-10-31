@@ -96,13 +96,7 @@ namespace RimForex
                 DrawLender(cell, i);
             }
 
-            // ---- 页脚：规则说明 ----
-            Text.Font = GameFont.Tiny;
-            GUI.color = new Color(0.66f, 0.70f, 0.75f);
-            Widgets.Label(new Rect(inRect.x, inRect.yMax - 22f, inRect.width, 18f),
-                "RimForex_LoanFooter".Translate());
-            GUI.color = Color.white;
-            Text.Font = GameFont.Small;
+            // 页脚的规则说明已按作者要求删除（2026-10-31）
         }
 
         private void DrawLender(Rect cell, int idx)

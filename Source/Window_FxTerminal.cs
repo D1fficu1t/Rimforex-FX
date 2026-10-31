@@ -97,11 +97,11 @@ namespace RimForex
 
         private const float Pad = 8f;
         private const float Gap = 8f;
-        private const float AccountH = 154f;
-        private const float StatRowH = 46f;
+        private const float AccountH = 198f;
+        private const float StatRowH = 52f;
         private const float BtnH = 28f;
         private const float MarketRowH = 28f;
-        private const float OrderH = 296f;
+        private const float OrderH = 336f;
         private const float TimeBarH = 32f;
         private const float TitleH = 34f;
         /// <summary>底部留白，避免与主按钮栏 / 原版时间控制重叠。</summary>
@@ -390,12 +390,19 @@ namespace RimForex
         {
             string label = labelKey.Translate();
             if (tipKey != null) label += " " + "RimForex_TipMark".Translate();
-            Widgets.Label(new Rect(rect.x, rect.y, rect.width, 20f), new GUIContent(label, tipKey != null ? tipKey.Translate() : null));
+            Rect labelRect = new Rect(rect.x, rect.y, rect.width, 20f);
+            Widgets.Label(labelRect, label);
+            // GUIContent 的 tooltip 只有 IMGUI 控件会弹，Widgets.Label 不吃这一套，
+            // 必须显式挂 TipRegion —— 否则净值/浮动盈亏后面的问号永远没反应
+            if (tipKey != null)
+            {
+                TooltipHandler.TipRegion(labelRect, tipKey.Translate());
+            }
 
             string text = value.ToString("F0");
             if (colorize) text = ColorizeBySign(text, value);
             Text.Font = GameFont.Medium;
-            Widgets.Label(new Rect(rect.x, rect.y + 20f, rect.width, 24f), text);
+            Widgets.Label(new Rect(rect.x, rect.y + 20f, rect.width, 28f), text);
             Text.Font = GameFont.Small;
         }
 
@@ -1737,9 +1744,17 @@ namespace RimForex
             Rect longR = new Rect(left.x, y, halfW, 32f);
             Rect shortR = new Rect(left.x + halfW + Gap, y, halfW, 32f);
 
-            if (!canOpen) GUI.color = Color.gray;
-            if (Widgets.ButtonText(longR, "RimForex_GoLong".Translate()) && canOpen) OpenPosition(sel, true, units, orderLeverage);
-            if (Widgets.ButtonText(shortR, "RimForex_GoShort".Translate()) && canOpen) OpenPosition(sel, false, units, orderLeverage);
+            // 做多绿、做空红（作者 2026-10-31 要求）。只染这两个按钮，别动全局
+            GUI.color = canOpen ? new Color(0.55f, 0.92f, 0.60f) : Color.gray;
+            if (Widgets.ButtonText(longR, "RimForex_GoLong".Translate()) && canOpen)
+            {
+                OpenPosition(sel, true, units, orderLeverage);
+            }
+            GUI.color = canOpen ? new Color(1f, 0.52f, 0.48f) : Color.gray;
+            if (Widgets.ButtonText(shortR, "RimForex_GoShort".Translate()) && canOpen)
+            {
+                OpenPosition(sel, false, units, orderLeverage);
+            }
             GUI.color = Color.white;
 
             y += 35f;
