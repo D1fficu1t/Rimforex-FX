@@ -328,7 +328,7 @@
   <RimForex_GuideShortTitle>二、什么时候买跌（做空）</RimForex_GuideShortTitle>
   <RimForex_GuideShort>反过来：先卖出，跌了再买回来，赚中间的差价。\n\n· 有消息说要跌，做空。\n· 刚打完败仗、经济崩了，做空。\n· 已经跌了很久，做空，趋势会延续。\n\n提醒一句：做空最多赚 100%，亏损没有上限。本平台保留追缴的权利。</RimForex_GuideShort>
   <RimForex_GuideLiquidationTitle>三、爆仓与穿仓</RimForex_GuideLiquidationTitle>
-  <RimForex_GuideLiquidation>杠杆放大收益，也放大亏损。这两件事是绑在一起的。\n\n· 保证金剩 45%：本平台会贴心地为您弹出一个免费窗口，提醒您注意风险。\n· 剩 30%：强制平仓，也就是爆仓。\n· 跳空太狠、亏得比保证金还多：余额变负，这叫穿仓。\n\n穿仓之后不能开仓，也不能提款，请存入白银填平。\n本平台的催收部门 24 小时在线，且不讲感情。</RimForex_GuideLiquidation>
+  <RimForex_GuideLiquidation>杠杆放大收益，也放大亏损。这两件事是绑在一起的。\n\n· 保证金剩 45%：本平台会贴心地为您弹出一个免费窗口，提醒您注意风险。\n· 剩 30%：强制平仓，也就是爆仓。\n· 跳空太狠、亏得比保证金还多：余额变负，这叫穿仓。\n\n穿仓之后不能开仓，也不能提款，请存入白银填平。\n本平台的催收部门 24 小时在线，且不讲感情。\n\n另外提醒一句：满仓梭哈的时候，光是一天的隔夜利息就能把余额推成负数，第二天开盘就是强制清算。</RimForex_GuideLiquidation>
   <RimForex_GuideCandleTitle>四、K 线怎么看</RimForex_GuideCandleTitle>
   <RimForex_GuideCandle>一根 K 线记录一段时间里的四个价格：开盘、最高、最低、收盘。\n\n· 实体：开盘到收盘的距离。涨是绿的，跌是红的。\n· 影线：上下那两根细线，是这段时间摸到的最高和最低。\n\n影线长，说明价格冲上去又被打回来了。有人在打，谁赢不好说。\n\nK 线只汇报过去，不承诺未来。承诺未来的，是别的平台。</RimForex_GuideCandle>
   <RimForex_GuideProfitTitle>五、新手怎么盈利</RimForex_GuideProfitTitle>
@@ -501,4 +501,18 @@
   <RimForex_Ev7OverdueLabel>清算部不再等了</RimForex_Ev7OverdueLabel>
   <RimForex_Ev7Overdue>三天过去了，你既没付钱，也没交人。收债人转身就走，一句话都没说。\n\n他回去交报告了。\n\n机械族已经在路上了。</RimForex_Ev7Overdue>
   <RimForex_Ev6Foot>你可以继续做空他们的货币，或者大发慈悲平仓，让这场金融危机停下来。\n\n如果不那样做，袭击会持续发生。</RimForex_Ev6Foot>
+  <RimForex_TpShort>止盈</RimForex_TpShort>
+  <RimForex_SlShort>止损</RimForex_SlShort>
+  <RimForex_TpSlTip>可选。填价格，按方向价判定，触发时按市价平仓。留空或 0 表示不设。</RimForex_TpSlTip>
+  <RimForex_AllInWarn>梭哈警告：保证金吃掉几乎全部净值，明天的隔夜利息就会把余额推成负数，随后被平台强制清算。</RimForex_AllInWarn>
+  <RimForex_MsgTpHit>{0} 触及止盈，已平仓，盈亏 {1} 白银。</RimForex_MsgTpHit>
+  <RimForex_MsgSlHit>{0} 触及止损，已平仓，盈亏 {1} 白银。</RimForex_MsgSlHit>
+  <RimForex_TpSlTitle>止盈 / 止损</RimForex_TpSlTitle>
+  <RimForex_TpSlPosLine>{0}　{1}　入场 {2}　现价 {3}</RimForex_TpSlPosLine>
+  <RimForex_TpSlHint>按方向价判定。触发时按市价平仓，跳空越过设定价时的差价是真实滑点。</RimForex_TpSlHint>
+  <RimForex_TpSlSave>保存</RimForex_TpSlSave>
+  <RimForex_TpSlClear>清除</RimForex_TpSlClear>
+  <RimForex_TpSlClose>关闭</RimForex_TpSlClose>
+  <RimForex_TpSlInvalid>价格方向不对：做多的止盈要在现价之上、止损之下，做空反过来。</RimForex_TpSlInvalid>
+  <RimForex_TpSlEditTip>点击这一行可以设置止盈 / 止损。</RimForex_TpSlEditTip>
 </LanguageData>

@@ -452,6 +452,11 @@ namespace RimForex
         /// <summary>已追加的保证金累计额，仅用于展示。</summary>
         public float addedMargin;
 
+        /// <summary>止盈价（方向价，0 = 未设）。</summary>
+        public float tpRate;
+        /// <summary>止损价（方向价，0 = 未设）。</summary>
+        public float slRate;
+
         /// <summary>
         /// 初始保证金（不含后续追加的部分）。
         ///
@@ -600,6 +605,8 @@ namespace RimForex
             Scribe_Values.Look(ref entrySpreadRate, "entrySpreadRate", 0f);
             Scribe_Values.Look(ref entryMid, "entryMid", 0f);
             Scribe_Values.Look(ref addedMargin, "addedMargin", 0f);
+            Scribe_Values.Look(ref tpRate, "tpRate", 0f);
+            Scribe_Values.Look(ref slRate, "slRate", 0f);
             Scribe_Values.Look(ref entryHasSpread, "entryHasSpread", false);
         }
 
@@ -3755,6 +3762,8 @@ namespace RimForex
                 // K 线采样不在这里 —— 它已经随每个子步在 AdvanceSubSteps 内部完成，
                 // 这样影线才有步内路径的信息量。
                 MarkToMarket();
+                // 止盈止损先于强平判定：这是玩家自己下的指令，优先执行
+                CheckTpSl();
                 CheckMarginCalls();
             }
 
@@ -4096,6 +4105,59 @@ namespace RimForex
         /// 剩余净值退还账户，而不是等保证金全部亏光。
         /// 详见 FxGameComponent.StopOutFraction 的说明。
         /// </summary>
+        /// <summary>
+        /// 止盈止损：按**方向价**（markRate）判定，命中就按市价平仓。
+        ///
+        /// 方向价就是"现在平仓能拿到的价"，和强平线、持仓线的口径一致；
+        /// 用中间价判定会出现"价格还没摸到，账已经平了"的错位。
+        /// 触发后不按设定价成交，而是按当时市价 —— 跳空越过设定价时，
+        /// 多赚/少赚都是真实滑点，不额外造一个假成交价。
+        /// </summary>
+        private void CheckTpSl()
+        {
+            if (accounts == null || accounts.Count == 0) return;
+
+            var accKeys = new List<int>(accounts.Keys);
+            for (int k = 0; k < accKeys.Count; k++)
+            {
+                var acc = accounts[accKeys[k]];
+                if (acc == null || acc.positions == null) continue;
+
+                for (int i = acc.positions.Count - 1; i >= 0; i--)
+                {
+                    var pos = acc.positions[i];
+                    if (pos == null) continue;
+                    if (pos.tpRate <= 0f && pos.slRate <= 0f) continue;
+
+                    float mark = pos.markRate;
+                    if (mark <= 0.001f) continue;
+
+                    bool hitTp = false, hitSl = false;
+                    if (pos.isLong)
+                    {
+                        if (pos.tpRate > 0f && mark >= pos.tpRate) hitTp = true;
+                        else if (pos.slRate > 0f && mark <= pos.slRate) hitSl = true;
+                    }
+                    else
+                    {
+                        if (pos.tpRate > 0f && mark <= pos.tpRate) hitTp = true;
+                        else if (pos.slRate > 0f && mark >= pos.slRate) hitSl = true;
+                    }
+                    if (!hitTp && !hitSl) continue;
+
+                    string name = pos.currencyName;
+                    float pnl = pos.Pnl;
+                    ClosePositionFromUi(acc, pos);
+
+                    Messages.Message(
+                        (hitTp ? "RimForex_MsgTpHit" : "RimForex_MsgSlHit").Translate(
+                            name, pnl.ToString("+0;-0;0")),
+                        hitTp ? MessageTypeDefOf.PositiveEvent : MessageTypeDefOf.NegativeEvent,
+                        false);
+                }
+            }
+        }
+
         public int CheckMarginCalls()
         {
             int closed = 0;

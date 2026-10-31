@@ -317,7 +317,7 @@ This is a blow-up: the debt must be covered. Deposit silver at the terminal to b
   <RimForex_GuideShortTitle>2. When to sell (going short)</RimForex_GuideShortTitle>
   <RimForex_GuideShort>The other way round: sell first, buy back after it falls, keep the difference.\n\n· News says it will fall. Sell.\n· They just lost a war or their economy collapsed. Sell.\n· It has fallen for a long time. Sell, the trend continues.\n\nOne note: a short caps at 100% profit, but losses have no ceiling. We reserve the right to collect.</RimForex_GuideShort>
   <RimForex_GuideLiquidationTitle>3. Margin calls and blow-ups</RimForex_GuideLiquidationTitle>
-  <RimForex_GuideLiquidation>Leverage magnifies gains and losses. They come as a package.\n\n· At 45% margin left, we thoughtfully pop up a free window to warn you.\n· At 30%, we close the position for you. That is a margin call.\n· If a gap is brutal enough that losses exceed your margin, the balance goes negative. That is a blow-up.\n\nAfter a blow-up you cannot open positions or withdraw. Deposit silver to clear it.\nOur collections department is available 24 hours and has no feelings.</RimForex_GuideLiquidation>
+  <RimForex_GuideLiquidation>Leverage magnifies gains and losses. They come as a package.\n\n· At 45% margin left, we thoughtfully pop up a free window to warn you.\n· At 30%, we close the position for you. That is a margin call.\n· If a gap is brutal enough that losses exceed your margin, the balance goes negative. That is a blow-up.\n\nAfter a blow-up you cannot open positions or withdraw. Deposit silver to clear it.\nOur collections department is available 24 hours and has no feelings.\n\nOne more thing: go all-in and a single day of overnight interest can push your balance negative - and the next open is a forced liquidation.</RimForex_GuideLiquidation>
   <RimForex_GuideCandleTitle>4. Reading candles</RimForex_GuideCandleTitle>
   <RimForex_GuideCandle>Each candle records four prices over a period: open, high, low, close.\n\n· Body: the distance from open to close. Green up, red down.\n· Wicks: the thin lines above and below, the high and low reached.\n\nLong wicks mean price pushed up and got pushed back. Someone is fighting. Who wins is unclear.\n\nCandles report the past. They do not promise the future. Platforms that promise the future are a different kind of platform.</RimForex_GuideCandle>
   <RimForex_GuideProfitTitle>5. How beginners make money</RimForex_GuideProfitTitle>
@@ -486,4 +486,18 @@ Let him reach the map edge, or put him down here. Either way, Collections will w
   <RimForex_Ev7OverdueLabel>Collections stopped waiting</RimForex_Ev7OverdueLabel>
   <RimForex_Ev7Overdue>Three days passed. No payment, no handover. The collector turned and walked away without a word.\n\nHe has gone back to file his report.\n\nThe mechanoids are already on their way.</RimForex_Ev7Overdue>
   <RimForex_Ev6Foot>You can keep shorting their currency, or show some mercy, close the position and let this financial crisis end.\n\nIf you do neither, the raids will continue.</RimForex_Ev6Foot>
+  <RimForex_TpShort>TP</RimForex_TpShort>
+  <RimForex_SlShort>SL</RimForex_SlShort>
+  <RimForex_TpSlTip>Optional. Enter a price; judged on the directional price and closed at market when hit. Empty or 0 means off.</RimForex_TpSlTip>
+  <RimForex_AllInWarn>All-in warning: this margin eats almost all of your equity. Tomorrow's overnight interest will push the balance negative, and the platform will liquidate you.</RimForex_AllInWarn>
+  <RimForex_MsgTpHit>{0} hit take-profit and was closed. P/L {1} silver.</RimForex_MsgTpHit>
+  <RimForex_MsgSlHit>{0} hit stop-loss and was closed. P/L {1} silver.</RimForex_MsgSlHit>
+  <RimForex_TpSlTitle>Take-profit / Stop-loss</RimForex_TpSlTitle>
+  <RimForex_TpSlPosLine>{0}   {1}   entry {2}   now {3}</RimForex_TpSlPosLine>
+  <RimForex_TpSlHint>Judged on the directional price. Fills at market when hit, so a gap past your level is real slippage.</RimForex_TpSlHint>
+  <RimForex_TpSlSave>Save</RimForex_TpSlSave>
+  <RimForex_TpSlClear>Clear</RimForex_TpSlClear>
+  <RimForex_TpSlClose>Close</RimForex_TpSlClose>
+  <RimForex_TpSlInvalid>Wrong side of the price: a long take-profit must be above the current price and its stop below, and vice versa for shorts.</RimForex_TpSlInvalid>
+  <RimForex_TpSlEditTip>Click this row to set take-profit / stop-loss.</RimForex_TpSlEditTip>
 </LanguageData>

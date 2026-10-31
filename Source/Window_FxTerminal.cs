@@ -35,6 +35,13 @@ namespace RimForex
         /// </summary>
         private bool marginAtMinimum;
         private float orderLeverage = 1f;
+        /// <summary>止盈 / 止损输入（0 = 不设）。</summary>
+        private float orderTp;
+        private float orderSl;
+        private string orderTpBuf = "";
+        private string orderSlBuf = "";
+        /// <summary>要编辑止盈止损的持仓（点击持仓行时置位）。</summary>
+        private FxPosition toEditTpSl;
         private string marginBuffer = "";
 
         /// <summary>
@@ -119,7 +126,7 @@ namespace RimForex
         private const float MarketRowH = 28f;
         // 下单区：内容行数固定，高度只随字号小幅上浮。
         // 上一版 120 + 10*LhS 在大字号下会撑到 380+，把中间区压没了。
-        private static float OrderH => 250f + 3f * LhS;
+        private static float OrderH => 250f + 4f * LhS;
         private const float TimeBarH = 32f;
         private static float TitleH => LhM + 10f;
         /// <summary>底部留白，避免与主按钮栏 / 原版时间控制重叠。</summary>
@@ -1660,11 +1667,39 @@ namespace RimForex
                         (spreadPct * orderLeverage).ToString("0"), maxSafe.ToString("0")));
             y += 30f;
 
+            // ---- 止盈 / 止损（可选，按方向价填）----
+            // 留空或 0 = 不设。判定用方向价，和强平线同一口径。
+            Text.Font = GameFont.Tiny;
+            Widgets.Label(new Rect(left.x, y + 4f, 34f, 18f), "RimForex_TpShort".Translate());
+            Widgets.TextFieldNumeric(new Rect(left.x + 36f, y, 74f, 24f),
+                ref orderTp, ref orderTpBuf, 0f, 1000000f);
+            Widgets.Label(new Rect(left.x + 114f, y + 4f, 50f, 18f),
+                PctVsSide(sel, orderTp, true));
+
+            Widgets.Label(new Rect(left.x + 172f, y + 4f, 34f, 18f), "RimForex_SlShort".Translate());
+            Widgets.TextFieldNumeric(new Rect(left.x + 208f, y, 74f, 24f),
+                ref orderSl, ref orderSlBuf, 0f, 1000000f);
+            Widgets.Label(new Rect(left.x + 286f, y + 4f, 50f, 18f),
+                PctVsSide(sel, orderSl, false));
+            Text.Font = GameFont.Small;
+            TooltipHandler.TipRegion(new Rect(left.x, y, left.width, 24f),
+                "RimForex_TpSlTip".Translate());
+            y += 28f;
+
             // ---- 杠杆风险提示 ----
             // 独占一"块"（可能是多行），并用 Text.CalcHeight 预留真实高度。
             // 早期把提示画在 y-4f、下一行画在 y —— 间隔只有 4px，必然重叠。
             string riskNote = null;
             Color riskColor = Color.white;
+
+            // 梭哈警告（作者 2026-10-31 要求）：占用保证金吃掉几乎全部净值时，
+            // 隔夜利息一天就能把余额推成负数，紧接着就是强制清算。
+            float equityNow = account != null ? account.Equity : 0f;
+            if (equityNow > 1f && orderMargin / equityNow >= 0.95f)
+            {
+                riskNote = "RimForex_AllInWarn".Translate();
+                riskColor = new Color(1f, 0.72f, 0.35f);
+            }
             if (sel != null && !FxGameComponent.LeverageSafeFor(sel, orderLeverage))
             {
                 riskNote = "RimForex_LevUnsafeNote".Translate(maxSafe.ToString("0")).ToString();
@@ -1790,12 +1825,12 @@ namespace RimForex
             GUI.color = canOpen ? new Color(0.55f, 0.92f, 0.60f) : Color.gray;
             if (Widgets.ButtonText(longR, "RimForex_GoLong".Translate()) && canOpen)
             {
-                OpenPosition(sel, true, units, orderLeverage);
+                OpenPosition(sel, true, units, orderLeverage, orderTp, orderSl);
             }
             GUI.color = canOpen ? new Color(1f, 0.52f, 0.48f) : Color.gray;
             if (Widgets.ButtonText(shortR, "RimForex_GoShort".Translate()) && canOpen)
             {
-                OpenPosition(sel, false, units, orderLeverage);
+                OpenPosition(sel, false, units, orderLeverage, orderTp, orderSl);
             }
             GUI.color = Color.white;
 
@@ -1916,6 +1951,11 @@ namespace RimForex
 
                 // 悬停：完整数据 + 盈亏拆分。
                 // 行首不再显示数量/开仓/现价/杠杆，所以这些必须在这里补齐。
+                // 点击行主体 → 编辑这一笔的止盈止损（右侧平仓按钮不参与）
+                Rect editHit = new Rect(row.x, row.y + 2f, row.width - 92f, 26f);
+                if (Widgets.ButtonInvisible(editHit)) toEditTpSl = p;
+                TooltipHandler.TipRegion(editHit, "RimForex_TpSlEditTip".Translate());
+
                 TooltipHandler.TipRegion(
                     new Rect(row.x, row.y + 3f, row.width, 24f),
                     "RimForex_PosRowTip".Translate(
@@ -1952,6 +1992,11 @@ namespace RimForex
 
             // 在滚动视图之外执行修改，避免遍历中改动集合
             if (toClose != null) ClosePosition(toClose);
+            if (toEditTpSl != null)
+            {
+                Find.WindowStack.Add(new Window_FxTpSl(Fx, account, toEditTpSl));
+                toEditTpSl = null;
+            }
         }
 
         // ============================ 交易操作 ============================
@@ -1961,7 +2006,21 @@ namespace RimForex
         /// markRate 立刻设为"现在平仓能拿到的价"（方向价的另一端），
         /// 所以开仓瞬间就会出现一个等于点差的小额浮亏 —— 这是真实市场的入场即亏点差。
         /// </summary>
-        private void OpenPosition(FxCurrency cur, bool isLong, int units, float leverage)
+        /// <summary>
+        /// 把价格换算成"相对某个方向入场价的百分比"，用于止盈/止损输入框旁边那行小字。
+        /// 价格在现价之上按做多入场价算，之下按做空入场价算 —— 正好对应两种订单的语义。
+        /// </summary>
+        private string PctVsSide(FxCurrency cur, float price, bool asLong)
+        {
+            if (cur == null || price <= 0f) return "";
+            float entry = Fx.market.EntryPriceOf(cur.factionLoadID, asLong);
+            if (entry <= 0.001f) return "";
+            float pct = (price / entry - 1f) * 100f;
+            return pct.ToString("+0.0;-0.0;0.0") + "%";
+        }
+
+        private void OpenPosition(FxCurrency cur, bool isLong, int units, float leverage,
+            float tp = 0f, float sl = 0f)
         {
             if (cur == null || units <= 0) return;
 
@@ -2022,7 +2081,10 @@ namespace RimForex
                 openTick = GenTicks.TicksGame,
                 // 绝对解锁时刻：越过一次报价即可平仓（不再随报价滚动重置）
                 closableAtTick = GenTicks.TicksGame + FxMarket.TicksPerStep,
-                entryHasSpread = true
+                entryHasSpread = true,
+                // 止盈止损只在方向合理时收下：做多的止盈必须在入场价之上、止损之下，做空反过来
+                tpRate = isLong ? (tp > entry ? tp : 0f) : (tp > 0f && tp < entry ? tp : 0f),
+                slRate = isLong ? (sl > 0f && sl < entry ? sl : 0f) : (sl > entry ? sl : 0f)
             });
             Messages.Message("RimForex_MsgOpened".Translate(
                 cur.name,
