@@ -120,30 +120,38 @@ namespace RimForex
             }
 
             // 三条参考线：开仓 / 盈亏平衡 / 爆仓（只取该货币最新一笔持仓）
+            //
+            // 全部照抄终端 Window_FxTerminal.DrawPositionLines / DrawBreakevenLine /
+            // DrawStopOutLine 的换算，保证两边画在同一个价位上：
+            //   蜡烛是**中间价**，而持仓的 entryRate 是**方向价**，
+            //   必须先按入场时的半价差换回中间价，否则线会整体偏半个点差。
             FxPosition pos = LatestPosition();
-            if (pos != null)
+            if (pos != null && pos.entrySpreadRate > 0.0001f)
             {
-                float units = Mathf.Abs(pos.units);
-                float sign = pos.isLong ? 1f : -1f;
+                float units = Mathf.Abs((float)pos.units);
+                float half = pos.entrySpreadRate * 0.5f;
+                float denom = pos.isLong ? (1f - half) : (1f + half);
+                if (denom > 0.0001f)
+                {
+                    float mid0 = pos.entryMid > 0f ? pos.entryMid : pos.entryRate / denom;
 
-                if (showEntry)
-                {
-                    DrawLine(area, min, max, pos.entryRate, new Color(0.85f, 0.85f, 0.55f, 0.85f));
-                }
-                if (showBreakeven && units > 0.0001f)
-                {
-                    // 回本价 ≈ 入场价 ± (开仓费 + 点差) / 单位数，平仓费按同额估
-                    float cost = (pos.openFee + pos.SpreadCost) / units;
-                    float be = pos.entryRate + sign * cost;
-                    DrawLine(area, min, max, be, new Color(0.55f, 0.80f, 0.95f, 0.85f));
-                }
-                if (showStopOut && units > 0.0001f)
-                {
-                    // 与终端同口径：距离 = (1 − StopOut) × 初始保证金 / 单位数
-                    float dist = (1f - FxGameComponent.StopOutFraction) * pos.BaseMargin / units
-                                 + pos.addedMargin / units;
-                    float so = pos.entryRate - sign * dist;
-                    DrawLine(area, min, max, so, new Color(1f, 0.45f, 0.40f, 0.9f));
+                    if (showEntry)
+                    {
+                        DrawLine(area, min, max, mid0, new Color(0.85f, 0.85f, 0.55f, 0.85f));
+                    }
+                    if (showBreakeven)
+                    {
+                        float beMid = mid0 * (pos.isLong ? (1f + half) : (1f - half)) / denom;
+                        DrawLine(area, min, max, beMid, new Color(0.55f, 0.72f, 0.98f, 0.95f));
+                    }
+                    if (showStopOut && units > 0.0001f)
+                    {
+                        float baseM = pos.BaseMargin;
+                        if (baseM < 0.01f) baseM = pos.margin;
+                        float dist = ((1f - FxGameComponent.StopOutFraction) * baseM + pos.addedMargin) / units;
+                        float markStop = pos.isLong ? pos.entryRate - dist : pos.entryRate + dist;
+                        DrawLine(area, min, max, markStop / denom, new Color(1f, 0.45f, 0.40f, 0.9f));
+                    }
                 }
             }
 

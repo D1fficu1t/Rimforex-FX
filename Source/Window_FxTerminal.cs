@@ -137,6 +137,14 @@ namespace RimForex
 
         public Window_FxTerminal(Building_FXTradingTerminal terminal, FxAccount account)
         {
+            // 三条参考线的初始状态跟随模组设置，之后由左侧开关单独控制
+            RimForexSettings cfgInit = RimForexMod.Settings;
+            if (cfgInit != null)
+            {
+                chartShowBreakeven = cfgInit.showBreakevenLine;
+                chartShowStopOut = cfgInit.showStopOutLine;
+            }
+
             this.terminal = terminal;
             this.account = account;
             doCloseX = true;
@@ -1097,8 +1105,7 @@ namespace RimForex
         private void DrawStopOutLine(Rect area, float min, float max)
         {
             if (account == null) return;
-            RimForexSettings cfg = RimForexMod.Settings;
-            if (cfg != null && !cfg.showStopOutLine) return;
+            // 同上：由窗口内开关控制
 
             FxPosition newest = null;
             for (int i = account.positions.Count - 1; i >= 0; i--)
@@ -1218,9 +1225,7 @@ namespace RimForex
         private void DrawBreakevenLine(Rect area, float min, float max)
         {
             if (account == null) return;
-            // 可在模组设置里关掉 —— 仓位多、线多的时候会显得杂
-            RimForexSettings cfg = RimForexMod.Settings;
-            if (cfg != null && !cfg.showBreakevenLine) return;
+            // 显示与否交给窗口左下那排开关（设置值只作为打开窗口时的默认值）
 
             FxPosition newest = null;
             for (int i = account.positions.Count - 1; i >= 0; i--)
