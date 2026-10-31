@@ -291,25 +291,31 @@ namespace RimForex
             GUI.color = Color.white;
             y += bh + 8f;
 
+            GUI.color = showEntry ? Color.white : new Color(1f, 0.52f, 0.48f);
             if (Widgets.ButtonText(new Rect(strip.x, y, strip.width, bh),
                     showEntry ? "RimForex_LineOnEntry".Translate() : "RimForex_LineOffEntry".Translate()))
             {
                 showEntry = !showEntry;
             }
+            GUI.color = Color.white;
             y += bh + 4f;
 
+            GUI.color = showBreakeven ? Color.white : new Color(1f, 0.52f, 0.48f);
             if (Widgets.ButtonText(new Rect(strip.x, y, strip.width, bh),
                     showBreakeven ? "RimForex_LineOnBe".Translate() : "RimForex_LineOffBe".Translate()))
             {
                 showBreakeven = !showBreakeven;
             }
+            GUI.color = Color.white;
             y += bh + 4f;
 
+            GUI.color = showStopOut ? Color.white : new Color(1f, 0.52f, 0.48f);
             if (Widgets.ButtonText(new Rect(strip.x, y, strip.width, bh),
                     showStopOut ? "RimForex_LineOnSo".Translate() : "RimForex_LineOffSo".Translate()))
             {
                 showStopOut = !showStopOut;
             }
+            GUI.color = Color.white;
         }
 
         private static float PriceToY(float price, float min, float max, Rect area)

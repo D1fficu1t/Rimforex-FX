@@ -303,6 +303,24 @@ namespace RimForex
             });
         }
 
+        /// <summary>
+        /// 画一个"哑按钮"：只有外观，不处理事件。
+        ///
+        /// 为什么要自绘：Widgets.ButtonText 会在 MouseDown 时把事件 Use 掉，
+        /// 导致后面的 HoldCommon 收不到按下 —— 实测表现就是"点+/-没反应"，
+        /// 而按住连发却能工作（连发走的是 Drag/Repaint 帧）。
+        /// </summary>
+        private static void DrawDumbButton(Rect r, string label)
+        {
+            Widgets.DrawBoxSolid(r, new Color(0.28f, 0.30f, 0.34f, 0.95f));
+            Widgets.DrawBox(r, 1);
+            Text.Anchor = TextAnchor.MiddleCenter;
+            GUI.color = new Color(0.92f, 0.94f, 0.98f);
+            Widgets.Label(r, label);
+            GUI.color = Color.white;
+            Text.Anchor = TextAnchor.UpperLeft;
+        }
+
         private void HoldCommon(Rect minus, Rect plus, int target,
             System.Action<int, float> apply)
         {
@@ -734,25 +752,31 @@ namespace RimForex
             GUI.color = Color.white;
             y += bh + 10f;
 
+            GUI.color = chartShowEntry ? Color.white : new Color(1f, 0.52f, 0.48f);
             if (Widgets.ButtonText(new Rect(strip.x, y, strip.width, bh),
                     chartShowEntry ? "RimForex_LineOnEntry".Translate() : "RimForex_LineOffEntry".Translate()))
             {
                 chartShowEntry = !chartShowEntry;
             }
+            GUI.color = Color.white;
             y += bh + 4f;
 
+            GUI.color = chartShowBreakeven ? Color.white : new Color(1f, 0.52f, 0.48f);
             if (Widgets.ButtonText(new Rect(strip.x, y, strip.width, bh),
                     chartShowBreakeven ? "RimForex_LineOnBe".Translate() : "RimForex_LineOffBe".Translate()))
             {
                 chartShowBreakeven = !chartShowBreakeven;
             }
+            GUI.color = Color.white;
             y += bh + 4f;
 
+            GUI.color = chartShowStopOut ? Color.white : new Color(1f, 0.52f, 0.48f);
             if (Widgets.ButtonText(new Rect(strip.x, y, strip.width, bh),
                     chartShowStopOut ? "RimForex_LineOnSo".Translate() : "RimForex_LineOffSo".Translate()))
             {
                 chartShowStopOut = !chartShowStopOut;
             }
+            GUI.color = Color.white;
         }
 
         private void DrawChartZone(Rect zone, FxGameComponent fx)
@@ -1677,7 +1701,7 @@ float hintH = 0f;
             {
                 int d = steps[i];
                 Rect sr = new Rect(sx, y, stepW, 24f);
-                Widgets.ButtonText(sr, d > 0 ? "+" : "−");
+                DrawDumbButton(sr, d > 0 ? "+" : "−");
                 sx += stepW + stepGap;
                 if (d < 0) minusBtn = sr; else plusBtn = sr;
             }
@@ -1794,9 +1818,9 @@ float hintH = 0f;
             Rect tpMinus = new Rect(left.x + 34f, y, 20f, 24f);
             Rect tpField = new Rect(left.x + 56f, y, 70f, 24f);
             Rect tpPlus = new Rect(left.x + 128f, y, 20f, 24f);
-            Widgets.ButtonText(tpMinus, "−");
+            DrawDumbButton(tpMinus, "−");
             orderTpBuf = Widgets.TextField(tpField, orderTpBuf ?? "");
-            Widgets.ButtonText(tpPlus, "+");
+            DrawDumbButton(tpPlus, "+");
             orderTp = ParsePrice(orderTpBuf);
             DrawPctLabel(new Rect(left.x + 152f, y + 4f, 52f, 18f), PctVs(sel, orderTp, true));
 
@@ -1805,9 +1829,9 @@ float hintH = 0f;
             Rect slMinus = new Rect(slx + 34f, y, 20f, 24f);
             Rect slField = new Rect(slx + 56f, y, 70f, 24f);
             Rect slPlus = new Rect(slx + 128f, y, 20f, 24f);
-            Widgets.ButtonText(slMinus, "−");
+            DrawDumbButton(slMinus, "−");
             orderSlBuf = Widgets.TextField(slField, orderSlBuf ?? "");
-            Widgets.ButtonText(slPlus, "+");
+            DrawDumbButton(slPlus, "+");
             orderSl = ParsePrice(orderSlBuf);
             DrawPctLabel(new Rect(slx + 152f, y + 4f, 52f, 18f), PctVs(sel, orderSl, false));
             Text.Font = GameFont.Small;
