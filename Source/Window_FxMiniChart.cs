@@ -197,6 +197,19 @@ namespace RimForex
                 Widgets.Label(new Rect(tag.x + 3f, tag.y + 1f, tag.width, tag.height), priceStr);
                 GUI.color = Color.white;
                 Text.Font = GameFont.Small;
+
+                // 悬停详情：与终端同一套文案（开/高/低/收 + 振幅 + 涨跌幅）
+                FxCandle hc = candles[idx];
+                string body = "RimForex_HoverBody".Translate(
+                    hc.open.ToString("F2"), hc.high.ToString("F2"),
+                    hc.low.ToString("F2"), hc.close.ToString("F2"));
+                string hoverTitle = (hc.close >= hc.open ? "RimForex_HoverUp" : "RimForex_HoverDown").Translate();
+                string range = "RimForex_HoverRange".Translate(
+                    (hc.high - hc.low).ToString("F2"),
+                    hc.open > 0.0001f
+                        ? ((hc.close / hc.open - 1f) * 100f).ToString("+0.00;-0.00;0.00") + "%"
+                        : "-");
+                TooltipHandler.TipRegion(area, new TipSignal(title + "\n\n" + body + "\n" + range));
             }
         }
 

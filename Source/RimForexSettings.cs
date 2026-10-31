@@ -15,12 +15,6 @@ namespace RimForex
     {
         // ================= 界面提示开关（不影响数值） =================
 
-        /// <summary>K 线区：持仓线图例（说明虚线是开仓成交价、为什么与中间价差半个点差）。</summary>
-        public bool showChartEntryLegend = true;
-        /// <summary>K 线区：盈亏平衡线（"回本 xxx"）。仓位多、线杂时可以关掉。</summary>
-        public bool showBreakevenLine = true;
-        /// <summary>K 线区：强平线（"爆仓 xxx"）。显示当前持仓会在哪个价位被强制平仓。</summary>
-        public bool showStopOutLine = true;
         /// <summary>下单区：逐行成本明细。</summary>
         public bool showCostBreakdown = true;
         /// <summary>底部时间条：游戏速度说明。</summary>
@@ -145,9 +139,6 @@ namespace RimForex
 
         public override void ExposeData()
         {
-            Scribe_Values.Look(ref showChartEntryLegend, "showChartEntryLegend", true);
-            Scribe_Values.Look(ref showBreakevenLine, "showBreakevenLine", true);
-            Scribe_Values.Look(ref showStopOutLine, "showStopOutLine", true);
             Scribe_Values.Look(ref lossMoodScale, "lossMoodScale", 1f);
             Scribe_Values.Look(ref gainMoodScale, "gainMoodScale", 1f);
             Scribe_Values.Look(ref marginCallMoodScale, "marginCallMoodScale", 1f);
@@ -222,9 +213,6 @@ namespace RimForex
 
         public void ResetToDefaults()
         {
-            showChartEntryLegend = true;
-            showBreakevenLine = true;
-            showStopOutLine = true;
             lossMoodScale = 1f;
             gainMoodScale = 1f;
             marginCallMoodScale = 1f;
@@ -533,12 +521,6 @@ namespace RimForex
             l.Label("RimForex_SettingsHintsDesc".Translate());
             l.Gap(6f);
 
-            l.CheckboxLabeled("RimForex_Set_ChartLegend".Translate(), ref Settings.showChartEntryLegend,
-                "RimForex_Set_ChartLegendTip".Translate());
-            l.CheckboxLabeled("RimForex_Set_BreakevenLine".Translate(), ref Settings.showBreakevenLine,
-                "RimForex_Set_BreakevenLineTip".Translate());
-            l.CheckboxLabeled("RimForex_Set_StopOutLine".Translate(), ref Settings.showStopOutLine,
-                "RimForex_Set_StopOutLineTip".Translate());
             l.CheckboxLabeled("RimForex_Set_CostBreakdown".Translate(), ref Settings.showCostBreakdown,
                 "RimForex_Set_CostBreakdownTip".Translate());
             l.CheckboxLabeled("RimForex_Set_TimeSpeed".Translate(), ref Settings.showTimeSpeedHint,

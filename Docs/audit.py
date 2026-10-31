@@ -465,8 +465,10 @@ def main():
         fail += 1
         print("  !! 强平判据没有用 BaseMargin —— 追加保证金会造成标尺错位（R05）")
 
-    if "showStopOutLine" in win and "showStopOutLine" in st:
-        print("  OK 爆仓线有开关")
+    # 2026-10-31：三条参考线的开关从模组设置搬到了图表左侧，
+    # 断言改为"窗口内有运行时开关"
+    if "chartShowStopOut" in win:
+        print("  OK 爆仓线有开关（图表左侧）")
     else:
         fail += 1
         print("  !! 爆仓线开关缺失")

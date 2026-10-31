@@ -137,13 +137,7 @@ namespace RimForex
 
         public Window_FxTerminal(Building_FXTradingTerminal terminal, FxAccount account)
         {
-            // 三条参考线的初始状态跟随模组设置，之后由左侧开关单独控制
-            RimForexSettings cfgInit = RimForexMod.Settings;
-            if (cfgInit != null)
-            {
-                chartShowBreakeven = cfgInit.showBreakevenLine;
-                chartShowStopOut = cfgInit.showStopOutLine;
-            }
+            // 三条参考线默认全开，之后由左侧开关单独控制
 
             this.terminal = terminal;
             this.account = account;
@@ -275,6 +269,89 @@ namespace RimForex
         private float orderPanelH = -1f;
         private bool draggingHSplit;
         private bool draggingSplitter;
+
+        // ── 加减按钮的"按住加速"状态（同一时间只允许一个按钮按住）──
+        private int holdTarget;      // 0 无 / 1 保证金 / 2 止盈 / 3 止损
+        private int holdDir;         // −1 / +1
+        private float holdTime;
+        private float holdAcc;
+
+        /// <summary>
+        /// 整数加减：短按 = 1，按住 0.3 秒后开始连发，
+        /// 连发速度与步长随按住时长变快变大（1 → 5 → 10 → 100）。
+        /// </summary>
+        private void HoldInt(Rect minus, Rect plus, int target,
+            System.Action<int, int> apply)
+        {
+            HoldCommon(minus, plus, target, (dir, t01) =>
+            {
+                // t01 == 0 表示"刚按下"那一次：只走 1
+                int step = t01 <= 0f ? 1 : (t01 > 2.5f ? 100 : (t01 > 1.2f ? 10 : 5));
+                apply(dir, step);
+            });
+        }
+
+        /// <summary>浮点加减：短按 = 0.01，之后 0.05 / 0.5 / 5。</summary>
+        private void HoldFloat(Rect minus, Rect plus, int target,
+            System.Action<int, float> apply)
+        {
+            HoldCommon(minus, plus, target, (dir, t01) =>
+            {
+                // t01 == 0 表示"刚按下"那一次：只走 0.01
+                float step = t01 <= 0f ? 0.01f : (t01 > 2.5f ? 5f : (t01 > 1.2f ? 0.5f : 0.05f));
+                apply(dir, step);
+            });
+        }
+
+        private void HoldCommon(Rect minus, Rect plus, int target,
+            System.Action<int, float> apply)
+        {
+            Event e = Event.current;
+            if (e == null) return;
+            Vector2 m = e.mousePosition;
+
+            if (e.type == EventType.MouseDown && e.button == 0)
+            {
+                if (minus.Contains(m))
+                {
+                    holdTarget = target; holdDir = -1; holdTime = 0f; holdAcc = 0f;
+                    apply(-1, 0f);   // 短按那一下
+                    e.Use();
+                }
+                else if (plus.Contains(m))
+                {
+                    holdTarget = target; holdDir = 1; holdTime = 0f; holdAcc = 0f;
+                    apply(1, 0f);
+                    e.Use();
+                }
+                else
+                {
+                    // 按下别处就取消，避免"松手事件丢了"之后一直连发
+                    holdTarget = 0;
+                }
+                return;
+            }
+
+            if (e.type == EventType.MouseUp)
+            {
+                if (holdTarget == target) holdTarget = 0;
+                return;
+            }
+
+            if (holdTarget != target || holdDir == 0) return;
+
+            holdTime += UnityEngine.Time.unscaledDeltaTime;
+            // 没有 InputLegacyModule 可引用，拿不到"鼠标是否仍按住"；
+            // 用 6 秒硬上限兜底，防止 MouseUp 丢失后一直连发
+            if (holdTime > 6f) { holdTarget = 0; return; }
+            if (holdTime < 0.30f) return;          // 短按只算那一次
+
+            holdAcc += UnityEngine.Time.unscaledDeltaTime;
+            float interval = holdTime > 2.5f ? 0.04f : (holdTime > 1.2f ? 0.07f : 0.11f);
+            if (holdAcc < interval) return;
+            holdAcc = 0f;
+            apply(holdDir, holdTime);
+        }
 
         private void DrawMarketSplitter(Rect handle, float contentWidth)
         {
@@ -809,32 +886,10 @@ float hintH = 0f;
             Widgets.Label(new Rect(plot.x + 6f, plot.yMax - 34f, plot.width - 60f, 16f),
                 "RimForex_ChartView".Translate(view.Count, SpanPeriodText()));
 
-            // 有持仓线时补一行图例，说明"线为什么不在最新价上"。
-            // 根因：K 线画的是中间价，而开仓线画的是方向成交价（做空=bid，低于 mid），
-            // 偏移恰好是半个点差。不说明的话玩家会以为图表算错了。
-            //
-            // 可以在模组设置里关掉 —— 熟悉之后这行只是占地方。
-            bool showLegend = RimForexMod.Settings == null || RimForexMod.Settings.showChartEntryLegend;
-            if (showLegend && account != null && HasPositionLineFor(selectedFactionId))
-            {
-                GUI.color = new Color(0.68f, 0.72f, 0.78f);
-                Widgets.Label(new Rect(plot.x + 6f, plot.yMax - 50f, plot.width - 12f, 16f),
-                    "RimForex_ChartEntryLegend".Translate());
-            }
+            // 图例已删（作者 2026-10-31：信息量不足还挡 K 线），
+            // 三条线现在由左侧开关单独控制，不需要图例解释。
             GUI.color = Color.white;
             Text.Font = GameFont.Small;
-        }
-
-        /// <summary>当前选中货币是否有会显示在图上的开仓线（用于决定要不要画图例）。</summary>
-        private bool HasPositionLineFor(int factionLoadID)
-        {
-            if (account == null) return false;
-            for (int i = 0; i < account.positions.Count; i++)
-            {
-                FxPosition p = account.positions[i];
-                if (p != null && p.currencyFactionLoadID == factionLoadID) return true;
-            }
-            return false;
         }
 
         /// <summary>
@@ -1605,29 +1660,34 @@ float hintH = 0f;
             const float allInW  = 66f;
             const float zeroW   = 50f;
             const float tailGap = 4f;      // "梭哈"与"最小值"之间
-            int[] steps = { -1000, -100, -10, -1, 1, 10, 100, 1000 };
+            // 作者 2026-10-31：八个档位换成两个按钮，短按 ±1，按住越久步长越大
+            int[] steps = { -1, 1 };
 
             // 预算必须把 allInGap 也算进去 —— 漏掉它就会超出 2px（实测过）。
             float usedByTail = allInGap + allInW + tailGap + zeroW;
             float stepW = (left.width - usedByTail - stepGap * (steps.Length - 1)) / steps.Length;
             // 下限取 30px：Tiny 字体下 "+1000" 需要约 30px，再窄就会截断成 "+10…"
-            if (stepW < 30f) stepW = 30f;
-            if (stepW > 44f) stepW = 44f;      // 面板很宽时不必跟着铺满
+            if (stepW < 34f) stepW = 34f;
+            if (stepW > 56f) stepW = 56f;      // 两个按钮不必铺满整行
 
+            Rect minusBtn = Rect.zero;
+            Rect plusBtn = Rect.zero;
             float sx = left.x;
             for (int i = 0; i < steps.Length; i++)
             {
                 int d = steps[i];
                 Rect sr = new Rect(sx, y, stepW, 24f);
-                string label = (d > 0 ? "+" : "") + d.ToString();
-                if (Widgets.ButtonText(sr, label))
-                {
-                    orderMargin = Mathf.Max(Mathf.CeilToInt(minMargin), orderMargin + d);
-                    marginBuffer = orderMargin.ToString();
-                    marginAtMinimum = false;
-                }
+                Widgets.ButtonText(sr, d > 0 ? "+" : "−");
                 sx += stepW + stepGap;
+                if (d < 0) minusBtn = sr; else plusBtn = sr;
             }
+
+            HoldInt(minusBtn, plusBtn, 1, (dir, step) =>
+            {
+                orderMargin = Mathf.Max(Mathf.CeilToInt(minMargin), orderMargin + dir * step);
+                marginBuffer = orderMargin.ToString();
+                marginAtMinimum = false;
+            });
 
             // 梭哈：由"可用余额能开的最大单位数"反推所需保证金
             Rect allIn = new Rect(sx + allInGap, y, allInW, 24f);
@@ -1731,15 +1791,44 @@ float hintH = 0f;
             // 留空或 0 = 不设。判定用方向价，和强平线同一口径。
             Text.Font = GameFont.Tiny;
             Widgets.Label(new Rect(left.x, y + 4f, 34f, 18f), "RimForex_TpShort".Translate());
-            orderTpBuf = Widgets.TextField(new Rect(left.x + 36f, y, 74f, 24f), orderTpBuf ?? "");
+            Rect tpMinus = new Rect(left.x + 34f, y, 20f, 24f);
+            Rect tpField = new Rect(left.x + 56f, y, 70f, 24f);
+            Rect tpPlus = new Rect(left.x + 128f, y, 20f, 24f);
+            Widgets.ButtonText(tpMinus, "−");
+            orderTpBuf = Widgets.TextField(tpField, orderTpBuf ?? "");
+            Widgets.ButtonText(tpPlus, "+");
             orderTp = ParsePrice(orderTpBuf);
-            DrawPctLabel(new Rect(left.x + 114f, y + 4f, 54f, 18f), PctVs(sel, orderTp, true));
+            DrawPctLabel(new Rect(left.x + 152f, y + 4f, 52f, 18f), PctVs(sel, orderTp, true));
 
-            Widgets.Label(new Rect(left.x + 172f, y + 4f, 34f, 18f), "RimForex_SlShort".Translate());
-            orderSlBuf = Widgets.TextField(new Rect(left.x + 208f, y, 74f, 24f), orderSlBuf ?? "");
+            float slx = left.x + 210f;
+            Widgets.Label(new Rect(slx, y + 4f, 34f, 18f), "RimForex_SlShort".Translate());
+            Rect slMinus = new Rect(slx + 34f, y, 20f, 24f);
+            Rect slField = new Rect(slx + 56f, y, 70f, 24f);
+            Rect slPlus = new Rect(slx + 128f, y, 20f, 24f);
+            Widgets.ButtonText(slMinus, "−");
+            orderSlBuf = Widgets.TextField(slField, orderSlBuf ?? "");
+            Widgets.ButtonText(slPlus, "+");
             orderSl = ParsePrice(orderSlBuf);
-            DrawPctLabel(new Rect(left.x + 286f, y + 4f, 54f, 18f), PctVs(sel, orderSl, false));
+            DrawPctLabel(new Rect(slx + 152f, y + 4f, 52f, 18f), PctVs(sel, orderSl, false));
             Text.Font = GameFont.Small;
+
+            // 加减：按现价起步，短按 0.01，按住逐渐加快加大
+            float tpBase = orderTp > 0f ? orderTp : (sel != null ? sel.rate : 0f);
+            HoldFloat(tpMinus, tpPlus, 2, (dir, step) =>
+            {
+                float v = tpBase + dir * step;
+                if (v < 0f) v = 0f;
+                orderTp = v;
+                orderTpBuf = v.ToString("F2");
+            });
+            float slBase = orderSl > 0f ? orderSl : (sel != null ? sel.rate : 0f);
+            HoldFloat(slMinus, slPlus, 3, (dir, step) =>
+            {
+                float v = slBase + dir * step;
+                if (v < 0f) v = 0f;
+                orderSl = v;
+                orderSlBuf = v.ToString("F2");
+            });
             TooltipHandler.TipRegion(new Rect(left.x, y, left.width, 24f),
                 "RimForex_TpSlTip".Translate());
             y += 28f;

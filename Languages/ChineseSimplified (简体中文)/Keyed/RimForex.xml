@@ -34,7 +34,6 @@
   <RimForex_TipPosCell>持仓 {0} 单位\n浮动盈亏 {1} 白银</RimForex_TipPosCell>
 
   <RimForex_ChartTitle>{0}</RimForex_ChartTitle>
-  <RimForex_ChartEntryLegend>虚线 = 开仓成交价（做多=买价、做空=卖价，与中间价差半个点差）</RimForex_ChartEntryLegend>
   <RimForex_PnlTag>盈亏</RimForex_PnlTag>
   <RimForex_CostTag>成本</RimForex_CostTag>
   <RimForex_PosRowTip>{0} 单位
@@ -161,15 +160,9 @@
   <RimForex_Set_ClearDesc>改了行情参数之后，图上还混着旧参数生成的 K 线，看不出新模型长什么样。清空后再积累，形态就是纯新参数的产物。</RimForex_Set_ClearDesc>
   <RimForex_SettingsHints>界面提示</RimForex_SettingsHints>
   <RimForex_SettingsHintsDesc>这些开关只控制屏幕上那些说明文字的显示与隐藏，不影响任何数值或规则。</RimForex_SettingsHintsDesc>
-  <RimForex_Set_ChartLegend>K线图例说明</RimForex_Set_ChartLegend>
-  <RimForex_Set_ChartLegendTip>在图表底部显示一行小字，解释虚线与最新价线为什么不在同一位置（开仓成交价含半个点差）。熟悉后可以关掉。</RimForex_Set_ChartLegendTip>
   <RimForex_ChartStopOutOff>爆仓 {0}（在框外 {1}%）</RimForex_ChartStopOutOff>
   <RimForex_ChartStopOut>爆仓 {0}</RimForex_ChartStopOut>
   <RimForex_ChartStopOutTip>{0}持仓的强制平仓线（按中间价）。\n\n开仓价 {1}，跌/涨到 {2} 时净值会掉到保证金的 30% 而被强平。\n强平距离约 {3}%（含追加保证金后的口径）。</RimForex_ChartStopOutTip>
-  <RimForex_Set_StopOutLine>爆仓线</RimForex_Set_StopOutLine>
-  <RimForex_Set_StopOutLineTip>在 K 线图上画出「爆仓 xxx」那条红色虚线，标出当前持仓会在哪个价位被强制平仓。</RimForex_Set_StopOutLineTip>
-  <RimForex_Set_BreakevenLine>盈亏平衡线</RimForex_Set_BreakevenLine>
-  <RimForex_Set_BreakevenLineTip>在 K 线图上画出「回本 xxx」那条蓝色横线。仓位多、线杂的时候可以关掉。</RimForex_Set_BreakevenLineTip>
   <RimForex_Set_CostBreakdown>下单成本明细</RimForex_Set_CostBreakdown>
   <RimForex_Set_CostBreakdownTip>关闭后，逐行的成本明细会压缩成一行，鼠标悬停可查看详情。</RimForex_Set_CostBreakdownTip>
   <RimForex_HudFloat>浮动盈亏</RimForex_HudFloat>
