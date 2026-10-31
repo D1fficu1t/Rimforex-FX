@@ -242,6 +242,14 @@ namespace RimForex
                 span = FxChartSpan.Hour;
             }
             GUI.color = Color.white;
+            y += bh + 4f;
+
+            GUI.color = span == FxChartSpan.Day ? new Color(0.70f, 0.80f, 0.95f) : Color.white;
+            if (Widgets.ButtonText(new Rect(strip.x, y, strip.width, bh), "RimForex_SpanDay".Translate()))
+            {
+                span = FxChartSpan.Day;
+            }
+            GUI.color = Color.white;
             y += bh + 8f;
 
             if (Widgets.ButtonText(new Rect(strip.x, y, strip.width, bh),

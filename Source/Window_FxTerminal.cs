@@ -216,12 +216,48 @@ namespace RimForex
             // 货币表各列是**固定像素**偏移，最右一列（盈亏）到 386+72=458 才结束，
             // 加上内边距需要约 486px。按百分比分配时要么空一块、要么把盈亏列切掉
             // （作者 2026-10-31 两次截图）。这里直接按内容宽度定死，剩下的全给 K 线。
-            float leftW = Mathf.Clamp(486f, 360f, content.width - 300f);
+            // 左栏宽度可由中间那根竖条拖动（作者 2026-10-31 要求：K 线能拉大）
+            float leftW = Mathf.Clamp(marketPanelW, 380f, content.width - 300f);
+            marketPanelW = leftW;
             Rect leftRect = new Rect(content.x, midY, leftW, midH);
             Rect rightRect = new Rect(content.x + leftW + Gap, midY, content.width - leftW - Gap, midH);
 
             DrawMarketZone(leftRect, currencies);
             DrawChartZone(rightRect, fx);
+
+            // 分隔条：拖动改左栏宽度（K 线随之变大变小）
+            DrawMarketSplitter(new Rect(content.x + leftW - 3f, midY, 6f, midH), content.width);
+        }
+
+        // ── 货币表 / K 线之间的可拖动分隔条 ──
+        private float marketPanelW = 486f;
+        private bool draggingSplitter;
+
+        private void DrawMarketSplitter(Rect handle, float contentWidth)
+        {
+            Event e = Event.current;
+            bool hover = e != null && handle.Contains(e.mousePosition);
+
+            Widgets.DrawBoxSolid(handle, hover || draggingSplitter
+                ? new Color(0.55f, 0.75f, 0.95f, 0.85f)
+                : new Color(1f, 1f, 1f, 0.10f));
+            TooltipHandler.TipRegion(handle, "RimForex_SplitterTip".Translate());
+
+            if (e == null) return;
+            if (e.type == EventType.MouseDown && e.button == 0 && hover)
+            {
+                draggingSplitter = true;
+                e.Use();
+            }
+            else if (draggingSplitter && e.type == EventType.MouseDrag)
+            {
+                marketPanelW = Mathf.Clamp(marketPanelW + e.delta.x, 380f, contentWidth - 300f);
+                e.Use();
+            }
+            else if (e.type == EventType.MouseUp)
+            {
+                draggingSplitter = false;
+            }
         }
 
         // ============================ 时间控制 ============================
@@ -567,6 +603,15 @@ namespace RimForex
                 chartSpan = FxChartSpan.Hour;
             }
             GUI.color = Color.white;
+            y += bh + 4f;
+
+            GUI.color = chartSpan == FxChartSpan.Day
+                ? new Color(0.70f, 0.80f, 0.95f) : Color.white;
+            if (Widgets.ButtonText(new Rect(strip.x, y, strip.width, bh), "RimForex_SpanDay".Translate()))
+            {
+                chartSpan = FxChartSpan.Day;
+            }
+            GUI.color = Color.white;
             y += bh + 10f;
 
             if (Widgets.ButtonText(new Rect(strip.x, y, strip.width, bh),
@@ -654,7 +699,7 @@ float hintH = 0f;
 
             // 左侧竖排开关占一列，K 线本体整块左移
             const float StripW = 54f;
-            Rect strip = new Rect(r.x, plotY, StripW, Mathf.Min(r.yMax - plotY, 24f * 5 + 26f));
+            Rect strip = new Rect(r.x, plotY, StripW, Mathf.Min(r.yMax - plotY, 24f * 6 + 30f));
             DrawChartSideButtons(strip);
 
             float chartX = r.x + StripW + 6f;

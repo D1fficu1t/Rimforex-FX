@@ -507,4 +507,6 @@
   <RimForex_LineOffBe>回本✗</RimForex_LineOffBe>
   <RimForex_LineOnSo>爆仓✓</RimForex_LineOnSo>
   <RimForex_LineOffSo>爆仓✗</RimForex_LineOffSo>
+  <RimForex_SpanDay>日K</RimForex_SpanDay>
+  <RimForex_SplitterTip>拖动这里可以调整货币表和 K 线的宽度。</RimForex_SplitterTip>
 </LanguageData>
