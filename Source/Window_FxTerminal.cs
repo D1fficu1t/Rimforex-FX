@@ -104,11 +104,22 @@ namespace RimForex
         // 用 Text.LineHeightOf 现算，任何缩放下都不会削字。
         private static float LhS => Text.LineHeightOf(GameFont.Small);
         private static float LhM => Text.LineHeightOf(GameFont.Medium);
-        private static float AccountH => Pad * 2f + TitleH + StatRowH + 46f + LhS + 16f;
+        /// <summary>
+        /// 账户区高度：只按**实际会画出来的行**算。
+        ///
+        /// 上一版无条件给欠款行 + 冻结行留 46px，没有欠款时就变成一大块空白，
+        /// 把中间的行情表/K 线挤扁（作者 2026-10-31 截图）。
+        /// </summary>
+        private float AccountH =>
+            Pad * 2f + TitleH + StatRowH + Mathf.Max(LhS, 24f) + 8f
+            + (account != null && account.balance < 0f ? 24f : 0f)
+            + (account != null && account.frozenUntilTick > GenTicks.TicksGame ? 22f : 0f);
         private static float StatRowH => LhS + 4f + LhM + 6f;
         private const float BtnH = 28f;
         private const float MarketRowH = 28f;
-        private static float OrderH => 120f + 10f * LhS;
+        // 下单区：内容行数固定，高度只随字号小幅上浮。
+        // 上一版 120 + 10*LhS 在大字号下会撑到 380+，把中间区压没了。
+        private static float OrderH => 250f + 3f * LhS;
         private const float TimeBarH = 32f;
         private static float TitleH => LhM + 10f;
         /// <summary>底部留白，避免与主按钮栏 / 原版时间控制重叠。</summary>
