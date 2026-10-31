@@ -72,13 +72,15 @@ namespace RimForex
             y += lhS + 10f;
 
             Widgets.Label(new Rect(0f, y + 4f, 44f, lhS), "RimForex_TpShort".Translate());
-            Widgets.TextFieldNumeric(new Rect(48f, y, 100f, 24f), ref tp, ref tpBuf, 0f, 1000000f);
-            Widgets.Label(new Rect(154f, y + 4f, 120f, lhS), PctText(tp));
+            tpBuf = Widgets.TextField(new Rect(48f, y, 100f, 24f), tpBuf ?? "");
+            tp = Parse(tpBuf);
+            DrawPct(new Rect(154f, y + 4f, 120f, lhS), tp);
             y += 30f;
 
             Widgets.Label(new Rect(0f, y + 4f, 44f, lhS), "RimForex_SlShort".Translate());
-            Widgets.TextFieldNumeric(new Rect(48f, y, 100f, 24f), ref sl, ref slBuf, 0f, 1000000f);
-            Widgets.Label(new Rect(154f, y + 4f, 120f, lhS), PctText(sl));
+            slBuf = Widgets.TextField(new Rect(48f, y, 100f, 24f), slBuf ?? "");
+            sl = Parse(slBuf);
+            DrawPct(new Rect(154f, y + 4f, 120f, lhS), sl);
             y += 36f;
 
             Text.Font = GameFont.Tiny;
@@ -123,12 +125,25 @@ namespace RimForex
             }
         }
 
-        private string PctText(float price)
+        private static float Parse(string buf)
         {
-            if (price <= 0f) return "";
+            if (buf == null) return 0f;
+            buf = buf.Trim();
+            if (buf.Length == 0) return 0f;
+            float v;
+            if (!float.TryParse(buf, out v)) return 0f;
+            return v > 0f ? v : 0f;
+        }
+
+        private void DrawPct(Rect r, float price)
+        {
+            if (price <= 0f) return;
             float mark = pos.markRate > 0f ? pos.markRate : pos.entryRate;
-            if (mark <= 0.001f) return "";
-            return ((price / mark - 1f) * 100f).ToString("+0.0;-0.0;0.0") + "%";
+            if (mark <= 0.001f) return;
+            float pct = (price / mark - 1f) * 100f;
+            GUI.color = pct > 0f ? new Color(0.55f, 0.90f, 0.60f) : new Color(1f, 0.55f, 0.50f);
+            Widgets.Label(r, pct.ToString("+0.0;-0.0;0.0") + "%");
+            GUI.color = Color.white;
         }
     }
 }

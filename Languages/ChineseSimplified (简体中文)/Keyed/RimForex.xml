@@ -34,7 +34,6 @@
   <RimForex_TipPosCell>持仓 {0} 单位\n浮动盈亏 {1} 白银</RimForex_TipPosCell>
 
   <RimForex_ChartTitle>{0}</RimForex_ChartTitle>
-  <RimForex_ChartSpeedHint>每 {0} 次报价一根K线（{1} 游戏时 ≈ {2} 秒）；一步之内另有 {3} 次微调</RimForex_ChartSpeedHint>
   <RimForex_ChartEntryLegend>虚线 = 开仓成交价（做多=买价、做空=卖价，与中间价差半个点差）</RimForex_ChartEntryLegend>
   <RimForex_PnlTag>盈亏</RimForex_PnlTag>
   <RimForex_CostTag>成本</RimForex_CostTag>
@@ -53,8 +52,6 @@
 成交价 {1}，但因为开仓吃点差、平仓再吃一次，
 中间价必须走到 {2} 才回本。</RimForex_ChartBreakevenTip>
   <RimForex_ChartNoData>历史数据还不够。</RimForex_ChartNoData>
-  <RimForex_ChartLast>最新 {0}</RimForex_ChartLast>
-  <RimForex_SpanMinuteShort>分K</RimForex_SpanMinuteShort>
   <RimForex_SpanHour>时K</RimForex_SpanHour>
   <RimForex_SpanDay>日K</RimForex_SpanDay>
   <RimForex_SpanBtnTip>{0}：每根K线覆盖 {1}</RimForex_SpanBtnTip>
@@ -62,7 +59,6 @@
   <RimForex_SpanUnitHour>1 游戏小时</RimForex_SpanUnitHour>
   <RimForex_SpanUnitDay>1 游戏日</RimForex_SpanUnitDay>
   <RimForex_SpanUnitMinute>{0} 游戏分钟</RimForex_SpanUnitMinute>
-  <RimForex_ChartSpanLabel>周期：{0}（每根 {1}）</RimForex_ChartSpanLabel>
   <RimForex_HoverUp>收阳</RimForex_HoverUp>
   <RimForex_HoverDown>收阴</RimForex_HoverDown>
   <RimForex_HoverBody>开 {0}    收 {3}
@@ -77,8 +73,6 @@
   <RimForex_ChartReset>重置视图</RimForex_ChartReset>
   <RimForex_ChartNavTip>滚轮：放大 / 缩小。鼠标悬停在某根K线上：显示该根的开高低收。</RimForex_ChartNavTip>
   <RimForex_ChartView>显示 {0} 根   |   每根 {1}</RimForex_ChartView>
-  <RimForex_SettleCountdown>距下次结算 {0} 小时</RimForex_SettleCountdown>
-  <RimForex_NextQuote>距下次报价 {0} 秒</RimForex_NextQuote>
   <RimForex_TimeHint>可在此直接调整游戏速度，K 线会跟着变。</RimForex_TimeHint>
   <RimForex_All>全部</RimForex_All>
   <RimForex_DoDeposit>存入</RimForex_DoDeposit>
@@ -170,8 +164,6 @@
   <RimForex_Set_ClearDesc>改了行情参数之后，图上还混着旧参数生成的 K 线，看不出新模型长什么样。清空后再积累，形态就是纯新参数的产物。</RimForex_Set_ClearDesc>
   <RimForex_SettingsHints>界面提示</RimForex_SettingsHints>
   <RimForex_SettingsHintsDesc>这些开关只控制屏幕上那些说明文字的显示与隐藏，不影响任何数值或规则。</RimForex_SettingsHintsDesc>
-  <RimForex_Set_QuotePacing>报价节奏提示与倒计时</RimForex_Set_QuotePacing>
-  <RimForex_Set_QuotePacingTip>K 线上方那行"每 N 次报价一根K线"，以及右侧的距下次报价倒计时。</RimForex_Set_QuotePacingTip>
   <RimForex_Set_ChartLegend>K线图例说明</RimForex_Set_ChartLegend>
   <RimForex_Set_ChartLegendTip>在图表底部显示一行小字，解释虚线与最新价线为什么不在同一位置（开仓成交价含半个点差）。熟悉后可以关掉。</RimForex_Set_ChartLegendTip>
   <RimForex_ChartStopOutOff>爆仓 {0}（在框外 {1}%）</RimForex_ChartStopOutOff>
@@ -181,11 +173,6 @@
   <RimForex_Set_StopOutLineTip>在 K 线图上画出「爆仓 xxx」那条红色虚线，标出当前持仓会在哪个价位被强制平仓。</RimForex_Set_StopOutLineTip>
   <RimForex_Set_BreakevenLine>盈亏平衡线</RimForex_Set_BreakevenLine>
   <RimForex_Set_BreakevenLineTip>在 K 线图上画出「回本 xxx」那条蓝色横线。仓位多、线杂的时候可以关掉。</RimForex_Set_BreakevenLineTip>
-  <RimForex_Set_SettleCountdown>每日结算倒计时</RimForex_Set_SettleCountdown>
-  <RimForex_Set_SettleCountdownTip>账户区右上角的"距下次结算 N 小时"。</RimForex_Set_SettleCountdownTip>
-  <RimForex_Set_TimeDebug>显示时间诊断行</RimForex_Set_TimeDebug>
-  <RimForex_Set_TimeDebugTip>在结算倒计时下方显示 TicksAbs / 当前小时 / 距结算 tick，用于核对时间换算是否正确。默认关闭。</RimForex_Set_TimeDebugTip>
-  <RimForex_TimeDebug>TicksAbs {0} · 当前第 {1} 时 · 距结算 {2} tick（{3} 小时）</RimForex_TimeDebug>
   <RimForex_Set_CostBreakdown>下单成本明细</RimForex_Set_CostBreakdown>
   <RimForex_Set_CostBreakdownTip>关闭后，逐行的成本明细会压缩成一行，鼠标悬停可查看详情。</RimForex_Set_CostBreakdownTip>
   <RimForex_HudFloat>浮动盈亏</RimForex_HudFloat>

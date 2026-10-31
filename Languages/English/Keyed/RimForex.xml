@@ -34,7 +34,6 @@
   <RimForex_TipPosCell>{0} units open\nfloating P/L {1} silver</RimForex_TipPosCell>
 
   <RimForex_ChartTitle>{0}</RimForex_ChartTitle>
-  <RimForex_ChartSpeedHint>One candle per {0} quotes ({1} game h ≈ {2}s); {3} intra-quote updates per step</RimForex_ChartSpeedHint>
   <RimForex_ChartEntryLegend>Dashed line = your fill price (long = ask, short = bid; half a spread off the mid)</RimForex_ChartEntryLegend>
   <RimForex_PnlTag>P/L</RimForex_PnlTag>
   <RimForex_CostTag>cost</RimForex_CostTag>
@@ -45,8 +44,6 @@ Floating P/L {2} silver</RimForex_PosLineTip>
   <RimForex_ChartBreakeven>break-even {0}</RimForex_ChartBreakeven>
   <RimForex_ChartBreakevenTip>Break-even line for your {0} position, in mid price.\n\nYou filled at {1}, but since you pay the spread on both sides,\nmid must reach {2} before you are flat.</RimForex_ChartBreakevenTip>
   <RimForex_ChartNoData>Not enough history yet.</RimForex_ChartNoData>
-  <RimForex_ChartLast>Last {0}</RimForex_ChartLast>
-  <RimForex_SpanMinuteShort>Min</RimForex_SpanMinuteShort>
   <RimForex_SpanHour>H</RimForex_SpanHour>
   <RimForex_SpanDay>D</RimForex_SpanDay>
   <RimForex_SpanBtnTip>{0}: each candle covers {1}</RimForex_SpanBtnTip>
@@ -54,7 +51,6 @@ Floating P/L {2} silver</RimForex_PosLineTip>
   <RimForex_SpanUnitHour>1 game hour</RimForex_SpanUnitHour>
   <RimForex_SpanUnitDay>1 game day</RimForex_SpanUnitDay>
   <RimForex_SpanUnitMinute>{0} game minutes</RimForex_SpanUnitMinute>
-  <RimForex_ChartSpanLabel>Span: {0} ({1} each)</RimForex_ChartSpanLabel>
   <RimForex_HoverUp>Up candle</RimForex_HoverUp>
   <RimForex_HoverDown>Down candle</RimForex_HoverDown>
   <RimForex_HoverBody>open {0}    close {3}\nhigh {1}    low {2}</RimForex_HoverBody>
@@ -66,8 +62,6 @@ Floating P/L {2} silver</RimForex_PosLineTip>
   <RimForex_ChartReset>Reset view</RimForex_ChartReset>
   <RimForex_ChartNavTip>Mouse wheel: zoom in/out. Hover a candle: see its open, high, low and close.</RimForex_ChartNavTip>
   <RimForex_ChartView>{0} candles shown   |   {1} each</RimForex_ChartView>
-  <RimForex_SettleCountdown>next settlement in {0} h</RimForex_SettleCountdown>
-  <RimForex_NextQuote>next quote in {0}s</RimForex_NextQuote>
   <RimForex_TimeHint>Game speed can be changed here - the chart follows it.</RimForex_TimeHint>
   <RimForex_All>All</RimForex_All>
   <RimForex_DoDeposit>Deposit</RimForex_DoDeposit>
@@ -159,8 +153,6 @@ Floating P/L {2} silver</RimForex_PosLineTip>
   <RimForex_Set_ClearDesc>After changing market parameters the chart still mixes in candles made by the old settings, so you cannot see what the new model looks like. Clear them and let it re-accumulate.</RimForex_Set_ClearDesc>
   <RimForex_SettingsHints>Interface hints</RimForex_SettingsHints>
   <RimForex_SettingsHintsDesc>These toggles only show or hide on-screen explanatory text. They do not change any numbers or game rules.</RimForex_SettingsHintsDesc>
-  <RimForex_Set_QuotePacing>Quote pacing hint &amp; countdown</RimForex_Set_QuotePacing>
-  <RimForex_Set_QuotePacingTip>Shows "one candle every N quotes" and the next-quote countdown above the chart.</RimForex_Set_QuotePacingTip>
   <RimForex_Set_ChartLegend>Chart legend note</RimForex_Set_ChartLegend>
   <RimForex_Set_ChartLegendTip>Show a small line under the chart explaining why the entry line is not on the last-price line (the fill price includes half a spread). Turn off once you know it.</RimForex_Set_ChartLegendTip>
   <RimForex_ChartStopOutOff>stop-out {0} ({1}% off-chart)</RimForex_ChartStopOutOff>
@@ -170,11 +162,6 @@ Floating P/L {2} silver</RimForex_PosLineTip>
   <RimForex_Set_StopOutLineTip>Draws the red dashed "stop-out" line on the chart, marking the price at which your current position would be force-closed.</RimForex_Set_StopOutLineTip>
   <RimForex_Set_BreakevenLine>Break-even line</RimForex_Set_BreakevenLine>
   <RimForex_Set_BreakevenLineTip>Draws the blue "break-even" line on the chart. Turn it off when you hold many positions and the chart gets busy.</RimForex_Set_BreakevenLineTip>
-  <RimForex_Set_SettleCountdown>Daily settlement countdown</RimForex_Set_SettleCountdown>
-  <RimForex_Set_SettleCountdownTip>Shows "next settlement in N h" in the account header.</RimForex_Set_SettleCountdownTip>
-  <RimForex_Set_TimeDebug>Show time diagnostics</RimForex_Set_TimeDebug>
-  <RimForex_Set_TimeDebugTip>Prints TicksAbs / current hour / ticks-to-settlement under the countdown, for checking that the conversion is right. Off by default.</RimForex_Set_TimeDebugTip>
-  <RimForex_TimeDebug>TicksAbs {0} · hour {1} · {2} ticks to settlement ({3} h)</RimForex_TimeDebug>
   <RimForex_Set_CostBreakdown>Order cost breakdown</RimForex_Set_CostBreakdown>
   <RimForex_Set_CostBreakdownTip>When off, the per-line cost details collapse into one compact line with a tooltip.</RimForex_Set_CostBreakdownTip>
   <RimForex_HudFloat>floating P/L</RimForex_HudFloat>

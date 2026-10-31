@@ -280,42 +280,6 @@ namespace RimForex
                     (FxGameComponent.DefaultCarryRate * 100f).ToString("0.##"));
             Widgets.Label(new Rect(r.x + 210f, r.y + 4f, r.width - 400f, LhS + 2f), status);
 
-            // 距下次每日结算的倒计时 —— 便于验证"每天 0 时结算一次"。
-            // 数值直接来自 GenDate（原版 API），所以与游戏内时钟是恒等关系。
-            RimForexSettings cfg = RimForexMod.Settings;
-            if (cfg == null || cfg.showSettlementCountdown)
-            {
-                int untilHours = fxComponent != null ? fxComponent.HoursUntilSettlement : 0;
-                Text.Font = GameFont.Tiny;
-                Text.Anchor = TextAnchor.UpperRight;
-                Widgets.Label(new Rect(r.xMax - 190f, r.y + 6f, 190f, 18f),
-                    "RimForex_SettleCountdown".Translate(untilHours.ToString("0")));
-                Text.Anchor = TextAnchor.UpperLeft;
-                Text.Font = GameFont.Small;
-
-                // 诊断行（模组设置里可关）：把原始 tick 与游戏时钟并排显示。
-                // 结算边界 = TicksAbs 的整日边界，所以"距下次结算 tick"
-                // 应当恒等于 (24 - 当前小时) × 150。
-                if (cfg == null || cfg.showTimeDebug)
-                {
-                    int abs = GenTicks.TicksAbs;
-                    int hour = GenDate.HourOfDay(abs, 0f);
-                    int remaining = fxComponent != null ? fxComponent.TicksUntilSettlementExact : 0;
-                    GUI.color = new Color(0.62f, 0.68f, 0.75f);
-                    Text.Font = GameFont.Tiny;
-                    Text.Anchor = TextAnchor.UpperRight;
-                    Widgets.Label(new Rect(r.xMax - 460f, r.y + 22f, 460f, 16f),
-                        "RimForex_TimeDebug".Translate(
-                            abs.ToString(),
-                            hour.ToString(),
-                            remaining.ToString(),
-                            (remaining / (float)FxGameComponent.TicksPerHour).ToString("0.0")));
-                    Text.Anchor = TextAnchor.UpperLeft;
-                    Text.Font = GameFont.Small;
-                    GUI.color = Color.white;
-                }
-            }
-
             // 净值行：起点跟着标题高度走（标题改按行高算，不能再用写死的 30）
             float rowY = r.y + TitleH;
             float w = (r.width - 3f * Gap) / 4f;
@@ -597,32 +561,21 @@ namespace RimForex
             // 原来第一个占位符是 "ticksLeft / TicksPerStep"，却被写成"游戏时" ——
             // 那是"还剩几成一个报价步"的比例（0~1），不是游戏小时。
             // 一个报价步只有 0.07 游戏时，用游戏时表达毫无意义，玩家关心的就是"还有几秒"。
-            int ticksLeft = fx.TicksUntilQuote;
-            string countdown = cfg == null || cfg.showQuotePacingHint
-                ? "RimForex_NextQuote".Translate(
-                    (ticksLeft / (float)FxGameComponent.TicksPerRealSecond).ToString("0.0"))
-                : null;
-
+            string countdown = null;
             // 标题只占用"倒计时左侧"的空间，避免与它重叠
             float countdownW = countdown != null ? 150f : 0f;
             float titleW = r.width - resetW - spanBlock - Gap * 3f - countdownW;
 
             Text.Font = GameFont.Small;
-            Widgets.Label(new Rect(r.x, r.y, Mathf.Max(60f, titleW), 22f),
-                "RimForex_ChartTitle".Translate(sel.PairLabel, FxMarket.QuotesPerCandle));
+            string chartTitle = "RimForex_ChartTitle".Translate(sel.PairLabel, FxMarket.QuotesPerCandle);
+            Widgets.Label(new Rect(r.x, r.y, Mathf.Max(60f, titleW), 22f), chartTitle);
 
-            if (countdown != null)
-            {
-                Text.Font = GameFont.Tiny;
-                Text.Anchor = TextAnchor.UpperRight;
-                // 2026-10-21：锚点从 hourBtn 移到 dayBtn 的左边。
-                // 原来锚在时K按钮左侧，而日K按钮就在时K左边 ——
-                // 倒计时矩形 [hourBtn.x-150-Gap, hourBtn.x-Gap] 与日K按钮
-                // [dayBtn.x, dayBtn.xMax] 重叠 44px，且日K按钮后绘制，
-                // 会把倒计时**右边的字符直接盖掉**。
-                Widgets.Label(new Rect(dayBtn.x - countdownW - Gap, r.y + 3f, countdownW, 18f), countdown);
-                Text.Anchor = TextAnchor.UpperLeft;
-            }
+            // 最新价：原来在左下角，作者要求挪到标题后面
+            float titlePx = Text.CalcSize(chartTitle).x;
+            GUI.color = new Color(0.90f, 0.93f, 0.96f);
+            Widgets.Label(new Rect(r.x + titlePx + 12f, r.y, 120f, 22f), sel.rate.ToString("F2"));
+            GUI.color = Color.white;
+
 
             if (Widgets.ButtonText(resetBtn, "RimForex_ChartReset".Translate()))
             {
@@ -635,28 +588,7 @@ namespace RimForex
             DrawSpanButton(hourBtn, FxChartSpan.Hour, "RimForex_SpanHour");
             DrawSpanButton(dayBtn, FxChartSpan.Day, "RimForex_SpanDay");
 
-            // 第 2 行：节奏说明（可关闭）。鼠标操作说明一律放 tooltip，不再占版面。
             float hintH = 0f;
-            if (cfg == null || cfg.showQuotePacingHint)
-            {
-                Text.Font = GameFont.Tiny;
-                GUI.color = Color.gray;
-                Widgets.Label(new Rect(r.x, r.y + 22f, r.width, 16f),
-                    "RimForex_ChartSpeedHint".Translate(
-                        FxMarket.QuotesPerCandle,
-                        // 2026-10-21：这里原来漏乘 QuotesPerCandle，把"一步"当成"一根K线"，
-                        // 于是显示 0.1 游戏时，而实际是 0.43。
-                        (FxMarket.TicksPerCandle / (float)FxGameComponent.TicksPerDay * 24f).ToString("0.##"),
-                        (FxMarket.TicksPerCandle / (float)FxGameComponent.TicksPerRealSecond).ToString("0"),
-                        FxMarket.SubSteps)
-                    + "   " + "RimForex_ChartSpanLabel".Translate(
-                        chartSpan == FxChartSpan.Day ? "RimForex_SpanDay".Translate()
-                            : chartSpan == FxChartSpan.Hour ? "RimForex_SpanHour".Translate()
-                            : "RimForex_SpanMinuteShort".Translate(),
-                        SpanPeriodText()));
-                GUI.color = Color.white;
-                hintH = 18f;
-            }
             Text.Font = GameFont.Small;
 
             float plotY = r.y + 22f + hintH;
@@ -1374,8 +1306,7 @@ namespace RimForex
             Text.Anchor = TextAnchor.UpperLeft;
             Text.Font = GameFont.Small;
 
-            Widgets.Label(new Rect(plot.x + 6f, plot.yMax - 18f, plot.width - 60f, 16f),
-                "RimForex_ChartLast".Translate(lastClose.ToString("F2")));
+            // 最新价原来画在左下角，作者要求挪到标题（"货币/XAG"）后面，见 DrawChartZone。
         }
 
         /// <summary>本帧 K 线绘图区的价格边界，供持仓线复用（避免两处各算一遍导致错位）。</summary>
@@ -1671,16 +1602,14 @@ namespace RimForex
             // 留空或 0 = 不设。判定用方向价，和强平线同一口径。
             Text.Font = GameFont.Tiny;
             Widgets.Label(new Rect(left.x, y + 4f, 34f, 18f), "RimForex_TpShort".Translate());
-            Widgets.TextFieldNumeric(new Rect(left.x + 36f, y, 74f, 24f),
-                ref orderTp, ref orderTpBuf, 0f, 1000000f);
-            Widgets.Label(new Rect(left.x + 114f, y + 4f, 50f, 18f),
-                PctVsSide(sel, orderTp, true));
+            orderTpBuf = Widgets.TextField(new Rect(left.x + 36f, y, 74f, 24f), orderTpBuf ?? "");
+            orderTp = ParsePrice(orderTpBuf);
+            DrawPctLabel(new Rect(left.x + 114f, y + 4f, 54f, 18f), PctVs(sel, orderTp, true));
 
             Widgets.Label(new Rect(left.x + 172f, y + 4f, 34f, 18f), "RimForex_SlShort".Translate());
-            Widgets.TextFieldNumeric(new Rect(left.x + 208f, y, 74f, 24f),
-                ref orderSl, ref orderSlBuf, 0f, 1000000f);
-            Widgets.Label(new Rect(left.x + 286f, y + 4f, 50f, 18f),
-                PctVsSide(sel, orderSl, false));
+            orderSlBuf = Widgets.TextField(new Rect(left.x + 208f, y, 74f, 24f), orderSlBuf ?? "");
+            orderSl = ParsePrice(orderSlBuf);
+            DrawPctLabel(new Rect(left.x + 286f, y + 4f, 54f, 18f), PctVs(sel, orderSl, false));
             Text.Font = GameFont.Small;
             TooltipHandler.TipRegion(new Rect(left.x, y, left.width, 24f),
                 "RimForex_TpSlTip".Translate());
@@ -2006,17 +1935,33 @@ namespace RimForex
         /// markRate 立刻设为"现在平仓能拿到的价"（方向价的另一端），
         /// 所以开仓瞬间就会出现一个等于点差的小额浮亏 —— 这是真实市场的入场即亏点差。
         /// </summary>
-        /// <summary>
-        /// 把价格换算成"相对某个方向入场价的百分比"，用于止盈/止损输入框旁边那行小字。
-        /// 价格在现价之上按做多入场价算，之下按做空入场价算 —— 正好对应两种订单的语义。
-        /// </summary>
-        private string PctVsSide(FxCurrency cur, float price, bool asLong)
+        /// <summary>把输入框里的文本解析成价格；空串 / 非法 / 非正数一律当 0（未设）。</summary>
+        private static float ParsePrice(string buf)
         {
-            if (cur == null || price <= 0f) return "";
+            if (buf == null) return 0f;
+            buf = buf.Trim();
+            if (buf.Length == 0) return 0f;
+            float v;
+            if (!float.TryParse(buf, out v)) return 0f;
+            return v > 0f ? v : 0f;
+        }
+
+        /// <summary>价格相对某个方向入场价的百分比（正 = 盈利方向）。</summary>
+        private float PctVs(FxCurrency cur, float price, bool asLong)
+        {
+            if (cur == null || price <= 0f) return 0f;
             float entry = Fx.market.EntryPriceOf(cur.factionLoadID, asLong);
-            if (entry <= 0.001f) return "";
-            float pct = (price / entry - 1f) * 100f;
-            return pct.ToString("+0.0;-0.0;0.0") + "%";
+            if (entry <= 0.001f) return 0f;
+            return (price / entry - 1f) * 100f;
+        }
+
+        /// <summary>正绿负红，接近 0 不画。</summary>
+        private static void DrawPctLabel(Rect r, float pct)
+        {
+            if (Mathf.Abs(pct) < 0.005f) return;
+            GUI.color = pct > 0f ? new Color(0.55f, 0.90f, 0.60f) : new Color(1f, 0.55f, 0.50f);
+            Widgets.Label(r, pct.ToString("+0.0;-0.0;0.0") + "%");
+            GUI.color = Color.white;
         }
 
         private void OpenPosition(FxCurrency cur, bool isLong, int units, float leverage,
