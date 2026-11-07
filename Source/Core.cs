@@ -69,6 +69,16 @@ namespace RimForex
         /// </summary>
         public bool stepIsGap;
 
+        /// <summary>
+        /// 待播报的跳空幅度（百分比，0 = 没有）。
+        ///
+        /// 跳空那一步里价格是"整步不动、最后一步到位"，而 lastGapPct
+        /// 在步开始的瞬间就算好了。若此时就播报，等于**提前告诉玩家方向**，
+        /// 暂停后开仓就能白拿跳空幅度（0.3.1 实测可稳定套利）。
+        /// 所以跳空幅度先存到这里，等下一步（价格已落地）再播报。
+        /// </summary>
+        public float pendingGapPct;
+
         /// <summary>当前空头名义仓位缓存（E6 检测用）。</summary>
         public float shortNotional;
         /// <summary>空头仓位首次超过门槛的 tick（0 = 当前没超）。</summary>
@@ -1931,6 +1941,8 @@ namespace RimForex
                 {
                     float rateAtEnd = Clamp(Exp(c.stepLogTarget), MinRate, MaxRate);
                     c.lastGapPct = (rateAtEnd / rateBefore - 1f) * 100f;
+                    // 延后播报：本步内价格还没动，播报等于送情报
+                    c.pendingGapPct = c.lastGapPct;
                 }
             }
         }
@@ -4084,14 +4096,22 @@ namespace RimForex
             {
                 if (c == null) continue;
 
+                // 跳空步内不播报：此时价格仍是旧值，播报等于提前泄露方向。
+                // 等下一步（价格已落地）再发，玩家看到时就只能追高/追低。
+                if (c.stepIsGap) continue;
+                if (Mathf.Abs(c.pendingGapPct) < 0.0001f) continue;
+
+                float gapPct = c.pendingGapPct;
+                c.pendingGapPct = 0f;
+
                 float vol = c.volatility > 0.01f ? c.volatility : 1f;
                 float sigmaPct = FxMarket.DailyVol * vol / Mathf.Sqrt(FxMarket.StepsPerDay) * 100f;
                 float threshold = Mathf.Max(AnnounceFloorPct, AnnounceSigmas * sigmaPct);
 
-                if (System.Math.Abs(c.lastGapPct) < threshold) continue;
+                if (Mathf.Abs(gapPct) < threshold) continue;
 
                 Messages.Message(
-                    "RimForex_MsgGap".Translate(c.PairLabel, c.lastGapPct.ToString("+0.0;-0.0")),
+                    "RimForex_MsgGap".Translate(c.PairLabel, gapPct.ToString("+0.0;-0.0")),
                     MessageTypeDefOf.CautionInput, false);
             }
         }
@@ -6539,12 +6559,33 @@ namespace RimForex
         // ══════════════════════════════════════════════════════════════
 
         /// <summary>
-        /// 默认隔夜利息率：按名义仓位每天 0.2%。
+        /// 默认隔夜利息率：按名义仓位每天 0.02%（年化约 7.3%）。
         ///
-        /// 0.02% 实测太温和（作者 2026-10-25 反馈），调到 0.2%。
-        /// 换算：1x = 12%/游戏年，20x = 4%/日保证金，100x = 20%/日保证金。
+        /// ── 历史 ──
+        /// 0.02% 最早被嫌太温和（2026-10-25），调到 0.2%；
+        /// 但 0.2% 年化 73%，是真实经纪商的二十倍：
+        /// 4000 保证金的 75 倍仓位一天被收 600 白银，隔夜直接穿仓
+        /// （作者 2026-11-04 实测）。现改回 0.02%。
+        ///
+        /// 换算（按名义计）：1x = 0.02%/日本金，10x = 0.2%，
+        /// 75x = 1.5%，100x = 2%。高杠杆依然贵，但不会再一夜爆掉。
         /// </summary>
-        public const float DefaultCarryRate = 0.002f;
+        public const float DefaultCarryRate = 0.0002f;
+
+        /// <summary>当前持仓今天会收多少隔夜利息（白银）。终端状态行用它显示实际金额。</summary>
+        public float DailyCarryFor(FxAccount acc)
+        {
+            if (acc == null || acc.positions == null || acc.positions.Count == 0) return 0f;
+            float total = 0f;
+            for (int i = 0; i < acc.positions.Count; i++)
+            {
+                var p = acc.positions[i];
+                if (p == null) continue;
+                float px = p.markRate > 0f ? p.markRate : p.entryRate;
+                total += Mathf.Abs(p.units) * px * DefaultCarryRate;
+            }
+            return total;
+        }
 
         /// <summary>
         /// 每日结算时收取隔夜利息：<c>Σ |units| × 现价 × 费率</c>。
@@ -6555,7 +6596,7 @@ namespace RimForex
         /// 永远不会被强制平仓。加了利息，"等"才开始有代价。
         ///
         /// 作用在**名义仓位**上，所以杠杆越高、每日成本占保证金的比例越大：
-        ///   1x → 0.02%/日，20x → 0.4%/日，100x → 2%/日。
+        ///   1x → 0.02%/日，20x → 0.4%/日，100x → 2%/日（费率 0.02%）。
         /// </summary>
         private void ChargeCarry(FxAccount acc)
         {

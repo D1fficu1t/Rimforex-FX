@@ -471,8 +471,7 @@ namespace RimForex
             string status = "RimForex_StatusLine".Translate(
                 account.lastDayPnl.ToString("F0"),
                 account.lastDayPositions)
-                + "　·　" + "RimForex_CarryRateInline".Translate(
-                    (FxGameComponent.DefaultCarryRate * 100f).ToString("0.##"));
+                + "　·　" + CarryStatusText(fxComponent, account);
             Widgets.Label(new Rect(r.x + 210f, r.y + 4f, r.width - 400f, LhS + 2f), status);
 
             // 净值行：起点跟着标题高度走（标题改按行高算，不能再用写死的 30）
@@ -568,6 +567,21 @@ namespace RimForex
             }
             TooltipHandler.TipRegion(new Rect(half, y, witBtn.xMax - half, BtnH),
                 "RimForex_TipWithdraw".Translate(account.balance.ToString("F0")));
+        }
+
+        /// <summary>
+        /// 状态行里的持仓成本：有仓位时显示**今天要付多少白银**，
+        /// 没仓位时显示费率。只写「0.02%/日」在高杠杆下仍会让人算不清。
+        /// </summary>
+        private static string CarryStatusText(FxGameComponent fx, FxAccount acc)
+        {
+            float daily = fx != null ? fx.DailyCarryFor(acc) : 0f;
+            if (daily >= 0.5f)
+            {
+                return "RimForex_CarryToday".Translate(daily.ToString("F0"));
+            }
+            return "RimForex_CarryRateInline".Translate(
+                (FxGameComponent.DefaultCarryRate * 100f).ToString("0.##"));
         }
 
         private static void DrawStat(Rect rect, string labelKey, float value, string tipKey, bool colorize = false)
