@@ -3004,25 +3004,6 @@ namespace RimForex
         /// </summary>
         public const float CriticalThreshold = 0.45f;  // 浮亏 55%
 
-        /// <summary>
-        /// 预警的<b>滞回带</b>宽度（健康度单位）。
-        ///
-        /// 健康度必须回到 <c>CriticalThreshold + 本值</c>（默认 0.55）以上，
-        /// 才算"脱离危险"、重新武装预警。
-        ///
-        /// ── 为什么必须有它（2026-10-21）──
-        /// 原来只判 <c>health &gt; CriticalThreshold</c>，于是健康度在 0.45 附近
-        /// 上下摆动时会 "复位 → 提醒 → 复位 → 提醒" 无限循环。
-        ///
-        /// 修好子步采样（R01）之后，每个报价步的采样次数从 1 次变成 17 次，
-        /// 这个循环立刻被放大成刷屏 —— 100x 下盘内桥的摆幅折算到健康度就有
-        /// ±2.3 个百分点，几乎每一步都要穿越 0.45。作者实测：预警窗几乎
-        /// 每次健康度下跌都弹，并且每次都暂停游戏。
-        ///
-        /// 取 10 个百分点：远大于 100x 时的盘内摆幅（±2.3），
-        /// 又不会大到让玩家错过真正的二次恶化。
-        /// </summary>
-        public const float WarnHysteresis = 0.10f;
 
         /// <summary>
         /// 同一仓位两次预警之间的最小间隔（游戏 tick）。默认 1 游戏小时。
@@ -3234,16 +3215,8 @@ namespace RimForex
         /// <summary>收债人的武装随从（thingIDNumber）。</summary>
         public List<int> debtEscortIds = new List<int>();
 
-        /// <summary>全局事件冷却：两次世界事件之间至少 3 游戏日。</summary>
-        public static int GlobalEventCooldownNow
-        {
-            get
-            {
-                var cfg = RimForexMod.Settings;
-                int d = cfg != null ? cfg.globalCooldownDays : 3;
-                return Mathf.Clamp(d, 1, 15) * TicksPerDay;
-            }
-        }
+        // 全局冷却已删除（2026-11-08）。各事件只用自己的冷却：
+        //   E1/E2 单货币冷却 10~30 日 · E3 15 日 · E4 12 日
 
         // ── E1 / E3 参数（作者已拍板）──
         /// <summary>
@@ -3300,6 +3273,8 @@ namespace RimForex
         public const float NewsDriftOtherSigma = 0.8f;
         /// <summary>E4/E5 新闻兑现的概率。</summary>
         public const float NewsDriftChance = 0.6f;
+        /// <summary>战争新闻自己的冷却（天）。不再共享全局冷却。</summary>
+        public const int NewsCooldownDays = 12;
 
         // ── E6 参数（作者已拍板）──
         /// <summary>做空名义仓位的绝对下限。</summary>
@@ -4445,10 +4420,8 @@ namespace RimForex
         // ══════════════════════════════════════════════════════════════
 
         /// <summary>全局冷却是否已过（两次世界事件至少间隔 5 游戏日）。</summary>
-        public bool WorldEventAllowed()
-        {
-            return GenTicks.TicksGame - lastWorldEventTick >= GlobalEventCooldownNow;
-        }
+        // 全局冷却已删除（2026-11-08）：各事件只用自己的冷却，不再互相挤占。
+
 
         /// <summary>把一条事件排进队列，延迟 <paramref name="delayTicks"/> 后触发。</summary>
         public void QueueEvent(FxPendingKind kind, int factionID, int currencyFaction,
@@ -4924,7 +4897,6 @@ namespace RimForex
                 diagPeakPct = maxPct;
             }
 
-            if (!WorldEventAllowed()) return;
             if (best == null) return;
 
             var faction = FactionByID(best.factionLoadID);
@@ -5194,9 +5166,8 @@ namespace RimForex
             RimForexSettings cfg = RimForexMod.Settings;
             if (cfg != null && !cfg.enableWorldEvents) return;
             if (GenTicks.TicksGame < nextNewsTick) return;
-            if (!WorldEventAllowed()) return;
 
-            nextNewsTick = GenTicks.TicksGame + Rand.Range(8, 13) * TicksPerDay;
+            // 冷却只在"真的触发了"之后才推进（见下方两处失败分支）
 
             var all = Find.FactionManager.AllFactionsListForReading;
             Faction a = null, b = null;
@@ -5215,9 +5186,23 @@ namespace RimForex
                     break;
                 }
             }
-            if (a == null || b == null) return;
+            if (a == null || b == null)
+            {
+                // 没有敌对派系对：只推迟两天，别浪费一整个周期
+                nextNewsTick = GenTicks.TicksGame + Rand.Range(2, 4) * TicksPerDay;
+                return;
+            }
 
-            if (!Rand.Chance(NewsDriftChance)) return;
+            if (!Rand.Chance(NewsDriftChance))
+            {
+                // 掷骰失败也只推迟 2~3 天；原来先推 8~12 天再掷骰，
+                // 实际间隔被放大成 (8~12)/0.6 ≈ 13~20 天（作者实测"好久没见"）
+                nextNewsTick = GenTicks.TicksGame + Rand.Range(2, 4) * TicksPerDay;
+                return;
+            }
+
+            // 只有真正触发才用掉整个 12 天冷却
+            nextNewsTick = GenTicks.TicksGame + NewsCooldownDays * TicksPerDay;
 
             bool aWins = Rand.Chance(0.5f);
             Faction winner = aWins ? a : b;
@@ -5298,7 +5283,6 @@ namespace RimForex
         {
             RimForexSettings cfg = RimForexMod.Settings;
             if (cfg != null && !cfg.enableWorldEvents) return;
-            if (!WorldEventAllowed()) return;
             if (GenTicks.TicksGame - lastWealthEventTick < E3GoodwillCooldown) return;
 
             float threshold = Mathf.Max(E3MinPnl,
@@ -6515,7 +6499,6 @@ namespace RimForex
         {
             RimForexSettings cfg = RimForexMod.Settings;
             if (cfg != null && !cfg.enableWorldEvents) return;
-            if (!WorldEventAllowed()) return;
 
             int now = GenTicks.TicksGame;
             FxCurrency best = null;

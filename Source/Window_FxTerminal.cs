@@ -189,6 +189,9 @@ namespace RimForex
 
             Rect content = new Rect(inRect.x, inRect.y + TitleH, inRect.width, inRect.height - TitleH);
 
+            // 顶部工具栏：占用窗口标题区（原本整条空着）
+            DrawTopBar(new Rect(inRect.x, inRect.y, inRect.width, TitleH));
+
             // 账户区（顶部，固定高）
             Rect accountRect = new Rect(content.x, content.y, content.width, AccountH);
             DrawAccountZone(accountRect, fx);
@@ -219,6 +222,17 @@ namespace RimForex
             // 加上内边距需要约 486px。按百分比分配时要么空一块、要么把盈亏列切掉
             // （作者 2026-10-31 两次截图）。这里直接按内容宽度定死，剩下的全给 K 线。
             // 左栏宽度可由中间那根竖条拖动（作者 2026-10-31 要求：K 线能拉大）
+            if (chartViewMode == 1)
+            {
+                DrawMarketZone(new Rect(content.x, midY, content.width, midH), currencies);
+                return;
+            }
+            if (chartViewMode == 2)
+            {
+                DrawChartZone(new Rect(content.x, midY, content.width, midH), fx);
+                return;
+            }
+
             float leftW = Mathf.Clamp(marketPanelW, 380f, content.width - 300f);
             marketPanelW = leftW;
             Rect leftRect = new Rect(content.x, midY, leftW, midH);
@@ -265,6 +279,8 @@ namespace RimForex
 
         // ── 货币表 / K 线之间的可拖动分隔条 ──
         private float marketPanelW = 486f;
+        /// <summary>视图模式：0 = 表+图，1 = 只看表，2 = 只看图。</summary>
+        private int chartViewMode;
         /// <summary>下单区高度（可上下拖动，−1 = 用默认值）。</summary>
         private float orderPanelH = -1f;
         private bool draggingHSplit;
@@ -582,6 +598,30 @@ namespace RimForex
             }
             return "RimForex_CarryRateInline".Translate(
                 (FxGameComponent.DefaultCarryRate * 100f).ToString("0.##"));
+        }
+
+        /// <summary>
+        /// 顶部工具栏。这里原本是窗口标题区，一直空着（约 50~60px）。
+        /// 第一批只放视图切换，其余位置留白给后续版本。
+        /// 左侧留 24px 空白当窗口拖动手柄。
+        /// </summary>
+        private void DrawTopBar(Rect bar)
+        {
+            float bh = Mathf.Max(20f, bar.height - 10f);
+            float x = bar.x + 24f;
+            float by = bar.y + 4f;
+
+            string label = "RimForex_TopBarView".Translate() + " "
+                + (chartViewMode == 1 ? "RimForex_ViewTable".Translate()
+                   : chartViewMode == 2 ? "RimForex_ViewChart".Translate()
+                   : "RimForex_ViewBoth".Translate());
+            float w = Mathf.Max(110f, Text.CalcSize(label).x + 18f);
+            Rect btn = new Rect(x, by, w, bh);
+            if (Widgets.ButtonText(btn, label))
+            {
+                chartViewMode = (chartViewMode + 1) % 3;
+            }
+            TooltipHandler.TipRegion(btn, "RimForex_TopBarViewTip".Translate());
         }
 
         private static void DrawStat(Rect rect, string labelKey, float value, string tipKey, bool colorize = false)

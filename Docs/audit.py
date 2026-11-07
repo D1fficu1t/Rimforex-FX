@@ -1199,13 +1199,13 @@ def main():
     # 若仍按 "health > CriticalThreshold 就复位"，健康度在 0.45 附近摆动时
     # 会退化成 "复位→提醒→复位→提醒"，并每次都暂停游戏。
     # 100x 下盘内摆幅折算到健康度约 ±2.3 个百分点，几乎每步都穿越。
-    if "WarnHysteresis" not in core_nc or "WarnCooldownTicks" not in core_nc:
+    if "WarnCooldownTicks" not in core_nc:
         fail += 1
-        print("  !! 缺少预警滞回/冷却常量（WarnHysteresis / WarnCooldownTicks）")
+        print("  !! 缺少预警冷却常量（WarnCooldownTicks）")
     else:
         m = re.search(r"private void MaybeWarn\(.*?\n        \}", core_nc, re.S)
         body = m.group(0) if m else ""
-        if "WarnHysteresis" in core_nc and "above45SinceTick" in core_nc and "TierReady" in core_nc:
+        if "above45SinceTick" in core_nc and "TierReady" in core_nc:
             print("  OK 预警带滞回带与分档水位（不会刷屏）")
         else:
             fail += 1

@@ -469,7 +469,6 @@
   <RimForex_Set_ShowTestTip>调试用按钮，正常游玩不需要开。</RimForex_Set_ShowTestTip>
   <RimForex_CarryRateInline>隔夜利息 {0}%/日</RimForex_CarryRateInline>
   <RimForex_Set_EventCdSingle>单货币冷却：{0} 日</RimForex_Set_EventCdSingle>
-  <RimForex_Set_EventCdGlobal>全局冷却：{0} 日</RimForex_Set_EventCdGlobal>
   <RimForex_Set_E3RaidChance>外汇奇才招来袭击的概率：{0}%</RimForex_Set_E3RaidChance>
   <RimForex_Set_E1RaidChance>军备采购异常触发袭击的概率：{0}%</RimForex_Set_E1RaidChance>
   <RimForex_Ev8LetterLabel>平台强制清算</RimForex_Ev8LetterLabel>
@@ -507,4 +506,9 @@
   <RimForex_MarginTo>补到</RimForex_MarginTo>
   <RimForex_MarginPreset>{0}% ({1})</RimForex_MarginPreset>
   <RimForex_MarginPresetShort>余额不足，还差 {0} 白银。</RimForex_MarginPresetShort>
+  <RimForex_TopBarView>视图</RimForex_TopBarView>
+  <RimForex_ViewBoth>表 + 图</RimForex_ViewBoth>
+  <RimForex_ViewTable>只看表</RimForex_ViewTable>
+  <RimForex_ViewChart>只看图</RimForex_ViewChart>
+  <RimForex_TopBarViewTip>切换货币表与 K 线的显示方式。</RimForex_TopBarViewTip>
 </LanguageData>

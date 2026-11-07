@@ -454,7 +454,6 @@ Let him reach the map edge, or put him down here. Either way, Collections will w
   <RimForex_Set_ShowTestTip>Debug buttons. Not needed for normal play.</RimForex_Set_ShowTestTip>
   <RimForex_CarryRateInline>Overnight interest {0}%/day</RimForex_CarryRateInline>
   <RimForex_Set_EventCdSingle>Per-currency cooldown: {0} days</RimForex_Set_EventCdSingle>
-  <RimForex_Set_EventCdGlobal>Global cooldown: {0} days</RimForex_Set_EventCdGlobal>
   <RimForex_Set_E3RaidChance>Chance a prodigy draws a raid: {0}%</RimForex_Set_E3RaidChance>
   <RimForex_Set_E1RaidChance>Chance a buildup turns into a raid: {0}%</RimForex_Set_E1RaidChance>
   <RimForex_Ev8LetterLabel>Forced liquidation</RimForex_Ev8LetterLabel>
@@ -492,4 +491,9 @@ Let him reach the map edge, or put him down here. Either way, Collections will w
   <RimForex_MarginTo>Top up to</RimForex_MarginTo>
   <RimForex_MarginPreset>{0}% ({1})</RimForex_MarginPreset>
   <RimForex_MarginPresetShort>Not enough silver. Short by {0}.</RimForex_MarginPresetShort>
+  <RimForex_TopBarView>View</RimForex_TopBarView>
+  <RimForex_ViewBoth>table + chart</RimForex_ViewBoth>
+  <RimForex_ViewTable>table only</RimForex_ViewTable>
+  <RimForex_ViewChart>chart only</RimForex_ViewChart>
+  <RimForex_TopBarViewTip>Switch between table and chart layouts.</RimForex_TopBarViewTip>
 </LanguageData>

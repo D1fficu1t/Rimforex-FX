@@ -125,8 +125,6 @@ namespace RimForex
         // ── 世界事件频率与概率（作者 2026-10-26 要求做成滑块）──
         /// <summary>单货币事件冷却（游戏日），10~30。</summary>
         public int eventCooldownDays = 20;
-        /// <summary>全局事件冷却（游戏日），1~15。</summary>
-        public int globalCooldownDays = 3;
         /// <summary>E3「有人在打听你的财富」之后真的来袭的概率。</summary>
         public float e3RaidChance = 0.35f;
         /// <summary>E1-B「军备采购异常」之后真的来袭的概率。</summary>
@@ -134,8 +132,6 @@ namespace RimForex
 
         public const int MinEventCooldownDays = 10;
         public const int MaxEventCooldownDays = 30;
-        public const int MinGlobalCooldownDays = 1;
-        public const int MaxGlobalCooldownDays = 15;
 
         public override void ExposeData()
         {
@@ -147,7 +143,6 @@ namespace RimForex
             Scribe_Values.Look(ref enableWorldEvents, "enableWorldEvents", true);
             Scribe_Values.Look(ref showTestOptions, "showTestOptions", false);
             Scribe_Values.Look(ref eventCooldownDays, "eventCooldownDays", 20);
-            Scribe_Values.Look(ref globalCooldownDays, "globalCooldownDays", 3);
             Scribe_Values.Look(ref e3RaidChance, "e3RaidChance", 0.35f);
             Scribe_Values.Look(ref e1RaidChance, "e1RaidChance", 0.60f);
 
@@ -346,11 +341,7 @@ namespace RimForex
             Settings.eventCooldownDays = Mathf.RoundToInt(cdSingle);
             Hint(l, "RimForex_Set_EventCdSingle".Translate(Settings.eventCooldownDays.ToString()));
 
-            float cdGlobal = l.Slider(Settings.globalCooldownDays,
-                RimForexSettings.MinGlobalCooldownDays, RimForexSettings.MaxGlobalCooldownDays);
-            Settings.globalCooldownDays = Mathf.RoundToInt(cdGlobal);
-            Hint(l, "RimForex_Set_EventCdGlobal".Translate(Settings.globalCooldownDays.ToString()));
-
+            
             Settings.e3RaidChance = l.Slider(Settings.e3RaidChance, 0f, 1f);
             Hint(l, "RimForex_Set_E3RaidChance".Translate(
                 (Settings.e3RaidChance * 100f).ToString("0")));
