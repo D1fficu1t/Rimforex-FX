@@ -4346,19 +4346,23 @@ namespace RimForex
             // 什么都不做 —— 不复位、也不提醒。
             if (health > CriticalThreshold) return;
 
-            // 已经提醒过就不再弹，直到上面把它复位（与分档并行，防每 tick 刷屏）
-            if (pos.criticalWarned) return;
-
             // ── 分档预警（2026-11-07）──
             // 45% / 40% / 35% 各弹一次，越跌越急。
             // 只做单档时玩家在 44% 补一点点，价格抖一下又跌破，等于没提醒。
-            // criticalWarned 管"同一档不重复"，warnTier 管"往下一档要再响一次"。
             int tier = health <= 0.35f ? 35 : (health <= 0.40f ? 40 : 45);
+
+            // 同一档（或更浅）不再弹。criticalWarned 就管这一条。
+            //
+            // ⚠️ 它必须放在分档判断**里面**：上一版放在外面，
+            //    45% 弹过之后 criticalWarned 一直是 true，
+            //    后面 40% / 35% 全被它挡住，永远不会再弹
+            //    （2026-11-07 作者实测：45% 之后继续跌，35% 没反应）。
             if (tier >= pos.warnTier)
             {
+                if (pos.criticalWarned) return;
+                pos.criticalWarned = true;
                 return;
             }
-            pos.criticalWarned = false;   // 进入更深的一档，允许再弹
 
             // 冷却：只用于"复位之后又快速跌回"这一种情况。
             //
@@ -4376,6 +4380,7 @@ namespace RimForex
             pos.warnTier = tier;
             pos.warnedHealth = health;
             pos.warnedAtTick = GenTicks.TicksGame;
+            pos.criticalWarned = true;   // 这一档已提醒，下一档才允许再弹
             EnqueueWarning(pos, acc);
         }
 
