@@ -4360,10 +4360,14 @@ namespace RimForex
             }
             pos.criticalWarned = false;   // 进入更深的一档，允许再弹
 
-            // 冷却：同一仓位两次预警至少隔一个游戏小时。
-            // 与滞回带互补 —— 滞回带管"同一段下跌内的抖动"，
-            // 冷却管"来回穿越"（弹一次 → 回到安全区 → 很快又跌回来）。
-            if (pos.warnedAtTick > 0
+            // 冷却：只用于"复位之后又快速跌回"这一种情况。
+            //
+            // 分档下降时不吃冷却（2026-11-07 作者实测：45% 弹了、35% 没弹，
+            // 因为价格一个小时内从 45% 跌到 35%，被 1 小时冷却挡住了）。
+            // 已经是更深的一档，说明行情在持续恶化，漏报比刷屏更糟。
+            bool afterReset = pos.warnTier >= 100;
+            if (afterReset
+                && pos.warnedAtTick > 0
                 && GenTicks.TicksGame - pos.warnedAtTick < WarnCooldownTicks)
             {
                 return;
