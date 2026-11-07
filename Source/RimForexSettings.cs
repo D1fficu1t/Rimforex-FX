@@ -343,19 +343,16 @@ namespace RimForex
             l.CheckboxLabeled("RimForex_Set_EnableEvents".Translate(), ref Settings.enableWorldEvents,
                 "RimForex_Set_EnableEventsTip".Translate());
 
-            float cdSingle = l.Slider(Settings.eventCooldownDays,
-                RimForexSettings.MinEventCooldownDays, RimForexSettings.MaxEventCooldownDays);
-            Settings.eventCooldownDays = Mathf.RoundToInt(cdSingle);
             Hint(l, "RimForex_Set_EventCdSingle".Translate(Settings.eventCooldownDays.ToString()));
+float cdSingle = l.Slider(Settings.eventCooldownDays,
+                RimForexSettings.MinEventCooldownDays, RimForexSettings.MaxEventCooldownDays);
 
             
-            float cdE3 = l.Slider(Settings.e3CooldownDays, 7f, 30f);
-            Settings.e3CooldownDays = Mathf.RoundToInt(cdE3);
             Hint(l, "RimForex_Set_E3Cd".Translate(Settings.e3CooldownDays.ToString()));
+float cdE3 = l.Slider(Settings.e3CooldownDays, 7f, 30f);
 
-            float cdE4 = l.Slider(Settings.e4CooldownDays, 5f, 20f);
-            Settings.e4CooldownDays = Mathf.RoundToInt(cdE4);
             Hint(l, "RimForex_Set_E4Cd".Translate(Settings.e4CooldownDays.ToString()));
+float cdE4 = l.Slider(Settings.e4CooldownDays, 5f, 20f);
 
             Settings.e3RaidChance = l.Slider(Settings.e3RaidChance, 0f, 1f);
             Hint(l, "RimForex_Set_E3RaidChance".Translate(
