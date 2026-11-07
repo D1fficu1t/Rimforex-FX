@@ -30,9 +30,9 @@
          不设这里的话，日志会打印 1.0.0，与 mod 列表里显示的 0.3.1 对不上。
 
          ContinuousIntegrationBuild 会在 InformationalVersion 后面追加
-         `+<40 位提交哈希>`，所以日志实际形如 0.3.1+1483697... ——
+         `+<40 位提交哈希>`，所以日志实际形如 0.3.2+1483697... ——
          既能看出是哪一版，也能看出由哪份源码编出来。 -->
-    <Version>0.3.1</Version>
+    <Version>0.3.2</Version>
   </PropertyGroup>
 
   <!-- ══════════════════════════════════════════════════════════════════════
@@ -50,7 +50,7 @@
 
        原因是游戏上传创意工坊时把 mod 根目录整个交给 Steam、不排除任何文件，
        若 .git 留在里面，完整版本历史会被分发给每个订阅者。
-       副作用：MSBuild 向上找不到仓库，于是不再嵌入哈希，日志退回只有 "0.3.1"。
+       副作用：MSBuild 向上找不到仓库，于是不再嵌入哈希，日志退回只有 "0.3.2"。
 
        这里补一个 target 直接问 git 要哈希。
 
@@ -112,13 +112,23 @@
        那是比不能 CI 更糟的情况。所以下面的引用列表**逐条对应**，不多不少。
        ══════════════════════════════════════════════════════════════════════ -->
   <PropertyGroup>
-    <GameManagedDir>$(RimWorldDir)\RimWorldWin64_Data\Managed</GameManagedDir>
-    <!-- 只要这一个文件在，就认为本机装了游戏 -->
-    <UseGameAssemblies Condition="Exists('$(GameManagedDir)\Assembly-CSharp.dll')">true</UseGameAssemblies>
+    <!-- ── 两种游戏目录布局（1.6 与 1.7）──
+         1.6：托管程序集在 RimWorldWin64_Data\Managed
+         1.7：换成了 Waylith 引擎，托管程序集直接放在游戏根目录，
+              不再有 UnityEngine.*.dll，改用 UnityStubs.dll 提供同名类型
+         先探测旧布局，再探测新布局，都没有才退回 NuGet 引用程序集。 -->
+    <LegacyManagedDir>$(RimWorldDir)\RimWorldWin64_Data\Managed</LegacyManagedDir>
+    <GameManagedDir Condition="Exists('$(LegacyManagedDir)\Assembly-CSharp.dll')">$(LegacyManagedDir)</GameManagedDir>
+    <GameManagedDir Condition="'$(GameManagedDir)' == '' AND Exists('$(RimWorldDir)\Assembly-CSharp.dll')">$(RimWorldDir)</GameManagedDir>
+    <LegacyLayout Condition="Exists('$(LegacyManagedDir)\Assembly-CSharp.dll')">true</LegacyLayout>
+    <LegacyLayout Condition="'$(LegacyLayout)' == ''">false</LegacyLayout>
+    <!-- 只要找得到 Assembly-CSharp.dll，就认为本机装了游戏 -->
+    <UseGameAssemblies Condition="'$(GameManagedDir)' != ''">true</UseGameAssemblies>
     <UseGameAssemblies Condition="'$(UseGameAssemblies)' == ''">false</UseGameAssemblies>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(UseGameAssemblies)' == 'true'">
+  <!-- 1.6 布局：UnityEngine 分散在三个模块里，另有 firstpass -->
+  <ItemGroup Condition="'$(UseGameAssemblies)' == 'true' AND '$(LegacyLayout)' == 'true'">
     <Reference Include="Assembly-CSharp">
       <HintPath>$(GameManagedDir)\Assembly-CSharp.dll</HintPath>
       <Private>false</Private>
@@ -137,6 +147,19 @@
     </Reference>
     <Reference Include="UnityEngine.TextRenderingModule">
       <HintPath>$(GameManagedDir)\UnityEngine.TextRenderingModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <!-- 1.7 布局（Waylith 引擎）：根目录 + 兼容层 -->
+  <ItemGroup Condition="'$(UseGameAssemblies)' == 'true' AND '$(LegacyLayout)' != 'true'">
+    <Reference Include="Assembly-CSharp">
+      <HintPath>$(GameManagedDir)\Assembly-CSharp.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <!-- 假的 UnityEngine，提供 Rect / GUI / Event / Text 等旧 API 的签名 -->
+    <Reference Include="UnityStubs">
+      <HintPath>$(GameManagedDir)\UnityStubs.dll</HintPath>
       <Private>false</Private>
     </Reference>
   </ItemGroup>
