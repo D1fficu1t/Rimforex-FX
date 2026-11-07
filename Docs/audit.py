@@ -1205,11 +1205,11 @@ def main():
     else:
         m = re.search(r"private void MaybeWarn\(.*?\n        \}", core_nc, re.S)
         body = m.group(0) if m else ""
-        if "WarnHysteresis" in body and "WarnCooldownTicks" in body:
-            print("  OK 预警带滞回带与冷却（子步采样下不会刷屏）")
+        if "WarnHysteresis" in body and "warnTier" in body:
+            print("  OK 预警带滞回带与分档水位（不会刷屏）")
         else:
             fail += 1
-            print("  !! MaybeWarn 未同时使用滞回与冷却 —— 修好采样后会刷屏")
+            print("  !! MaybeWarn 缺少滞回或分档水位 —— 可能刷屏或漏报")
 
     # ---- 9. 提交 3 的四项回归防线（2026-10-21）-------------------------
     # 只查"关键实现是否还在"，避免以后重构时悄悄退回旧行为。

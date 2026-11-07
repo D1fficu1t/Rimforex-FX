@@ -212,15 +212,30 @@ namespace RimForex
             // 千万不要在这里重置 warnedHealth / criticalWarned ——
             // 那样下一个 tick 的 MaybeWarn 会立刻重新入队，窗口无限重弹。
             // 告警水位的复位交给 MaybeWarn：只有健康度回到安全区才复位。
-            if (fx != null) fx.pendingWarnings.Remove(position);
+            RemoveOwnPending();
             Close();
+        }
+
+        /// <summary>
+        /// 只删除"自己这条"预警。
+        /// 窗口开着时若排进了更深档的新预警，直接 Remove(position)
+        /// 会把新预警一起删掉 —— 这正是 40% / 35% 漏报的第二个原因。
+        /// </summary>
+        private void RemoveOwnPending()
+        {
+            if (fx == null) return;
+            MarginWarning queued;
+            if (!fx.pendingWarnings.TryGetValue(position, out queued) || ReferenceEquals(queued, Current))
+            {
+                fx.pendingWarnings.Remove(position);
+            }
         }
 
         /// <summary>X 按钮 / Esc 走的路径。清理队列，但不重置告警水位。</summary>
         public override void PreClose()
         {
             base.PreClose();
-            if (fx != null) fx.pendingWarnings.Remove(position);
+            RemoveOwnPending();
         }
 
         public override void OnCancelKeyPressed()

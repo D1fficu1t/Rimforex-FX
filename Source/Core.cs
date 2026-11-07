@@ -4364,18 +4364,13 @@ namespace RimForex
                 return;
             }
 
-            // 冷却：只用于"复位之后又快速跌回"这一种情况。
+            // 冷却已取消（2026-11-08）。
             //
-            // 分档下降时不吃冷却（2026-11-07 作者实测：45% 弹了、35% 没弹，
-            // 因为价格一个小时内从 45% 跌到 35%，被 1 小时冷却挡住了）。
-            // 已经是更深的一档，说明行情在持续恶化，漏报比刷屏更糟。
-            bool afterReset = pos.warnTier >= 100;
-            if (afterReset
-                && pos.warnedAtTick > 0
-                && GenTicks.TicksGame - pos.warnedAtTick < WarnCooldownTicks)
-            {
-                return;
-            }
+            // 原来的 1 小时冷却本意是防"复位→提醒→复位→提醒"，
+            // 但玩家补仓后健康度冲上 55% 就会复位，紧接着再跌回来时
+            // 冷却仍在生效 —— 40% / 35% 两档被整段吞掉，
+            // 表现就是"45 弹过之后再怎么跌都没反应"。
+            // 防刷屏现在只靠两条：滞回（>55% 才复位）+ warnTier（同一档不重复）。
 
             pos.warnTier = tier;
             pos.warnedHealth = health;
