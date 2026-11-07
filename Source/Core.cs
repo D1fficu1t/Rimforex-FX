@@ -4364,6 +4364,17 @@ namespace RimForex
                 return;
             }
 
+            // 冷却只用于"复位后重新回到 45% 这一档"，且只挡 45%。
+            // 更深的两档（40 / 35）永远放行 —— 它们是行情继续恶化，不是抖动。
+            // 这样既不会在 45% 附近无限弹窗，也不会吞掉 40 / 35。
+            bool afterReset = pos.warnTier >= 100;
+            if (afterReset && tier == 45
+                && pos.warnedAtTick > 0
+                && GenTicks.TicksGame - pos.warnedAtTick < WarnCooldownTicks)
+            {
+                return;
+            }
+
             // 冷却已取消（2026-11-08）。
             //
             // 原来的 1 小时冷却本意是防"复位→提醒→复位→提醒"，
