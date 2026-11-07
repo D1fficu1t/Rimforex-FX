@@ -1473,6 +1473,47 @@ def main():
         fail += 1
         print("  !! 违约没有写进余额 —— 借钱不还会没有代价")
 
+    # ---- 15. 2026-11-08 三次回归防线 ---------------------------------
+    # 这三条对应的都是"改了 N 次才修对"的坑，每一条都能被静态检查抓住。
+
+    # ① 补仓不得清预警冷却：DoAddMargin 里调用 ResetWarnState / ClearWarnTiers
+    #    会让玩家"补一点→弹→再补一点→再弹"，无限循环（实测过）。
+    m = re.search(r"private void DoAddMargin\(.*?\n        \}", core_nc, re.S)
+    body_add = m.group(0) if m else ""
+    if "ResetWarnState" not in body_add and "ClearWarnTiers" not in body_add:
+        print("  OK 补仓不清预警冷却（不会无限弹窗）")
+    else:
+        fail += 1
+        print("  !! DoAddMargin 调用了重置预警 —— 会无限弹窗")
+
+    # ② 三档冷却必须各自独立存在
+    if all(k in core_nc for k in ("warn45Tick", "warn40Tick", "warn35Tick", "TierReady")):
+        print("  OK 三档预警各有独立冷却")
+    else:
+        fail += 1
+        print("  !! 三档预警的独立冷却缺失 —— 40% / 35% 会被吞")
+
+    # ③ 设置页滑块必须把值写回 Settings
+    #    上一版把 "Settings.x = RoundToInt(l.Slider(...))" 的赋值行删掉，
+    #    表现是"滑块拖不动"，很难从代码上肉眼发现。
+    settings_src = re.sub(r"//[^\n]*", "", open("Source/RimForexSettings.cs", encoding="utf-8").read())
+    slider_ok = True
+    for m in re.finditer(r"l\.Slider\(Settings\.(\w+)", settings_src):
+        name = m.group(1)
+        window = settings_src[max(0, m.start() - 220):m.start() + 320]
+        if ("Settings." + name + " =") not in window:
+            slider_ok = False
+            print("  !! 滑块没有写回设置:", name)
+    if slider_ok:
+        print("  OK 所有滑块都会写回设置")
+
+    # ④ 跳空播报必须延后（不能拿 lastGapPct 直接播报）
+    if "pendingGapPct" in core_nc and "if (c.stepIsGap) continue;" in core_nc:
+        print("  OK 跳空播报延后到落地之后")
+    else:
+        fail += 1
+        print("  !! 跳空播报可能又提前了 —— 会重新出现套利窗口")
+
     print()
     print("结果:", "全部通过" if fail == 0 else "%d 项失败" % fail)
     return 1 if fail else 0
