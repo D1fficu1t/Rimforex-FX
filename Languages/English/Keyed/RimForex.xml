@@ -188,7 +188,6 @@ A blow-up (margin gone and balance pushed negative) is a heavier tier at base -2
   <RimForex_Set_Reset>Reset to defaults</RimForex_Set_Reset>
   <RimForex_AllIn>ALL IN</RimForex_AllIn>
   <RimForex_AllInTip>Uses every silver of free margin at the selected leverage. The margin actually taken may be slightly less, because units are whole numbers.</RimForex_AllInTip>
-  <RimForex_MarginToSafe>To safe line</RimForex_MarginToSafe>
   <RimForex_Zero>Minimum</RimForex_Zero>
   <RimForex_ZeroTip>Reset to the smallest margin that can still open 1 unit.</RimForex_ZeroTip>
   <RimForex_NotEnoughMargin>Not enough free margin (margin plus fee exceeds your balance).</RimForex_NotEnoughMargin>
@@ -490,4 +489,7 @@ Let him reach the map edge, or put him down here. Either way, Collections will w
   <RimForex_HSplitterTip>Drag to resize the order panel; the table and chart resize with it.</RimForex_HSplitterTip>
   <RimForex_MsgTpSlReversed>Take-profit / stop-loss are on the wrong side: for a long, TP must be above the current price and SL below; for a short, the reverse. The reversed value is ignored for this order.</RimForex_MsgTpSlReversed>
   <RimForex_CarryToday>Carry {0} silver/day</RimForex_CarryToday>
+  <RimForex_MarginTo>Top up to</RimForex_MarginTo>
+  <RimForex_MarginPreset>{0}% ({1})</RimForex_MarginPreset>
+  <RimForex_MarginPresetShort>Not enough silver. Short by {0}.</RimForex_MarginPresetShort>
 </LanguageData>

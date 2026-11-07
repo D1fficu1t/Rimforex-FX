@@ -119,17 +119,45 @@ namespace RimForex
                 addBuffer = addAmount.ToString();
             }
 
-            // 估算补多少才能把健康度拉回预警线以上，给个一键值
-            Rect safeBtn = new Rect(allBtn.xMax + 4f, y, 108f, 28f);
-            float toSafe = Mathf.Max(0f, FxGameComponent.CriticalThreshold * p.BaseMargin - p.Equity);
-            int safeAmount = Mathf.Min(Mathf.CeilToInt(toSafe), Mathf.FloorToInt(acc.balance));
-            if (Widgets.ButtonText(safeBtn, "RimForex_MarginToSafe".Translate()))
-            {
-                addAmount = Mathf.Max(0, safeAmount);
-                addBuffer = addAmount.ToString();
-            }
-            TooltipHandler.TipRegion(new Rect(r.x, y, safeBtn.xMax - r.x, 28f),
+            TooltipHandler.TipRegion(new Rect(r.x, y, field.xMax - r.x, 28f),
                 "RimForex_MarginAddTip".Translate(acc.balance.ToString("F0")));
+            y += 34f;
+
+            // ── 三档一键补足：45% / 50% / 60%（2026-11-07）──
+            // 补到 45% 只比强平线高 0.15 个初始保证金，价格抖一下就回去了；
+            // 50% / 60% 才是真正能把仓位救回来的量。
+            // 需要金额 = 目标 × 初始保证金 − 当前净值（健康度的分母是 BaseMargin）
+            Widgets.Label(new Rect(r.x, y + 5f, 96f, 24f), "RimForex_MarginTo".Translate());
+            float bx = r.x + 100f;
+            float bw = Mathf.Clamp((r.width - 100f - 8f) / 3f, 84f, 130f);
+            float[] presets = { 0.45f, 0.50f, 0.60f };
+            for (int k = 0; k < presets.Length; k++)
+            {
+                float target = presets[k];
+                Rect btn = new Rect(bx + (bw + 4f) * k, y, bw, 28f);
+                float need = target * p.BaseMargin - p.Equity;
+                int needInt = Mathf.CeilToInt(Mathf.Max(0f, need));
+                bool affordable = needInt <= acc.balance;
+
+                GUI.color = affordable ? Color.white : new Color(0.62f, 0.62f, 0.62f);
+                string label = "RimForex_MarginPreset".Translate(
+                    (target * 100f).ToString("F0"), needInt.ToString("F0"));
+                if (Widgets.ButtonText(btn, label))
+                {
+                    if (affordable)
+                    {
+                        addAmount = needInt;
+                        addBuffer = addAmount.ToString();
+                    }
+                    else
+                    {
+                        Messages.Message(
+                            "RimForex_MarginPresetShort".Translate((needInt - Mathf.FloorToInt(acc.balance)).ToString("F0")),
+                            MessageTypeDefOf.RejectInput, false);
+                    }
+                }
+                GUI.color = Color.white;
+            }
             y += 36f;
 
             bool canAdd = addAmount > 0 && addAmount <= acc.balance;

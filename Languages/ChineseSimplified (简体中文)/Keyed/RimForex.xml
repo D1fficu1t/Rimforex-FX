@@ -199,7 +199,6 @@
   <RimForex_Set_Reset>恢复默认</RimForex_Set_Reset>
   <RimForex_AllIn>梭哈</RimForex_AllIn>
   <RimForex_AllInTip>在当前杠杆下用光全部可用保证金。实际占用可能略少，因为单位数必须是整数。</RimForex_AllInTip>
-  <RimForex_MarginToSafe>补到安全线</RimForex_MarginToSafe>
   <RimForex_Zero>最小值</RimForex_Zero>
   <RimForex_ZeroTip>重置为"还能开 1 单位"的最小保证金。</RimForex_ZeroTip>
   <RimForex_NotEnoughMargin>可用保证金不足（保证金 + 手续费超过余额）。</RimForex_NotEnoughMargin>
@@ -505,4 +504,7 @@
   <RimForex_HSplitterTip>拖动这里可以压缩/放大下单区，K 线与货币表同步变高变矮。</RimForex_HSplitterTip>
   <RimForex_MsgTpSlReversed>止盈 / 止损填反了方向：做多的止盈要高于现价、止损要低于现价，做空反过来。这次下单会忽略填反的那一项。</RimForex_MsgTpSlReversed>
   <RimForex_CarryToday>持仓利息 {0} 白银/日</RimForex_CarryToday>
+  <RimForex_MarginTo>补到</RimForex_MarginTo>
+  <RimForex_MarginPreset>{0}% ({1})</RimForex_MarginPreset>
+  <RimForex_MarginPresetShort>余额不足，还差 {0} 白银。</RimForex_MarginPresetShort>
 </LanguageData>

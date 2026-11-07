@@ -447,6 +447,7 @@ namespace RimForex
         {
             warnedHealth = -1f;
             criticalWarned = false;
+            warnTier = 100;   // 分档预警复位
             // warnedAtTick 故意不复位：冷却时间要跨过"复位"继续有效，
             // 否则"回到安全区 → 立刻跌回 → 再弹"还是能刷屏。
         }
@@ -459,6 +460,12 @@ namespace RimForex
         /// 0 表示旧存档没有这个字段，此时按"无点差"退化处理。
         /// </summary>
         public float entrySpreadRate;
+        /// <summary>
+        /// 已经警告到第几档：100 = 还没警告过，45 / 40 / 35 = 最近一次警告的档位。
+        /// 健康度跌破某一档时才往前推进，回到 55% 以上复位（见 WarnHysteresis）。
+        /// </summary>
+        public int warnTier = 100;
+
         /// <summary>已追加的保证金累计额，仅用于展示。</summary>
         public float addedMargin;
 
@@ -4339,8 +4346,19 @@ namespace RimForex
             // 什么都不做 —— 不复位、也不提醒。
             if (health > CriticalThreshold) return;
 
-            // 已经提醒过就不再弹，直到上面把它复位
+            // 已经提醒过就不再弹，直到上面把它复位（与分档并行，防每 tick 刷屏）
             if (pos.criticalWarned) return;
+
+            // ── 分档预警（2026-11-07）──
+            // 45% / 40% / 35% 各弹一次，越跌越急。
+            // 只做单档时玩家在 44% 补一点点，价格抖一下又跌破，等于没提醒。
+            // criticalWarned 管"同一档不重复"，warnTier 管"往下一档要再响一次"。
+            int tier = health <= 0.35f ? 35 : (health <= 0.40f ? 40 : 45);
+            if (tier >= pos.warnTier)
+            {
+                return;
+            }
+            pos.criticalWarned = false;   // 进入更深的一档，允许再弹
 
             // 冷却：同一仓位两次预警至少隔一个游戏小时。
             // 与滞回带互补 —— 滞回带管"同一段下跌内的抖动"，
@@ -4351,7 +4369,7 @@ namespace RimForex
                 return;
             }
 
-            pos.criticalWarned = true;
+            pos.warnTier = tier;
             pos.warnedHealth = health;
             pos.warnedAtTick = GenTicks.TicksGame;
             EnqueueWarning(pos, acc);
