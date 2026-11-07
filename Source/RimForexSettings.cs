@@ -343,24 +343,26 @@ namespace RimForex
             l.CheckboxLabeled("RimForex_Set_EnableEvents".Translate(), ref Settings.enableWorldEvents,
                 "RimForex_Set_EnableEventsTip".Translate());
 
+            // 每个滑块：说明文字在上，滑块在下（作者 2026-11-07 要求）
             Hint(l, "RimForex_Set_EventCdSingle".Translate(Settings.eventCooldownDays.ToString()));
-float cdSingle = l.Slider(Settings.eventCooldownDays,
-                RimForexSettings.MinEventCooldownDays, RimForexSettings.MaxEventCooldownDays);
+            Settings.eventCooldownDays = Mathf.RoundToInt(
+                l.Slider(Settings.eventCooldownDays,
+                    RimForexSettings.MinEventCooldownDays, RimForexSettings.MaxEventCooldownDays));
 
-            
             Hint(l, "RimForex_Set_E3Cd".Translate(Settings.e3CooldownDays.ToString()));
-float cdE3 = l.Slider(Settings.e3CooldownDays, 7f, 30f);
+            Settings.e3CooldownDays = Mathf.RoundToInt(l.Slider(Settings.e3CooldownDays, 7f, 30f));
 
             Hint(l, "RimForex_Set_E4Cd".Translate(Settings.e4CooldownDays.ToString()));
-float cdE4 = l.Slider(Settings.e4CooldownDays, 5f, 20f);
+            Settings.e4CooldownDays = Mathf.RoundToInt(l.Slider(Settings.e4CooldownDays, 5f, 20f));
 
-            Settings.e3RaidChance = l.Slider(Settings.e3RaidChance, 0f, 1f);
             Hint(l, "RimForex_Set_E3RaidChance".Translate(
                 (Settings.e3RaidChance * 100f).ToString("0")));
+            Settings.e3RaidChance = l.Slider(Settings.e3RaidChance, 0f, 1f);
 
-            Settings.e1RaidChance = l.Slider(Settings.e1RaidChance, 0f, 1f);
             Hint(l, "RimForex_Set_E1RaidChance".Translate(
                 (Settings.e1RaidChance * 100f).ToString("0")));
+            Settings.e1RaidChance = l.Slider(Settings.e1RaidChance, 0f, 1f);
+
             GUI.color = Color.white;
             Text.Font = GameFont.Small;
 
