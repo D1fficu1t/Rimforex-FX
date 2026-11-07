@@ -192,12 +192,13 @@ namespace RimForex
             p.margin += clamped;
             p.addedMargin += clamped;
 
-            // 补仓后健康度回到预警线以上就复位标记，将来再跌破才会重新提醒。
-            // 若补仓后仍在警戒区，保持标记不变 —— 避免玩家刚补完就被同一条提醒反复打扰。
-            if (p.MarginHealth > FxGameComponent.CriticalThreshold)
-            {
-                p.ResetWarnState();
-            }
+            // ⚠️ 这里绝对不能重置预警状态（2026-11-08 实测的无限弹窗根源）：
+            // 玩家每次只补几十白银、健康度刚过 45%，ResetWarnState 就把
+            // warn45Tick 清零，下一 tick 跌破 45% 又弹，形成无限补仓循环。
+            // 冷却从"弹窗那一刻"开始，只有两种情况清零：
+            //   ① 健康度回到 100% 以上
+            //   ② 连续一小时保持在 45% 以上
+            // 补仓本身不清冷却。
 
             Messages.Message(
                 "RimForex_MsgMarginAdded".Translate(p.currencyName, clamped, (p.MarginHealth * 100f).ToString("F0")),
