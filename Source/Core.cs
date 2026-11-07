@@ -5193,6 +5193,7 @@ namespace RimForex
                 return;
             }
 
+            int e4CdDays = RimForexMod.Settings != null ? RimForexMod.Settings.e4CooldownDays : NewsCooldownDays;
             if (!Rand.Chance(NewsDriftChance))
             {
                 // 掷骰失败也只推迟 2~3 天；原来先推 8~12 天再掷骰，
@@ -5202,7 +5203,7 @@ namespace RimForex
             }
 
             // 只有真正触发才用掉整个 12 天冷却
-            nextNewsTick = GenTicks.TicksGame + NewsCooldownDays * TicksPerDay;
+            nextNewsTick = GenTicks.TicksGame + e4CdDays * TicksPerDay;
 
             bool aWins = Rand.Chance(0.5f);
             Faction winner = aWins ? a : b;
@@ -5283,11 +5284,32 @@ namespace RimForex
         {
             RimForexSettings cfg = RimForexMod.Settings;
             if (cfg != null && !cfg.enableWorldEvents) return;
-            if (GenTicks.TicksGame - lastWealthEventTick < E3GoodwillCooldown) return;
+            int e3Cd = (RimForexMod.Settings != null ? RimForexMod.Settings.e3CooldownDays : 15)
+                       * TicksPerDay;
+            int sinceLast = GenTicks.TicksGame - lastWealthEventTick;
+            if (sinceLast < e3Cd)
+            {
+                // 诊断：只有"本该够格"的情况才打日志，避免刷屏
+                if (dayPnl >= E3MinPnl)
+                {
+                    Log.Message("[RimForex] E3 被冷却挡住：" + dayPnl.ToString("F0")
+                        + " 白银，剩余 " + ((e3Cd - sinceLast) / TicksPerDay).ToString("F1") + " 天");
+                }
+                return;
+            }
 
             float threshold = Mathf.Max(E3MinPnl,
                 Mathf.Max(0f, acc != null ? acc.Equity : 0f) * E3EquityFraction);
-            if (dayPnl < threshold) return;
+            if (dayPnl < threshold)
+            {
+                if (dayPnl >= E3MinPnl)
+                {
+                    Log.Message("[RimForex] E3 未达阈值：当日 " + dayPnl.ToString("F0")
+                        + "，需要 " + threshold.ToString("F0")
+                        + "（净值的 5% 与 10000 取大）");
+                }
+                return;
+            }
 
             lastWealthEventTick = GenTicks.TicksGame;
             lastWorldEventTick = GenTicks.TicksGame;

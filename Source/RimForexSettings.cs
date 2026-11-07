@@ -125,6 +125,11 @@ namespace RimForex
         // ── 世界事件频率与概率（作者 2026-10-26 要求做成滑块）──
         /// <summary>单货币事件冷却（游戏日），10~30。</summary>
         public int eventCooldownDays = 20;
+        /// <summary>E3 外汇奇才的冷却（游戏日），7~30。</summary>
+        public int e3CooldownDays = 15;
+        /// <summary>E4 战争新闻的冷却（游戏日），5~20。</summary>
+        public int e4CooldownDays = 12;
+
         /// <summary>E3「有人在打听你的财富」之后真的来袭的概率。</summary>
         public float e3RaidChance = 0.35f;
         /// <summary>E1-B「军备采购异常」之后真的来袭的概率。</summary>
@@ -144,6 +149,8 @@ namespace RimForex
             Scribe_Values.Look(ref showTestOptions, "showTestOptions", false);
             Scribe_Values.Look(ref eventCooldownDays, "eventCooldownDays", 20);
             Scribe_Values.Look(ref e3RaidChance, "e3RaidChance", 0.35f);
+            Scribe_Values.Look(ref e3CooldownDays, "e3CooldownDays", 15);
+            Scribe_Values.Look(ref e4CooldownDays, "e4CooldownDays", 12);
             Scribe_Values.Look(ref e1RaidChance, "e1RaidChance", 0.60f);
 
             // 悬浮盈亏窗（2026-10-20）
@@ -342,6 +349,14 @@ namespace RimForex
             Hint(l, "RimForex_Set_EventCdSingle".Translate(Settings.eventCooldownDays.ToString()));
 
             
+            float cdE3 = l.Slider(Settings.e3CooldownDays, 7f, 30f);
+            Settings.e3CooldownDays = Mathf.RoundToInt(cdE3);
+            Hint(l, "RimForex_Set_E3Cd".Translate(Settings.e3CooldownDays.ToString()));
+
+            float cdE4 = l.Slider(Settings.e4CooldownDays, 5f, 20f);
+            Settings.e4CooldownDays = Mathf.RoundToInt(cdE4);
+            Hint(l, "RimForex_Set_E4Cd".Translate(Settings.e4CooldownDays.ToString()));
+
             Settings.e3RaidChance = l.Slider(Settings.e3RaidChance, 0f, 1f);
             Hint(l, "RimForex_Set_E3RaidChance".Translate(
                 (Settings.e3RaidChance * 100f).ToString("0")));

@@ -511,4 +511,6 @@
   <RimForex_ViewTable>只看表</RimForex_ViewTable>
   <RimForex_ViewChart>只看图</RimForex_ViewChart>
   <RimForex_TopBarViewTip>切换货币表与 K 线的显示方式。</RimForex_TopBarViewTip>
+  <RimForex_Set_E3Cd>外汇奇才冷却：{0} 日</RimForex_Set_E3Cd>
+  <RimForex_Set_E4Cd>战争新闻冷却：{0} 日</RimForex_Set_E4Cd>
 </LanguageData>
