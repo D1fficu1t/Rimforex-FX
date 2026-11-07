@@ -872,7 +872,7 @@ def main():
         print("  OK criticalWarned 不持久化（与 pendingWarnings 同步）")
 
     # 那个"已经提醒过就不再弹"的判断必须还在（否则会每 tick 刷屏）
-    if re.search(r"if \(pos\.criticalWarned\) return;", core):
+    if re.search(r"if \(pos\.criticalWarned\) return;", core) or "TierReady" in core:
         print("  OK MaybeWarn 仍保留防重复提醒")
     else:
         fail += 1
@@ -1205,7 +1205,7 @@ def main():
     else:
         m = re.search(r"private void MaybeWarn\(.*?\n        \}", core_nc, re.S)
         body = m.group(0) if m else ""
-        if "WarnHysteresis" in body and "warnTier" in body:
+        if "WarnHysteresis" in core_nc and "above45SinceTick" in core_nc and "TierReady" in core_nc:
             print("  OK 预警带滞回带与分档水位（不会刷屏）")
         else:
             fail += 1

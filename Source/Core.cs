@@ -447,7 +447,8 @@ namespace RimForex
         {
             warnedHealth = -1f;
             criticalWarned = false;
-            warnTier = 100;   // 分档预警复位
+            ClearWarnTiers();
+            above45SinceTick = 0;
             // warnedAtTick 故意不复位：冷却时间要跨过"复位"继续有效，
             // 否则"回到安全区 → 立刻跌回 → 再弹"还是能刷屏。
         }
@@ -460,11 +461,29 @@ namespace RimForex
         /// 0 表示旧存档没有这个字段，此时按"无点差"退化处理。
         /// </summary>
         public float entrySpreadRate;
-        /// <summary>
-        /// 已经警告到第几档：100 = 还没警告过，45 / 40 / 35 = 最近一次警告的档位。
-        /// 健康度跌破某一档时才往前推进，回到 55% 以上复位（见 WarnHysteresis）。
-        /// </summary>
+        /// <summary>三档预警各自的冷却起点（0 = 从未警告）。</summary>
+        public int warn45Tick;
+        public int warn40Tick;
+        public int warn35Tick;
+        /// <summary>健康度连续高于 45% 的起点（0 = 当前不在 45% 以上）。</summary>
+        public int above45SinceTick;
+        /// <summary>用 100 表示"还没警告过"，仅用于兼容旧逻辑的读数。</summary>
         public int warnTier = 100;
+
+        /// <summary>某一档是否已过冷却。</summary>
+        public bool TierReady(int tick)
+        {
+            return tick == 0 || GenTicks.TicksGame - tick >= FxGameComponent.WarnCooldownTicks;
+        }
+
+        /// <summary>清空全部预警状态（健康度回到 100% 或连续一小时高于 45%）。</summary>
+        public void ClearWarnTiers()
+        {
+            warn45Tick = 0;
+            warn40Tick = 0;
+            warn35Tick = 0;
+            warnTier = 100;
+        }
 
         /// <summary>已追加的保证金累计额，仅用于展示。</summary>
         public float addedMargin;
@@ -4322,9 +4341,9 @@ namespace RimForex
         private void MaybeWarn(FxPosition pos, FxAccount acc)
         {
             float health = pos.MarginHealth;
+            int now = GenTicks.TicksGame;
 
-            // 只在确实处于亏损状态时才预警。
-            // （锁定期内盈亏恒为 0，因此开仓阶段不可能触发预警。）
+            // 只在亏损时才预警（锁定期 Pnl 为 0，天然不会触发）
             if (pos.Pnl >= 0f)
             {
                 pendingWarnings.Remove(pos);
@@ -4332,61 +4351,43 @@ namespace RimForex
                 return;
             }
 
-            // ── 复位：必须回到【警告线 + 滞回带】以上（2026-10-21）──
-            // 只判 health > CriticalThreshold 的话，健康度在 0.45 附近摆动时
-            // 会"复位→提醒→复位→提醒"无限循环。详见 WarnHysteresis 的说明。
-            if (health > CriticalThreshold + WarnHysteresis)
+            // ① 健康度 >= 100%：彻底重置，下一次跌破从 45% 重新开始
+            if (health >= 1f)
             {
-                pendingWarnings.Remove(pos);
-                pos.ResetWarnState();
+                pos.ClearWarnTiers();
+                pos.above45SinceTick = now;
                 return;
             }
 
-            // 落在滞回带内（0.45 ~ 0.55）：既不算脱离危险，也还没真正跌破。
-            // 什么都不做 —— 不复位、也不提醒。
-            if (health > CriticalThreshold) return;
-
-            // ── 分档预警（2026-11-07）──
-            // 45% / 40% / 35% 各弹一次，越跌越急。
-            // 只做单档时玩家在 44% 补一点点，价格抖一下又跌破，等于没提醒。
-            int tier = health <= 0.35f ? 35 : (health <= 0.40f ? 40 : 45);
-
-            // 同一档（或更浅）不再弹。criticalWarned 就管这一条。
-            //
-            // ⚠️ 它必须放在分档判断**里面**：上一版放在外面，
-            //    45% 弹过之后 criticalWarned 一直是 true，
-            //    后面 40% / 35% 全被它挡住，永远不会再弹
-            //    （2026-11-07 作者实测：45% 之后继续跌，35% 没反应）。
-            if (tier >= pos.warnTier)
+            // ② 健康度高于 45%：开始计时；连续一小时都在 45% 以上则重置三档
+            if (health > CriticalThreshold)
             {
-                if (pos.criticalWarned) return;
-                pos.criticalWarned = true;
+                if (pos.above45SinceTick == 0) pos.above45SinceTick = now;
+                else if (now - pos.above45SinceTick >= WarnCooldownTicks) pos.ClearWarnTiers();
                 return;
             }
 
-            // 冷却只用于"复位后重新回到 45% 这一档"，且只挡 45%。
-            // 更深的两档（40 / 35）永远放行 —— 它们是行情继续恶化，不是抖动。
-            // 这样既不会在 45% 附近无限弹窗，也不会吞掉 40 / 35。
-            bool afterReset = pos.warnTier >= 100;
-            if (afterReset && tier == 45
-                && pos.warnedAtTick > 0
-                && GenTicks.TicksGame - pos.warnedAtTick < WarnCooldownTicks)
-            {
-                return;
-            }
+            // 跌回 45% 以下，计时中断
+            pos.above45SinceTick = 0;
 
-            // 冷却已取消（2026-11-08）。
-            //
-            // 原来的 1 小时冷却本意是防"复位→提醒→复位→提醒"，
-            // 但玩家补仓后健康度冲上 55% 就会复位，紧接着再跌回来时
-            // 冷却仍在生效 —— 40% / 35% 两档被整段吞掉，
-            // 表现就是"45 弹过之后再怎么跌都没反应"。
-            // 防刷屏现在只靠两条：滞回（>55% 才复位）+ warnTier（同一档不重复）。
+            // ③ 找到"已经跌破的最深一档"，且该档冷却已过
+            int deepest = health <= 0.35f ? 35 : (health <= 0.40f ? 40 : 45);
+            int chosen = 0;
+            if (deepest <= 35 && pos.TierReady(pos.warn35Tick)) chosen = 35;
+            else if (deepest <= 40 && pos.TierReady(pos.warn40Tick)) chosen = 40;
+            else if (pos.TierReady(pos.warn45Tick)) chosen = 45;
 
-            pos.warnTier = tier;
+            if (chosen == 0) return;   // 三档都在冷却中，不弹
+
+            // 比 chosen 浅的档一并记为"已警告"，避免之后再补弹
+            if (deepest <= 45 && chosen <= 45) pos.warn45Tick = now;
+            if (deepest <= 40 && chosen <= 40) pos.warn40Tick = now;
+            if (chosen <= 35) pos.warn35Tick = now;
+
+            pos.warnTier = chosen;
             pos.warnedHealth = health;
-            pos.warnedAtTick = GenTicks.TicksGame;
-            pos.criticalWarned = true;   // 这一档已提醒，下一档才允许再弹
+            pos.warnedAtTick = now;
+            pos.criticalWarned = true;
             EnqueueWarning(pos, acc);
         }
 
