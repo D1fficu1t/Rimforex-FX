@@ -19,6 +19,8 @@ namespace RimForex
         public int FactionId { get; private set; }
 
         private FxChartSpan span = FxChartSpan.Hour;
+        /// <summary>显示多少根蜡烛（滚轮缩放，10~120）。</summary>
+        private int candleCount = 40;
         private bool showEntry = true;
         private bool showBreakeven = true;
         private bool showStopOut = true;
@@ -65,6 +67,14 @@ namespace RimForex
             Widgets.Label(new Rect(tw + 10f, 0f, 110f, lhS + 2f), cur.rate.ToString("F2"));
             GUI.color = Color.white;
 
+            // 重置视图：恢复 40 根
+            Rect resetBtn = new Rect(inRect.width - 76f, 0f, 74f, lhS + 2f);
+            if (Widgets.ButtonText(resetBtn, "RimForex_ChartReset".Translate()))
+            {
+                candleCount = 40;
+            }
+            TooltipHandler.TipRegion(resetBtn, "RimForex_MiniResetTip".Translate());
+
             // ---- 左侧竖排开关（与终端一致）----
             float plotTop = lhS + 6f;
             const float StripW = 52f;
@@ -77,7 +87,7 @@ namespace RimForex
             if (plot.height < 60f) return;
             Widgets.DrawBoxSolid(plot, new Color(0.10f, 0.11f, 0.13f, 1f));
 
-            List<FxCandle> candles = fx.market.GetCandles(FactionId, 40, span);
+            List<FxCandle> candles = fx.market.GetCandles(FactionId, candleCount, span);
             if (candles == null || candles.Count == 0)
             {
                 Widgets.Label(plot.ContractedBy(6f), "RimForex_ChartNoData".Translate());
@@ -100,6 +110,20 @@ namespace RimForex
             {
                 float gy = area.y + area.height * g / 4f;
                 Widgets.DrawBoxSolid(new Rect(area.x, gy, area.width, 1f), grid);
+            }
+
+            // 滚轮缩放：只在绘图区内响应
+            Event eScroll = Event.current;
+            if (eScroll != null && eScroll.type == EventType.ScrollWheel
+                && plot.Contains(eScroll.mousePosition))
+            {
+                int delta = Mathf.RoundToInt(eScroll.delta.y) * 5;
+                int changed = Mathf.Clamp(candleCount - delta, 10, 120);
+                if (changed != candleCount)
+                {
+                    candleCount = changed;
+                    eScroll.Use();
+                }
             }
 
             int n = candles.Count;
