@@ -1571,13 +1571,22 @@ float hintH = 0f;
             Text.Anchor = TextAnchor.MiddleLeft;
             float step = (max - min) / 4f;
             int dec = PriceDecimals(step);
+            // 当前价：常驻标签，挨近的刻度自动让位（与小 K 线一致）
+            float curY = PriceToY(candles[candles.Count - 1].close, min, max, area);
+
             for (int g = 0; g <= 4; g++)
             {
-                float p = max - (max - min) * g / 4f;
                 float gy = area.y + area.height * g / 4f;
+                if (Mathf.Abs(gy - curY) < 9f) continue;
+                float p = max - (max - min) * g / 4f;
                 Widgets.Label(new Rect(area.xMax + 4f, gy - 8f, 46f, 16f),
                     p.ToString(dec == 0 ? "F0" : "F" + dec));
             }
+
+            string curText = candles[candles.Count - 1].close.ToString(dec == 0 ? "F0" : "F" + dec);
+            GUI.color = new Color(0.95f, 0.90f, 0.55f);
+            Widgets.Label(new Rect(area.xMax + 4f, curY - 8f, 46f, 16f), curText);
+            GUI.color = Color.white;
             Text.Anchor = TextAnchor.UpperLeft;
             Text.Font = GameFont.Small;
 
