@@ -27,9 +27,12 @@ namespace RimForex
                 ? Find.World.GetComponent<FxGameComponent>() : null;
             if (fx == null || !fx.IsMysteryMerchant(clickedPawn)) return null;
 
+            Pawn talker = context.FirstSelectedPawn;
+            if (talker == null) return null;
+
             return new FloatMenuOption("RimForex_MerchantTalk".Translate(), delegate
             {
-                fx.OpenMerchantWindow(clickedPawn);
+                fx.BeginMerchantTalk(clickedPawn, talker);
             });
         }
     }

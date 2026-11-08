@@ -576,5 +576,6 @@
   <RimForex_MsgTestSettlement>已触发据点损失。</RimForex_MsgTestSettlement>
   <RimForex_MerchantTalk>谈谈</RimForex_MerchantTalk>
   <RimForex_Ev13LetterLabel>神秘商人到访</RimForex_Ev13LetterLabel>
-  <RimForex_Ev13Letter>一个神秘商人出现在殖民地边缘。\n\n派个能说上话的人过去，**右键他**就能谈。\n\n他等两天，不来就走了。</RimForex_Ev13Letter>
+  <RimForex_Ev13Letter>一个陌生人在殖民地边缘停了下来。他裹着旧斗篷，四处张望，像在等什么人。\n\n他在那里停留两天。</RimForex_Ev13Letter>
+  <RimForex_FeeMerchant>购买情报</RimForex_FeeMerchant>
 </LanguageData>

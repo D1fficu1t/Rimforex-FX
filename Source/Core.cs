@@ -3272,6 +3272,9 @@ namespace RimForex
         public float merchantPrice;
         /// <summary>商人自己离场的时间（玩家一直不理他时）。</summary>
         public int merchantLeaveTick;
+        /// <summary>正在走过去谈的殖民者（-1 = 没有）。</summary>
+        public int pendingTalkPawnId = -1;
+        public int pendingTalkUntilTick;
 
         // ── 据点损失检测（2026-11-08）──
         // 三张平行表：据点 ID、重要性评分、所属派系
@@ -3849,6 +3852,7 @@ namespace RimForex
             ProcessSettlementLoss();
             ProcessMysteryMerchant();
             ProcessMerchantTimeout();
+            ProcessMerchantTalk();
             ProcessRetaliation();
             ProcessDebtCase();
             ProcessForcedLiquidation();
@@ -5443,7 +5447,7 @@ namespace RimForex
             c.pegUntilTick = GenTicks.TicksGame + 6 * TicksPerHour;
             Find.LetterStack.ReceiveLetter(
                 "RimForex_Ev11PegLabel".Translate(f.Name),
-                "RimForex_Ev11Peg".Translate(f.Name),
+                "RimForex_Ev11Peg".Translate(f.Name, BankNameFor(f)),
                 LetterDefOf.NeutralEvent);
             return true;
         }
@@ -5704,6 +5708,15 @@ namespace RimForex
             {
                 try
                 {
+                    // ⚠️ 必须先脱离领主：LordJob_DefendPoint 会把他往殖民地拉，
+                    // 只发 Goto 的话走到边缘又会被拽回来（作者实测）。
+                    var lord = pawn.GetLord();
+                    if (lord != null) lord.RemovePawn(pawn);
+                }
+                catch { }
+
+                try
+                {
                     IntVec3 exit = CellFinder.RandomEdgeCell(pawn.Map);
                     pawn.jobs.StartJob(JobMaker.MakeJob(JobDefOf.Goto, exit),
                         JobCondition.InterruptForced);
@@ -5713,6 +5726,52 @@ namespace RimForex
             }
             merchantPawnId = -1;
             merchantCcyId = -1;
+            pendingTalkPawnId = -1;
+        }
+
+        /// <summary>
+        /// 开始"走过去谈"：先让选中的殖民者走到商人身边，
+        /// 到了才弹窗（直接弹窗会破坏沉浸感）。
+        /// </summary>
+        public void BeginMerchantTalk(Pawn merchant, Pawn talker)
+        {
+            if (merchant == null || talker == null) return;
+            if (!IsMysteryMerchant(merchant)) return;
+            if (!talker.Spawned || talker.Map != merchant.Map) return;
+            if (!talker.CanReach(merchant, Verse.AI.PathEndMode.Touch, Danger.Deadly)) return;
+
+            pendingTalkPawnId = talker.thingIDNumber;
+            pendingTalkUntilTick = GenTicks.TicksGame + 2 * FxGameComponent.TicksPerHour;
+
+            try
+            {
+                talker.jobs.StartJob(JobMaker.MakeJob(JobDefOf.Goto, merchant.Position),
+                    JobCondition.InterruptForced);
+            }
+            catch { }
+        }
+
+        /// <summary>走到商人身边后自动打开窗口。</summary>
+        private void ProcessMerchantTalk()
+        {
+            if (pendingTalkPawnId < 0) return;
+            Pawn merchant = FindPawnById(merchantPawnId);
+            Pawn talker = FindPawnById(pendingTalkPawnId);
+            if (merchant == null || talker == null || !merchant.Spawned || !talker.Spawned)
+            {
+                pendingTalkPawnId = -1;
+                return;
+            }
+            if (GenTicks.TicksGame > pendingTalkUntilTick)
+            {
+                pendingTalkPawnId = -1;
+                return;
+            }
+            if ((talker.Position - merchant.Position).LengthHorizontal <= 2.5f)
+            {
+                pendingTalkPawnId = -1;
+                OpenMerchantWindow(merchant);
+            }
         }
 
         /// <summary>商人超时未理 → 自己走。</summary>

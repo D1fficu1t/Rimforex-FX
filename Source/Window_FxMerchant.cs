@@ -124,6 +124,8 @@ namespace RimForex
             if (account.balance < price) return;
 
             account.balance -= price;
+            // 写进交易历史，玩家才知道这笔钱是从终端余额扣的
+            account.RecordFee("RimForex_FeeMerchant".Translate(), price);
 
             currency.newsDriftLog += driftLog;
             currency.newsDriftUntilTick = GenTicks.TicksGame + 5 * FxGameComponent.TicksPerDay;
