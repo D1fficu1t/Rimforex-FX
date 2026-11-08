@@ -3262,6 +3262,17 @@ namespace RimForex
         /// <summary>下一次神秘商人出现的 tick。</summary>
         public int nextMerchantTick;
 
+        // ── 神秘商人（走动的 NPC）──
+        /// <summary>当前商人 pawn 的 thingIDNumber，-1 = 没有。</summary>
+        public int merchantPawnId = -1;
+        public int merchantCcyId = -1;
+        public string merchantFactionName = "";
+        public bool merchantPredictedUp;
+        public float merchantDriftLog;
+        public float merchantPrice;
+        /// <summary>商人自己离场的时间（玩家一直不理他时）。</summary>
+        public int merchantLeaveTick;
+
         // ── 据点损失检测（2026-11-08）──
         // 三张平行表：据点 ID、重要性评分、所属派系
         public List<int> knownSettlementIds = new List<int>();
@@ -3837,6 +3848,7 @@ namespace RimForex
             ProcessCurrencyStates();
             ProcessSettlementLoss();
             ProcessMysteryMerchant();
+            ProcessMerchantTimeout();
             ProcessRetaliation();
             ProcessDebtCase();
             ProcessForcedLiquidation();
@@ -5401,7 +5413,7 @@ namespace RimForex
 
             Find.LetterStack.ReceiveLetter(
                 "RimForex_Ev11PegLabel".Translate(f.Name),
-                "RimForex_Ev11Peg".Translate(f.Name),
+                "RimForex_Ev11Peg".Translate(f.Name, BankNameFor(f)),
                 LetterDefOf.NeutralEvent);
         }
 
@@ -5572,13 +5584,17 @@ namespace RimForex
             SummonMerchant();
         }
 
-        /// <summary>叫出一个神秘商人（测试按钮也走这里）。</summary>
+        /// <summary>
+        /// 叫出一个神秘商人：在地图边缘生成一个无武装 NPC，
+        /// 他会像收债人那样走到殖民地外围站着，右键他就能谈。
+        /// </summary>
         public bool SummonMerchant()
         {
-            if (Find.WindowStack == null) return false;
-            if (Find.WindowStack.IsOpen(typeof(Window_FxMerchant))) return false;
+            Map map = Find.AnyPlayerHomeMap;
+            if (map == null) return false;
+            if (merchantPawnId >= 0) return false;   // 已经有一个在场上
 
-            FxAccount acc = ColonyAccount(null);
+            FxAccount acc = ColonyAccount(map);
             if (acc == null || acc.Equity <= 0f) return false;
 
             Faction f;
@@ -5591,12 +5607,125 @@ namespace RimForex
             if (!predictedUp) drift = -drift;
             if (!truth) drift = -drift;   // 假消息：实际走势与预言相反
 
-            float price = Mathf.Max(500f, acc.Equity * 0.03f);
+            Faction faction = EnsurePlatformFaction();
+            if (faction == null) return false;
 
-            Find.WindowStack.Add(new Window_FxMerchant(acc, c, f.Name, predictedUp, drift, price));
-            Messages.Message("RimForex_MsgMerchantArrived".Translate(),
-                MessageTypeDefOf.NeutralEvent, false);
+            var req = new PawnGenerationRequest(
+                PawnKindDefOf.Villager, faction,
+                PawnGenerationContext.NonPlayer, map.Tile);
+            Pawn pawn = PawnGenerator.GeneratePawn(req);
+            if (pawn == null) return false;
+
+            IntVec3 cell;
+            if (!CellFinder.TryFindRandomEdgeCellWith(
+                    c2 => c2.Standable(map) && !map.roofGrid.Roofed(c2),
+                    map, CellFinder.EdgeRoadChance_Ignore, out cell))
+            {
+                cell = CellFinder.RandomEdgeCell(map);
+            }
+            GenSpawn.Spawn(pawn, cell, map);
+
+            try { pawn.mindState.exitMapAfterTick = int.MaxValue; } catch { }
+
+            IntVec3 target = pawn.Position;
+            try
+            {
+                IntVec3 found;
+                if (RCellFinder.TryFindRandomSpotJustOutsideColony(pawn.Position, map, pawn, out found))
+                {
+                    target = found;
+                }
+            }
+            catch { }
+
+            try
+            {
+                var lord = LordMaker.MakeNewLord(faction, new LordJob_DefendPoint(target),
+                    map, new List<Pawn> { pawn });
+                if (lord == null)
+                {
+                    pawn.jobs.StartJob(JobMaker.MakeJob(JobDefOf.Goto, target),
+                        JobCondition.InterruptForced);
+                }
+            }
+            catch
+            {
+                try
+                {
+                    pawn.jobs.StartJob(JobMaker.MakeJob(JobDefOf.Goto, target),
+                        JobCondition.InterruptForced);
+                }
+                catch { }
+            }
+
+            merchantPawnId = pawn.thingIDNumber;
+            merchantCcyId = c.factionLoadID;
+            merchantFactionName = f.Name;
+            merchantPredictedUp = predictedUp;
+            merchantDriftLog = drift;
+            merchantPrice = Mathf.Max(500f, acc.Equity * 0.03f);
+            merchantLeaveTick = GenTicks.TicksGame + 2 * TicksPerDay;
+
+            Find.LetterStack.ReceiveLetter(
+                "RimForex_Ev13LetterLabel".Translate(),
+                "RimForex_Ev13Letter".Translate(),
+                LetterDefOf.NeutralEvent,
+                new LookTargets(pawn));
             return true;
+        }
+
+        /// <summary>这个 pawn 是不是当前的神秘商人。</summary>
+        public bool IsMysteryMerchant(Pawn pawn)
+        {
+            return pawn != null && merchantPawnId >= 0
+                && pawn.thingIDNumber == merchantPawnId && !pawn.Dead;
+        }
+
+        /// <summary>右键商人时打开交易窗口。</summary>
+        public void OpenMerchantWindow(Pawn pawn)
+        {
+            if (!IsMysteryMerchant(pawn)) return;
+            if (Find.WindowStack == null) return;
+            if (Find.WindowStack.IsOpen(typeof(Window_FxMerchant))) return;
+
+            FxAccount acc = ColonyAccount(pawn.Map);
+            FxCurrency c = market.Get(merchantCcyId);
+            if (acc == null || c == null) { DismissMerchant(); return; }
+
+            Find.WindowStack.Add(new Window_FxMerchant(acc, c, merchantFactionName,
+                merchantPredictedUp, merchantDriftLog, merchantPrice, DismissMerchant));
+        }
+
+        /// <summary>让商人离场（付完/拒绝/超时都走这里）。</summary>
+        public void DismissMerchant()
+        {
+            Pawn pawn = FindPawnById(merchantPawnId);
+            if (pawn != null && pawn.Spawned && !pawn.Dead)
+            {
+                try
+                {
+                    IntVec3 exit = CellFinder.RandomEdgeCell(pawn.Map);
+                    pawn.jobs.StartJob(JobMaker.MakeJob(JobDefOf.Goto, exit),
+                        JobCondition.InterruptForced);
+                    pawn.mindState.exitMapAfterTick = GenTicks.TicksGame + 2 * FxGameComponent.TicksPerHour;
+                }
+                catch { }
+            }
+            merchantPawnId = -1;
+            merchantCcyId = -1;
+        }
+
+        /// <summary>商人超时未理 → 自己走。</summary>
+        private void ProcessMerchantTimeout()
+        {
+            if (merchantPawnId < 0) return;
+            if (merchantLeaveTick > 0 && GenTicks.TicksGame >= merchantLeaveTick)
+            {
+                DismissMerchant();
+                return;
+            }
+            Pawn pawn = FindPawnById(merchantPawnId);
+            if (pawn == null || pawn.Dead || !pawn.Spawned) merchantPawnId = -1;
         }
 
         /// <summary>这个货币现在能不能交易（停牌期间不能）。</summary>
@@ -7860,6 +7989,13 @@ namespace RimForex
             Scribe_Values.Look(ref nextRatingTick, "nextRatingTick", 0);
             Scribe_Values.Look(ref nextPegTick, "nextPegTick", 0);
             Scribe_Values.Look(ref nextMerchantTick, "nextMerchantTick", 0);
+            Scribe_Values.Look(ref merchantPawnId, "merchantPawnId", -1);
+            Scribe_Values.Look(ref merchantCcyId, "merchantCcyId", -1);
+            Scribe_Values.Look(ref merchantFactionName, "merchantFactionName", "");
+            Scribe_Values.Look(ref merchantPredictedUp, "merchantPredictedUp", false);
+            Scribe_Values.Look(ref merchantDriftLog, "merchantDriftLog", 0f);
+            Scribe_Values.Look(ref merchantPrice, "merchantPrice", 0f);
+            Scribe_Values.Look(ref merchantLeaveTick, "merchantLeaveTick", 0);
             Scribe_Collections.Look(ref knownSettlementIds, "knownSettlementIds", LookMode.Value);
             Scribe_Collections.Look(ref knownSettlementScores, "knownSettlementScores", LookMode.Value);
             Scribe_Collections.Look(ref knownSettlementFactions, "knownSettlementFactions", LookMode.Value);

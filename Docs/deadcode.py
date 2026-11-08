@@ -136,7 +136,18 @@ def main():
 
     unref = []
     for fn, kind, name, line in decls:
-        if name in ("Main", "ExposeData", "DoWindowContents"):
+        # 引擎回调 / 虚方法重写：只被 RimWorld 反射调用，静态扫描必然"只出现一次"
+        if name in ("Main", "ExposeData", "DoWindowContents",
+                    # FloatMenuOptionProvider 的抽象属性与重写
+                    "Drafted", "Undrafted", "Multiselect", "RequiresManipulation",
+                    "GetSingleOptionFor", "GetSingleOption",
+                    # ThingComp / Window / MapComponent 常见回调
+                    "CompFloatMenuOptions", "PostClose", "PreClose",
+                    "OnAcceptKeyPressed", "OnCancelKeyPressed",
+                    "MoodOffset", "CurrentStateInternal",
+                    "WorldComponentTick", "WorldComponentOnGUI",
+                    "SettingsCategory", "DoSettingsWindowContents",
+                    "FactionGeneratorParms"):
             continue
         # 引用次数（排除声明那一行本身）
         occurrences = len(re.findall(r"\b%s\b" % re.escape(name), all_code))

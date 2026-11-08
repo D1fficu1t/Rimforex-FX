@@ -298,7 +298,7 @@
   <RimForex_GuideButton>新手教程</RimForex_GuideButton>
   <RimForex_GuideButtonTip>随时可以重新打开。讲怎么判断方向、为什么会爆仓、K 线怎么看。</RimForex_GuideButtonTip>
   <RimForex_GuideTitle>新手教程</RimForex_GuideTitle>
-  <RimForex_GuideIntro>欢迎使用星际外汇终端。\n\n交易所不要求对方有央行。部落的贝壳串、中世纪的银币、工业派的信用点，都被折算成统一的 XAG 报价：平台先按折扣收购实物，再挂牌卖给投资者。\n\n本平台已连续 87 个季度蝉联银河最佳交易体验平台（数据由本平台自行统计）。\n\n交易只有三步：选货币、加杠杆、按下去。</RimForex_GuideIntro>
+  <RimForex_GuideIntro>欢迎使用星际外汇终端。\n\n交易所不要求对方有现代央行。部落的议事会、中世纪的行会、工业派的央行，谁说了算谁定汇率。\n\n贝壳串、银币、信用点，都被折算成统一的 XAG 报价：平台先按折扣收购实物，再挂牌卖给投资者。\n\n本平台已连续 87 个季度蝉联银河最佳交易体验平台（数据由本平台自行统计）。\n\n交易只有三步：选货币、加杠杆、按下去。</RimForex_GuideIntro>
   <RimForex_GuideLongTitle>一、什么时候买涨（做多）</RimForex_GuideLongTitle>
   <RimForex_GuideLong>做多就是买入，赌它涨。涨了赚差价，跌了亏保证金。\n\n该什么时候买？本平台的标准答案是：\n· 有消息说要涨，买。\n· 没消息但它跌了很久，买，这叫抄底。\n· 已经涨疯了，买，这叫追涨。\n\n只要你想买，总能找到理由。这也是本平台深受用户欢迎的原因。</RimForex_GuideLong>
   <RimForex_GuideShortTitle>二、什么时候买跌（做空）</RimForex_GuideShortTitle>
@@ -535,7 +535,7 @@
   <RimForex_Ev10ReopenLabel>{0} 复牌</RimForex_Ev10ReopenLabel>
   <RimForex_Ev10Reopen>{0} 的货币恢复交易，复牌瞬间出现一次跳空。</RimForex_Ev10Reopen>
   <RimForex_Ev11PegLabel>{0} 宣布钉住汇率</RimForex_Ev11PegLabel>
-  <RimForex_Ev11Peg>{0} 的央行宣布钉住汇率，未来数日汇价被限制在一个很窄的区间内。\n\n区间里几乎无利可图，还要照付隔夜利息。</RimForex_Ev11Peg>
+  <RimForex_Ev11Peg>{0} 的{1}宣布钉住汇率，未来数日汇价被限制在一个很窄的区间内。\n\n区间里几乎无利可图，还要照付隔夜利息。</RimForex_Ev11Peg>
   <RimForex_Ev11HoldLabel>{0} 守住了汇率</RimForex_Ev11HoldLabel>
   <RimForex_Ev11Hold>{0} 成功守住了钉住汇率，区间平稳结束。</RimForex_Ev11Hold>
   <RimForex_Ev11BreakLabel>{0} 汇率失守</RimForex_Ev11BreakLabel>
@@ -565,7 +565,6 @@
   <RimForex_MerchantRise>走强</RimForex_MerchantRise>
   <RimForex_MerchantFall>走弱</RimForex_MerchantFall>
   <RimForex_MerchantClose>关闭</RimForex_MerchantClose>
-  <RimForex_MsgMerchantArrived>一个神秘商人在终端外等你。</RimForex_MsgMerchantArrived>
   <RimForex_MsgMerchantBought>已支付 {0} 白银，情报到手。</RimForex_MsgMerchantBought>
   <RimForex_Ev12LetterLabel>{0} 失去据点</RimForex_Ev12LetterLabel>
   <RimForex_Ev12Letter>{0} 的一处据点被摧毁。\n\n消息传开后，{0} 的货币持续承压。</RimForex_Ev12Letter>
@@ -575,4 +574,7 @@
   <RimForex_TestSettlement>测试：据点损失</RimForex_TestSettlement>
   <RimForex_TestSettlementTip>模拟一次据点被摧毁，让随机派系的货币承压 3 天。</RimForex_TestSettlementTip>
   <RimForex_MsgTestSettlement>已触发据点损失。</RimForex_MsgTestSettlement>
+  <RimForex_MerchantTalk>谈谈</RimForex_MerchantTalk>
+  <RimForex_Ev13LetterLabel>神秘商人到访</RimForex_Ev13LetterLabel>
+  <RimForex_Ev13Letter>一个神秘商人出现在殖民地边缘。\n\n派个能说上话的人过去，**右键他**就能谈。\n\n他等两天，不来就走了。</RimForex_Ev13Letter>
 </LanguageData>

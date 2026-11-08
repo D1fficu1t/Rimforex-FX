@@ -23,11 +23,13 @@ namespace RimForex
         private readonly float driftLog;
         private readonly float price;
 
+        private readonly System.Action onClosed;
         private bool revealed;
 
         public Window_FxMerchant(FxAccount account, FxCurrency currency, string factionName,
-            bool predictedUp, float driftLog, float price)
+            bool predictedUp, float driftLog, float price, System.Action onClosed = null)
         {
+            this.onClosed = onClosed;
             this.account = account;
             this.currency = currency;
             this.factionName = factionName;
@@ -36,6 +38,7 @@ namespace RimForex
             this.price = price;
 
             doCloseX = true;
+            // 关闭时通知调用方（让商人自己走掉）
             doCloseButton = false;
             draggable = true;
             resizeable = false;
@@ -108,6 +111,12 @@ namespace RimForex
             {
                 Close();
             }
+        }
+
+        public override void PostClose()
+        {
+            base.PostClose();
+            if (onClosed != null) onClosed();
         }
 
         private void PayAndReveal()
