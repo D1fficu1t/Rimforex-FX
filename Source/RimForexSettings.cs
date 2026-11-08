@@ -131,6 +131,8 @@ namespace RimForex
         public int ratingCooldownDays = 20;
         /// <summary>汇率保卫战的冷却（游戏日），10~40。</summary>
         public int pegCooldownDays = 25;
+        /// <summary>神秘商人出现的冷却（游戏日），10~40。</summary>
+        public int merchantCooldownDays = 20;
 
         /// <summary>E3 外汇奇才的冷却（游戏日），7~30。</summary>
         public int e3CooldownDays = 15;
@@ -161,6 +163,7 @@ namespace RimForex
             Scribe_Values.Look(ref bankCooldownDays, "bankCooldownDays", 25);
             Scribe_Values.Look(ref ratingCooldownDays, "ratingCooldownDays", 20);
             Scribe_Values.Look(ref pegCooldownDays, "pegCooldownDays", 25);
+            Scribe_Values.Look(ref merchantCooldownDays, "merchantCooldownDays", 20);
             Scribe_Values.Look(ref e1RaidChance, "e1RaidChance", 0.60f);
 
             // 悬浮盈亏窗（2026-10-20）
@@ -373,6 +376,9 @@ namespace RimForex
 
             Hint(l, "RimForex_Set_PegCd".Translate(Settings.pegCooldownDays.ToString()));
             Settings.pegCooldownDays = Mathf.RoundToInt(l.Slider(Settings.pegCooldownDays, 10f, 40f));
+
+            Hint(l, "RimForex_Set_MerchantCd".Translate(Settings.merchantCooldownDays.ToString()));
+            Settings.merchantCooldownDays = Mathf.RoundToInt(l.Slider(Settings.merchantCooldownDays, 10f, 40f));
 
             Hint(l, "RimForex_Set_E3RaidChance".Translate(
                 (Settings.e3RaidChance * 100f).ToString("0")));
@@ -764,6 +770,36 @@ namespace RimForex
                 }
             }
             Hint(l, "RimForex_TestPegTip".Translate());
+
+            l.Gap(6f);
+            if (l.ButtonText("RimForex_TestMerchant".Translate()))
+            {
+                FxGameComponent fx = Find.World != null
+                    ? Find.World.GetComponent<FxGameComponent>() : null;
+                if (fx != null)
+                {
+                    Messages.Message(fx.SummonMerchant()
+                            ? "RimForex_MsgTestMerchant".Translate()
+                            : "RimForex_MsgTestSurgeFail".Translate(),
+                        MessageTypeDefOf.TaskCompletion, false);
+                }
+            }
+            Hint(l, "RimForex_TestMerchantTip".Translate());
+
+            l.Gap(6f);
+            if (l.ButtonText("RimForex_TestSettlement".Translate()))
+            {
+                FxGameComponent fx = Find.World != null
+                    ? Find.World.GetComponent<FxGameComponent>() : null;
+                if (fx != null)
+                {
+                    Messages.Message(fx.DebugForceSettlementLoss()
+                            ? "RimForex_MsgTestSettlement".Translate()
+                            : "RimForex_MsgTestSurgeFail".Translate(),
+                        MessageTypeDefOf.TaskCompletion, false);
+                }
+            }
+            Hint(l, "RimForex_TestSettlementTip".Translate());
 
             l.Gap(6f);
             if (l.ButtonText("RimForex_TestCrisis".Translate()))

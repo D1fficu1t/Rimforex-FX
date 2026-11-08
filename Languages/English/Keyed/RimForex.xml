@@ -287,7 +287,7 @@ This is a blow-up: the debt must be covered. Deposit silver at the terminal to b
   <RimForex_GuideButton>Beginner's guide</RimForex_GuideButton>
   <RimForex_GuideButtonTip>Reopen any time. Covers picking a direction, why positions get liquidated, and reading candles.</RimForex_GuideButtonTip>
   <RimForex_GuideTitle>Beginner's guide</RimForex_GuideTitle>
-  <RimForex_GuideIntro>Welcome to the Interstellar FX Terminal.\n\nVoted best trading experience in the galaxy for 87 consecutive quarters (data collected by us).\n\nTrading takes three steps: pick a currency, add leverage, press the button.</RimForex_GuideIntro>
+  <RimForex_GuideIntro>Welcome to the interstellar FX terminal.\n\nThe exchange does not require a central bank on the other side. Tribal shell strings, medieval silver, industrial credits - all are converted into a single XAG quote: the platform buys the goods at a discount and lists them for investors.\n\nWelcome to the Interstellar FX Terminal.\n\nVoted best trading experience in the galaxy for 87 consecutive quarters (data collected by us).\n\nTrading takes three steps: pick a currency, add leverage, press the button.</RimForex_GuideIntro>
   <RimForex_GuideLongTitle>1. When to buy (going long)</RimForex_GuideLongTitle>
   <RimForex_GuideLong>Going long means buying. Bet it rises and you keep the difference; bet wrong and you lose your margin.\n\nWhen should you buy? Our official answers:\n· There is news it will rise. Buy.\n· No news, but it has fallen for a long time. Buy. That is called bottom-fishing.\n· It is already surging. Buy. That is called momentum.\n\nIf you want to buy, you will always find a reason. That is why our users love us.</RimForex_GuideLong>
   <RimForex_GuideShortTitle>2. When to sell (going short)</RimForex_GuideShortTitle>
@@ -535,4 +535,29 @@ Let him reach the map edge, or put him down here. Either way, Collections will w
   <RimForex_TestPegTip>Peg a random currency for 6 hours; on expiry it either holds or breaks.</RimForex_TestPegTip>
   <RimForex_MsgTestPeg>Peg fired.</RimForex_MsgTestPeg>
   <RimForex_MsgPegged>{0} is pegged; movement inside the band is minimal.</RimForex_MsgPegged>
+  <RimForex_MarketSettleTip>{0}\n\nSettlement: {1}. The exchange buys the goods at a discount and converts them into an XAG quote.</RimForex_MarketSettleTip>
+  <RimForex_SettleTribal>shell strings and livestock</RimForex_SettleTribal>
+  <RimForex_SettleMedieval>silver coins and cloth</RimForex_SettleMedieval>
+  <RimForex_SettleIndustrial>promissory notes and credits</RimForex_SettleIndustrial>
+  <RimForex_SettleSpacer>on-chain credits</RimForex_SettleSpacer>
+  <RimForex_Set_MerchantCd>Mystery merchant cooldown: {0} days</RimForex_Set_MerchantCd>
+  <RimForex_MerchantTitle>Mystery merchant</RimForex_MerchantTitle>
+  <RimForex_MerchantOffer>The stranger lowers his voice: there is inside information on {0}'s currency ({1}).\n\nPay me {2} silver and I will tell you whether it rises or falls over the next five days.\n\nWhether it is true is your problem.</RimForex_MerchantOffer>
+  <RimForex_MerchantPay>Pay</RimForex_MerchantPay>
+  <RimForex_MerchantDecline>Not interested</RimForex_MerchantDecline>
+  <RimForex_MerchantNoMoney>Not enough silver. Short by {0}.</RimForex_MerchantNoMoney>
+  <RimForex_MerchantReveal>Deal done.\n\n{0} will {1} over the next five days.\n\nThe word is out. Believe it or not.</RimForex_MerchantReveal>
+  <RimForex_MerchantRise>rise</RimForex_MerchantRise>
+  <RimForex_MerchantFall>fall</RimForex_MerchantFall>
+  <RimForex_MerchantClose>Close</RimForex_MerchantClose>
+  <RimForex_MsgMerchantArrived>A mystery merchant is waiting outside the terminal.</RimForex_MsgMerchantArrived>
+  <RimForex_MsgMerchantBought>Paid {0} silver for the tip.</RimForex_MsgMerchantBought>
+  <RimForex_Ev12LetterLabel>{0} lost a settlement</RimForex_Ev12LetterLabel>
+  <RimForex_Ev12Letter>One of {0}'s settlements has been destroyed.\n\nAs the news spreads, {0}'s currency stays under pressure.</RimForex_Ev12Letter>
+  <RimForex_TestMerchant>Test: mystery merchant</RimForex_TestMerchant>
+  <RimForex_TestMerchantTip>Summon a mystery merchant right away; you can pay for a tip.</RimForex_TestMerchantTip>
+  <RimForex_MsgTestMerchant>Merchant summoned.</RimForex_MsgTestMerchant>
+  <RimForex_TestSettlement>Test: settlement loss</RimForex_TestSettlement>
+  <RimForex_TestSettlementTip>Simulate a destroyed settlement; a random faction's currency is pressured for 3 days.</RimForex_TestSettlementTip>
+  <RimForex_MsgTestSettlement>Settlement loss fired.</RimForex_MsgTestSettlement>
 </LanguageData>

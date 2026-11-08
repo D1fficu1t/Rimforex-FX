@@ -715,7 +715,10 @@ namespace RimForex
 
                 float pct = cur.previousRate > 0.01f ? (cur.rate / cur.previousRate - 1f) * 100f : 0f;
 
-                Widgets.Label(new Rect(row.x + 2f, row.y + 5f, 154f, 20f), cur.PairLabel);
+                Rect pairRect = new Rect(row.x + 2f, row.y + 5f, 154f, 20f);
+            Widgets.Label(pairRect, cur.PairLabel);
+            TooltipHandler.TipRegion(pairRect, "RimForex_MarketSettleTip".Translate(
+                cur.PairLabel, SettleNameFor(cur)));
                 Widgets.Label(new Rect(row.x + 156f, row.y + 5f, 76f, 20f), Truncate(cur.factionName, 5));
                 Widgets.Label(new Rect(row.x + 232f, row.y + 5f, 58f, 20f), cur.rate.ToString("F2"));
                 Widgets.Label(new Rect(row.x + 292f, row.y + 5f, 52f, 20f), ColorizeBySign(pct.ToString("+0.0;-0.0;0.0"), pct));
@@ -841,6 +844,39 @@ namespace RimForex
                 chartShowStopOut = !chartShowStopOut;
             }
             GUI.color = Color.white;
+        }
+
+        /// <summary>按派系科技等级给"这种货币到底是什么东西"一个说法。</summary>
+        private static string SettleNameFor(FxCurrency cur)
+        {
+            TechLevel tech = TechLevel.Industrial;
+            var all = Find.FactionManager != null
+                ? Find.FactionManager.AllFactionsListForReading : null;
+            if (all != null)
+            {
+                for (int i = 0; i < all.Count; i++)
+                {
+                    if (all[i] != null && all[i].loadID == cur.factionLoadID)
+                    {
+                        tech = all[i].def != null ? all[i].def.techLevel : TechLevel.Industrial;
+                        break;
+                    }
+                }
+            }
+            switch (tech)
+            {
+                case TechLevel.Animal:
+                case TechLevel.Neolithic:
+                    return "RimForex_SettleTribal".Translate();
+                case TechLevel.Medieval:
+                    return "RimForex_SettleMedieval".Translate();
+                case TechLevel.Spacer:
+                case TechLevel.Ultra:
+                case TechLevel.Archotech:
+                    return "RimForex_SettleSpacer".Translate();
+                default:
+                    return "RimForex_SettleIndustrial".Translate();
+            }
         }
 
         private void DrawChartZone(Rect zone, FxGameComponent fx)

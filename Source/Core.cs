@@ -3259,6 +3259,14 @@ namespace RimForex
         public int nextRatingTick;
         /// <summary>下一次汇率保卫战的 tick。</summary>
         public int nextPegTick;
+        /// <summary>下一次神秘商人出现的 tick。</summary>
+        public int nextMerchantTick;
+
+        // ── 据点损失检测（2026-11-08）──
+        // 三张平行表：据点 ID、重要性评分、所属派系
+        public List<int> knownSettlementIds = new List<int>();
+        public List<float> knownSettlementScores = new List<float>();
+        public List<int> knownSettlementFactions = new List<int>();
 
         // ── 待公布的央行决策（先预告、后落地，预告里不含方向）──
         public int pendingBankCcyId = -1;
@@ -3827,6 +3835,8 @@ namespace RimForex
             ProcessCentralBank();
             ProcessCreditRating();
             ProcessCurrencyStates();
+            ProcessSettlementLoss();
+            ProcessMysteryMerchant();
             ProcessRetaliation();
             ProcessDebtCase();
             ProcessForcedLiquidation();
@@ -5423,6 +5433,169 @@ namespace RimForex
                 "RimForex_Ev11PegLabel".Translate(f.Name),
                 "RimForex_Ev11Peg".Translate(f.Name),
                 LetterDefOf.NeutralEvent);
+            return true;
+        }
+
+        /// <summary>
+        /// 据点重要性 0~1（原版没有这个字段，只能自己拼）。
+        ///
+        /// 基础分看科技等级，两个加成：有商队、所属派系据点总数 >= 5。
+        /// 影响幅度 = -(0.8 + 分数) 日σ，持续 3 天。
+        /// </summary>
+        private static float SettlementScore(Settlement s, int factionSettlementCount)
+        {
+            if (s == null) return 0.3f;
+            TechLevel tech = s.Faction != null && s.Faction.def != null
+                ? s.Faction.def.techLevel : TechLevel.Industrial;
+            float score;
+            switch (tech)
+            {
+                case TechLevel.Animal:
+                case TechLevel.Neolithic: score = 0.3f; break;
+                case TechLevel.Medieval: score = 0.5f; break;
+                case TechLevel.Industrial: score = 0.8f; break;
+                default: score = 1.0f; break;
+            }
+            if (s.TraderKind != null) score += 0.2f;
+            if (factionSettlementCount >= 5) score += 0.2f;
+            return Mathf.Clamp01(score);
+        }
+
+        /// <summary>
+        /// 据点损失 → 该派系货币承压（2026-11-08）。
+        ///
+        /// 检测方式：缓存每次见到的据点 ID / 评分 / 派系，
+        /// 之后某个 ID 从世界据点列表里消失 = 它被摧毁了。
+        /// 每 250 tick 扫一次，最多 1 天延迟。
+        /// </summary>
+        private void ProcessSettlementLoss()
+        {
+            if (GenTicks.TicksGame % 250 != 0) return;
+            if (Find.WorldObjects == null) return;
+            var live = Find.WorldObjects.Settlements;
+            if (live == null) return;
+
+            // 先统计每个派系的据点数量，评分要用
+            var perFaction = new Dictionary<int, int>();
+            for (int i = 0; i < live.Count; i++)
+            {
+                var s = live[i];
+                if (s == null || s.Faction == null) continue;
+                int fid = s.Faction.loadID;
+                int cnt;
+                perFaction.TryGetValue(fid, out cnt);
+                perFaction[fid] = cnt + 1;
+            }
+
+            var liveIds = new HashSet<int>();
+            for (int i = 0; i < live.Count; i++)
+            {
+                var s = live[i];
+                if (s == null) continue;
+                liveIds.Add(s.ID);
+
+                // 新见到的据点登记下来
+                if (!knownSettlementIds.Contains(s.ID))
+                {
+                    int cnt;
+                    perFaction.TryGetValue(s.Faction != null ? s.Faction.loadID : -1, out cnt);
+                    knownSettlementIds.Add(s.ID);
+                    knownSettlementScores.Add(SettlementScore(s, cnt));
+                    knownSettlementFactions.Add(s.Faction != null ? s.Faction.loadID : -1);
+                }
+            }
+
+            // 消失的据点 = 被摧毁
+            for (int i = knownSettlementIds.Count - 1; i >= 0; i--)
+            {
+                if (liveIds.Contains(knownSettlementIds[i])) continue;
+
+                int fid = knownSettlementFactions[i];
+                float score = i < knownSettlementScores.Count ? knownSettlementScores[i] : 0.5f;
+                knownSettlementIds.RemoveAt(i);
+                if (i < knownSettlementScores.Count) knownSettlementScores.RemoveAt(i);
+                if (i < knownSettlementFactions.Count) knownSettlementFactions.RemoveAt(i);
+
+                Faction f = FactionByID(fid);
+                if (f == null || f.IsPlayer || f.defeated) continue;
+                FxCurrency c = market.Get(fid);
+                if (c == null) continue;
+
+                int days = 3;
+                c.newsDriftLog -= (0.8f + score) * SigmaDayOf(c) * days;
+                c.newsDriftUntilTick = GenTicks.TicksGame + days * TicksPerDay;
+
+                Find.LetterStack.ReceiveLetter(
+                    "RimForex_Ev12LetterLabel".Translate(f.Name),
+                    "RimForex_Ev12Letter".Translate(f.Name),
+                    LetterDefOf.NeutralEvent);
+            }
+        }
+
+        /// <summary>测试按钮：模拟一次据点损失（直接给随机货币挂一次压力）。</summary>
+        public bool DebugForceSettlementLoss()
+        {
+            Faction f;
+            FxCurrency c = PickEventCurrency(out f);
+            if (c == null || f == null) return false;
+            int days = 3;
+            c.newsDriftLog -= 1.5f * SigmaDayOf(c) * days;
+            c.newsDriftUntilTick = GenTicks.TicksGame + days * TicksPerDay;
+            Find.LetterStack.ReceiveLetter(
+                "RimForex_Ev12LetterLabel".Translate(f.Name),
+                "RimForex_Ev12Letter".Translate(f.Name),
+                LetterDefOf.NeutralEvent);
+            return true;
+        }
+
+        /// <summary>
+        /// 神秘商人（2026-11-08）：付钱买一条"未来五天走势"的内幕。
+        ///
+        /// 60% 是真的（真的就照他说的方向走），40% 是反的。
+        /// 方向不提前透露，付款后才揭晓；钱从账户余额扣。
+        /// </summary>
+        private void ProcessMysteryMerchant()
+        {
+            int now = GenTicks.TicksGame;
+            RimForexSettings cfg = RimForexMod.Settings;
+            int cd = cfg != null ? Mathf.Clamp(cfg.merchantCooldownDays, 10, 40) : 20;
+
+            if (nextMerchantTick <= 0)
+            {
+                nextMerchantTick = now + Mathf.RoundToInt(cd * Rand.Range(0.7f, 1.3f)) * TicksPerDay;
+                return;
+            }
+            if (now < nextMerchantTick) return;
+            nextMerchantTick = now + Mathf.RoundToInt(cd * Rand.Range(0.7f, 1.3f)) * TicksPerDay;
+
+            if (cfg != null && !cfg.enableWorldEvents) return;
+            SummonMerchant();
+        }
+
+        /// <summary>叫出一个神秘商人（测试按钮也走这里）。</summary>
+        public bool SummonMerchant()
+        {
+            if (Find.WindowStack == null) return false;
+            if (Find.WindowStack.IsOpen(typeof(Window_FxMerchant))) return false;
+
+            FxAccount acc = ColonyAccount(null);
+            if (acc == null || acc.Equity <= 0f) return false;
+
+            Faction f;
+            FxCurrency c = PickEventCurrency(out f);
+            if (c == null || f == null) return false;
+
+            bool predictedUp = Rand.Chance(0.5f);
+            bool truth = Rand.Chance(0.6f);
+            float drift = 2.0f * SigmaDayOf(c) * 5f;
+            if (!predictedUp) drift = -drift;
+            if (!truth) drift = -drift;   // 假消息：实际走势与预言相反
+
+            float price = Mathf.Max(500f, acc.Equity * 0.03f);
+
+            Find.WindowStack.Add(new Window_FxMerchant(acc, c, f.Name, predictedUp, drift, price));
+            Messages.Message("RimForex_MsgMerchantArrived".Translate(),
+                MessageTypeDefOf.NeutralEvent, false);
             return true;
         }
 
@@ -7686,6 +7859,13 @@ namespace RimForex
             Scribe_Values.Look(ref nextBankTick, "nextBankTick", 0);
             Scribe_Values.Look(ref nextRatingTick, "nextRatingTick", 0);
             Scribe_Values.Look(ref nextPegTick, "nextPegTick", 0);
+            Scribe_Values.Look(ref nextMerchantTick, "nextMerchantTick", 0);
+            Scribe_Collections.Look(ref knownSettlementIds, "knownSettlementIds", LookMode.Value);
+            Scribe_Collections.Look(ref knownSettlementScores, "knownSettlementScores", LookMode.Value);
+            Scribe_Collections.Look(ref knownSettlementFactions, "knownSettlementFactions", LookMode.Value);
+            if (knownSettlementIds == null) knownSettlementIds = new List<int>();
+            if (knownSettlementScores == null) knownSettlementScores = new List<float>();
+            if (knownSettlementFactions == null) knownSettlementFactions = new List<int>();
             Scribe_Values.Look(ref pendingBankCcyId, "pendingBankCcyId", -1);
             Scribe_Values.Look(ref pendingBankDueTick, "pendingBankDueTick", 0);
             Scribe_Values.Look(ref pendingBankSigmas, "pendingBankSigmas", 0f);
