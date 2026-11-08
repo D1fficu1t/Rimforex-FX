@@ -3277,6 +3277,9 @@ namespace RimForex
         public int pendingTalkUntilTick;
         /// <summary>下次重新寻路的 tick（商人会走动，走到旧位置就白跑了）。</summary>
         public int pendingTalkRepathTick;
+        /// <summary>商人站位的格子（无派系，没有领主，需要自己维持位置）。</summary>
+        public int merchantHomeX = -1;
+        public int merchantHomeZ = -1;
 
         // ── 据点损失检测（2026-11-08）──
         // 三张平行表：据点 ID、重要性评分、所属派系
@@ -5613,14 +5616,14 @@ namespace RimForex
             if (!predictedUp) drift = -drift;
             if (!truth) drift = -drift;   // 假消息：实际走势与预言相反
 
-            Faction faction = EnsurePlatformFaction();
-            if (faction == null) return false;
-
+            // 商人是个无派系的独行者：不属于清算部，也不属于任何势力。
+            // 无派系 pawn 没有领主，位置靠下面的 idle 维护逻辑自己维持。
             var req = new PawnGenerationRequest(
-                PawnKindDefOf.Villager, faction,
+                PawnKindDefOf.Villager, null,
                 PawnGenerationContext.NonPlayer, map.Tile);
             Pawn pawn = PawnGenerator.GeneratePawn(req);
             if (pawn == null) return false;
+            try { pawn.SetFaction(null); } catch { }
 
             IntVec3 cell;
             if (!CellFinder.TryFindRandomEdgeCellWith(
@@ -5646,23 +5649,10 @@ namespace RimForex
 
             try
             {
-                var lord = LordMaker.MakeNewLord(faction, new LordJob_DefendPoint(target),
-                    map, new List<Pawn> { pawn });
-                if (lord == null)
-                {
-                    pawn.jobs.StartJob(JobMaker.MakeJob(JobDefOf.Goto, target),
-                        JobCondition.InterruptForced);
-                }
+                pawn.jobs.StartJob(JobMaker.MakeJob(JobDefOf.Goto, target),
+                    JobCondition.InterruptForced);
             }
-            catch
-            {
-                try
-                {
-                    pawn.jobs.StartJob(JobMaker.MakeJob(JobDefOf.Goto, target),
-                        JobCondition.InterruptForced);
-                }
-                catch { }
-            }
+            catch { }
 
             merchantPawnId = pawn.thingIDNumber;
             merchantCcyId = c.factionLoadID;
@@ -5671,6 +5661,8 @@ namespace RimForex
             merchantDriftLog = drift;
             merchantPrice = Mathf.Max(500f, acc.Equity * 0.03f);
             merchantLeaveTick = GenTicks.TicksGame + 2 * TicksPerDay;
+            merchantHomeX = target.x;
+            merchantHomeZ = target.z;
 
             Find.LetterStack.ReceiveLetter(
                 "RimForex_Ev13LetterLabel".Translate(),
@@ -5713,7 +5705,7 @@ namespace RimForex
                     // ⚠️ 必须先脱离领主：LordJob_DefendPoint 会把他往殖民地拉，
                     // 只发 Goto 的话走到边缘又会被拽回来（作者实测）。
                     var lord = pawn.GetLord();
-                    if (lord != null) lord.RemovePawn(pawn);
+                    if (lord != null) lord.RemovePawn(pawn);   // 无派系时为 null，正常跳过
                 }
                 catch { }
 
@@ -5802,7 +5794,27 @@ namespace RimForex
                 return;
             }
             Pawn pawn = FindPawnById(merchantPawnId);
-            if (pawn == null || pawn.Dead || !pawn.Spawned) merchantPawnId = -1;
+            if (pawn == null || pawn.Dead || !pawn.Spawned)
+            {
+                merchantPawnId = -1;
+                return;
+            }
+
+            // 无派系、无领主，站着站着会自己溜达走。空闲时把他叫回站位。
+            if (pendingTalkPawnId < 0 && pawn.jobs.curJob == null
+                && merchantHomeX >= 0 && merchantHomeZ >= 0)
+            {
+                var home = new IntVec3(merchantHomeX, 0, merchantHomeZ);
+                if (home.InBounds(pawn.Map) && pawn.Position.DistanceTo(home) > 1.5f)
+                {
+                    try
+                    {
+                        pawn.jobs.StartJob(JobMaker.MakeJob(JobDefOf.Goto, home),
+                            JobCondition.InterruptForced);
+                    }
+                    catch { }
+                }
+            }
         }
 
         /// <summary>这个货币现在能不能交易（停牌期间不能）。</summary>
@@ -8073,6 +8085,8 @@ namespace RimForex
             Scribe_Values.Look(ref merchantDriftLog, "merchantDriftLog", 0f);
             Scribe_Values.Look(ref merchantPrice, "merchantPrice", 0f);
             Scribe_Values.Look(ref merchantLeaveTick, "merchantLeaveTick", 0);
+            Scribe_Values.Look(ref merchantHomeX, "merchantHomeX", -1);
+            Scribe_Values.Look(ref merchantHomeZ, "merchantHomeZ", -1);
             Scribe_Collections.Look(ref knownSettlementIds, "knownSettlementIds", LookMode.Value);
             Scribe_Collections.Look(ref knownSettlementScores, "knownSettlementScores", LookMode.Value);
             Scribe_Collections.Look(ref knownSettlementFactions, "knownSettlementFactions", LookMode.Value);
