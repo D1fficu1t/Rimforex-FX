@@ -5791,6 +5791,8 @@ namespace RimForex
             if (merchantLeaveTick > 0 && GenTicks.TicksGame >= merchantLeaveTick)
             {
                 DismissMerchant();
+                Messages.Message("RimForex_MsgMerchantLeft".Translate(),
+                    MessageTypeDefOf.NeutralEvent, false);
                 return;
             }
             Pawn pawn = FindPawnById(merchantPawnId);

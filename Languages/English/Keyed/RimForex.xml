@@ -563,4 +563,6 @@ Let him reach the map edge, or put him down here. Either way, Collections will w
   <RimForex_Ev13LetterLabel>Mystery merchant arrived</RimForex_Ev13LetterLabel>
   <RimForex_Ev13Letter>A stranger has stopped at the edge of the colony. Wrapped in an old cloak, he keeps looking around as if waiting for someone.\n\nHe will stay for two days.</RimForex_Ev13Letter>
   <RimForex_FeeMerchant>Information purchase</RimForex_FeeMerchant>
+  <RimForex_MerchantLater>Later</RimForex_MerchantLater>
+  <RimForex_MsgMerchantLeft>The mystery merchant has left.</RimForex_MsgMerchantLeft>
 </LanguageData>

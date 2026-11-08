@@ -578,4 +578,6 @@
   <RimForex_Ev13LetterLabel>神秘商人到访</RimForex_Ev13LetterLabel>
   <RimForex_Ev13Letter>一个陌生人在殖民地边缘停了下来。他裹着旧斗篷，四处张望，像在等什么人。\n\n他在那里停留两天。</RimForex_Ev13Letter>
   <RimForex_FeeMerchant>购买情报</RimForex_FeeMerchant>
+  <RimForex_MerchantLater>等会再谈</RimForex_MerchantLater>
+  <RimForex_MsgMerchantLeft>神秘商人已经离开了。</RimForex_MsgMerchantLeft>
 </LanguageData>

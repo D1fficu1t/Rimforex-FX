@@ -43,7 +43,8 @@ namespace RimForex
             draggable = true;
             resizeable = false;
             absorbInputAroundWindow = false;
-            forcePause = false;
+            // 谈生意时暂停，避免玩家一边读报价一边被行情/袭击打断
+            forcePause = true;
             preventCameraMotion = false;
         }
 
@@ -93,8 +94,19 @@ namespace RimForex
                 }
                 GUI.color = Color.white;
 
-                if (Widgets.ButtonText(new Rect(160f, by, 150f, 30f), "RimForex_MerchantDecline".Translate()))
+                bool declined = Widgets.ButtonText(
+                    new Rect(160f, by, 150f, 30f), "RimForex_MerchantDecline".Translate());
+                bool later = Widgets.ButtonText(
+                    new Rect(320f, by, 150f, 30f), "RimForex_MerchantLater".Translate());
+
+                if (declined)
                 {
+                    if (onClosed != null) onClosed();   // 不感兴趣 → 商人走
+                    Close();
+                }
+                else if (later)
+                {
+                    // 等会再谈 → 只关窗，商人和殖民者都不动，玩家可以去凑钱
                     Close();
                 }
                 return;
@@ -109,14 +121,8 @@ namespace RimForex
             if (Widgets.ButtonText(new Rect(0f, inRect.yMax - 32f, 150f, 30f),
                     "RimForex_MerchantClose".Translate()))
             {
-                Close();
+                Close();   // 收钱后商人本来就要走，这次关闭不再重复赶人
             }
-        }
-
-        public override void PostClose()
-        {
-            base.PostClose();
-            if (onClosed != null) onClosed();
         }
 
         private void PayAndReveal()
@@ -131,6 +137,7 @@ namespace RimForex
             currency.newsDriftUntilTick = GenTicks.TicksGame + 5 * FxGameComponent.TicksPerDay;
 
             revealed = true;
+            if (onClosed != null) onClosed();   // 付完钱商人就走了
             Messages.Message("RimForex_MsgMerchantBought".Translate(price.ToString("F0")),
                 MessageTypeDefOf.NeutralEvent, false);
         }
