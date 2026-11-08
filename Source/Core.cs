@@ -2452,7 +2452,8 @@ namespace RimForex
             // （新根的开盘价也是 rate，两根在边界上相接）。
             if (rate > high) high = rate;
             if (rate < low) low = rate;
-            buf.Add(new FxCandle(open, high, low, rate));
+            // startTick 必须在重置之前取：这是刚封掉那根 K 线的起点
+            buf.Add(new FxCandle(open, high, low, rate, startTick));
             if (buf.Count > MaxCandles) buf.RemoveAt(0);
 
             startTick = bucket * periodTicks;
@@ -2535,16 +2536,20 @@ namespace RimForex
 
             List<FxCandle> buf;
             float curOpen, curHigh, curLow;
+            int curStart;
             switch (span)
             {
                 case FxChartSpan.Hour:
                     buf = s.hourCandles; curOpen = s.hourOpen; curHigh = s.hourHigh; curLow = s.hourLow;
+                    curStart = s.hourStartTick;
                     break;
                 case FxChartSpan.Day:
                     buf = s.dayCandles; curOpen = s.dayOpen; curHigh = s.dayHigh; curLow = s.dayLow;
+                    curStart = s.dayStartTick;
                     break;
                 default:
                     buf = s.candles; curOpen = s.curOpen; curHigh = s.curHigh; curLow = s.curLow;
+                    curStart = s.periodStartTick;
                     break;
             }
             if (buf == null) return viewBuf;
@@ -2562,6 +2567,7 @@ namespace RimForex
                 viewLive.high = curHigh;
                 viewLive.low = curLow;
                 viewLive.close = last;
+                viewLive.startTick = curStart;
                 viewBuf.Add(viewLive);
             }
             return viewBuf;
