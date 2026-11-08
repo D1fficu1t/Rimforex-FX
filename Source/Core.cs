@@ -3205,6 +3205,12 @@ namespace RimForex
         /// <summary>下一次评级事件的 tick。</summary>
         public int nextRatingTick;
 
+        // ── 待公布的央行决策（先预告、后落地，预告里不含方向）──
+        public int pendingBankCcyId = -1;
+        public int pendingBankDueTick;
+        public float pendingBankSigmas;
+        public bool pendingBankDownward;
+
         /// <summary>上次 E3（暴赚）触发的 tick。</summary>
         public int lastWealthEventTick;
 
@@ -5260,6 +5266,21 @@ namespace RimForex
         private void ProcessCentralBank()
         {
             int now = GenTicks.TicksGame;
+
+            // ① 到点了：真正施加跳空（方向早已定好，但从未告诉玩家）
+            if (pendingBankCcyId >= 0 && now >= pendingBankDueTick)
+            {
+                FxCurrency pc = market.Get(pendingBankCcyId);
+                if (pc != null)
+                {
+                    market.ForceGap(pc, pendingBankSigmas, pendingBankDownward);
+                    Messages.Message(
+                        "RimForex_MsgBankAnnounced".Translate(),
+                        MessageTypeDefOf.NeutralEvent, false);
+                }
+                pendingBankCcyId = -1;
+            }
+
             if (now < nextBankTick) return;
 
             RimForexSettings cfg = RimForexMod.Settings;
@@ -5278,15 +5299,19 @@ namespace RimForex
             FxCurrency c = PickEventCurrency(out f);
             if (c == null || f == null) return false;
 
+            // 方向在这里就定了，但**绝不写进信件** ——
+            // 提前告诉玩家方向等于白送钱（2026-11-08 作者指出）。
             bool hike = Rand.Chance(0.5f);
-            float sigmas = Rand.Range(BankGapSigmasMin, BankGapSigmasMax);
-            market.ForceGap(c, sigmas, !hike);   // 加息向上、降息向下
+            pendingBankCcyId = c.factionLoadID;
+            pendingBankSigmas = Rand.Range(BankGapSigmasMin, BankGapSigmasMax);
+            pendingBankDownward = !hike;   // 加息向上、降息向下
+            // 2~6 小时后落地，给玩家留出"猜"的空间
+            pendingBankDueTick = GenTicks.TicksGame + Rand.Range(2, 7) * TicksPerHour;
 
             string inst = BankNameFor(f);
-            string action = hike ? "RimForex_BankHike".Translate() : "RimForex_BankCut".Translate();
             Find.LetterStack.ReceiveLetter(
                 "RimForex_Ev8LetterLabel".Translate(f.Name),
-                "RimForex_Ev8Letter".Translate(f.Name, inst, action),
+                "RimForex_Ev8Letter".Translate(f.Name, inst),
                 LetterDefOf.NeutralEvent);
             return true;
         }
@@ -7425,6 +7450,10 @@ namespace RimForex
             Scribe_Values.Look(ref lastWealthEventTick, "lastWealthEventTick", 0);
             Scribe_Values.Look(ref nextBankTick, "nextBankTick", 0);
             Scribe_Values.Look(ref nextRatingTick, "nextRatingTick", 0);
+            Scribe_Values.Look(ref pendingBankCcyId, "pendingBankCcyId", -1);
+            Scribe_Values.Look(ref pendingBankDueTick, "pendingBankDueTick", 0);
+            Scribe_Values.Look(ref pendingBankSigmas, "pendingBankSigmas", 0f);
+            Scribe_Values.Look(ref pendingBankDownward, "pendingBankDownward", false);
             Scribe_Collections.Look(ref refugeePawnIds, "refugeePawnIds", LookMode.Value);
             Scribe_Collections.Look(ref weakenedSettlements, "weakenedSettlements", LookMode.Deep);
             Scribe_Collections.Look(ref retaliations, "retaliations", LookMode.Deep);
