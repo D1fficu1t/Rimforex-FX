@@ -150,10 +150,12 @@ namespace RimForex
             }
 
             // 当前价常驻线（与终端一致）
+            float lastRateY = float.NaN;
             float lastRate = cur.rate > 0.001f ? cur.rate : candles[n - 1].close;
             if (lastRate >= min && lastRate <= max)
             {
                 float curY = PriceToY(lastRate, min, max, area);
+                lastRateY = curY;
                 Widgets.DrawBoxSolid(new Rect(area.x, curY, area.width, 1f),
                     new Color(0.95f, 0.90f, 0.55f, 0.95f));
                 Text.Font = GameFont.Tiny;
@@ -230,8 +232,10 @@ namespace RimForex
             Text.Anchor = TextAnchor.MiddleLeft;
             for (int g = 0; g <= 4; g++)
             {
-                float p = max - (max - min) * g / 4f;
                 float gy = area.y + area.height * g / 4f;
+                // 和当前价标签挨太近的刻度不画，避免两个数字叠在一起
+                if (!float.IsNaN(lastRateY) && Mathf.Abs(gy - lastRateY) < 9f) continue;
+                float p = max - (max - min) * g / 4f;
                 Widgets.Label(new Rect(area.xMax + 4f, gy - 8f, 46f, 16f), p.ToString("F2"));
             }
             Text.Anchor = TextAnchor.UpperLeft;
