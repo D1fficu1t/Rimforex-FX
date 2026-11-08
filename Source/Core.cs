@@ -5769,9 +5769,9 @@ namespace RimForex
                 return;
             }
 
-            // 商人在这期间可能挪了位置，殖民者到旧点就站着不动了。
-            // 他一旦空闲下来就重新寻路到商人**当前**的位置，最多每 60 tick 一次。
-            if (talker.jobs.curJob == null && GenTicks.TicksGame >= pendingTalkRepathTick)
+            // 商人会走动。每 60 tick 无条件把目标改到商人**当前**位置 ——
+            // 只在空闲时重发是不够的：殖民者会先走到旧点、站一会儿，玩家看起来就是"追着旧位置跑"。
+            if (GenTicks.TicksGame >= pendingTalkRepathTick)
             {
                 pendingTalkRepathTick = GenTicks.TicksGame + 60;
                 try
@@ -5800,21 +5800,45 @@ namespace RimForex
                 return;
             }
 
-            // 无派系、无领主，站着站着会自己溜达走。空闲时把他叫回站位。
-            if (pendingTalkPawnId < 0 && pawn.jobs.curJob == null
-                && merchantHomeX >= 0 && merchantHomeZ >= 0)
+            // 无派系、无领主：既没人管他，也没有 LordJob 能把他钉住。
+            // 表现就是"走到外围后自己溜达出地图"（作者实测）。
+            // 对策：每 250 tick 校正一次 ——
+            //   · 刷新 exitMapAfterTick（防止别处把它改成近期）
+            //   · 离站位远 → 走回去；已在站位 → 挂一个超长 Wait 占住 job，
+            //     空闲的民众 pawn 才会触发"离开地图"的那套逻辑
+            if (GenTicks.TicksGame % 250 != 0) return;
+            try { pawn.mindState.exitMapAfterTick = int.MaxValue; } catch { }
+
+            if (pendingTalkPawnId >= 0) return;   // 有人正在过来，别打断他
+            if (merchantHomeX < 0 || merchantHomeZ < 0) return;
+
+            var home = new IntVec3(merchantHomeX, 0, merchantHomeZ);
+            if (!home.InBounds(pawn.Map)) return;
+
+            bool far = pawn.Position.DistanceTo(home) > 1.5f;
+            var job = pawn.jobs != null ? pawn.jobs.curJob : null;
+            bool idle = job == null
+                || job.def == JobDefOf.Wait
+                || job.def == JobDefOf.Wait_Combat
+                || job.def == JobDefOf.Goto;
+
+            if (!idle) return;
+
+            try
             {
-                var home = new IntVec3(merchantHomeX, 0, merchantHomeZ);
-                if (home.InBounds(pawn.Map) && pawn.Position.DistanceTo(home) > 1.5f)
+                if (far)
                 {
-                    try
-                    {
-                        pawn.jobs.StartJob(JobMaker.MakeJob(JobDefOf.Goto, home),
-                            JobCondition.InterruptForced);
-                    }
-                    catch { }
+                    pawn.jobs.StartJob(JobMaker.MakeJob(JobDefOf.Goto, home),
+                        JobCondition.InterruptForced);
+                }
+                else
+                {
+                    // 超长 Wait 占住 job，避免闲置逻辑把他送走
+                    pawn.jobs.StartJob(JobMaker.MakeJob(JobDefOf.Wait, 100000),
+                        JobCondition.InterruptForced);
                 }
             }
+            catch { }
         }
 
         /// <summary>这个货币现在能不能交易（停牌期间不能）。</summary>
