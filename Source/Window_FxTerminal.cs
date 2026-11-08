@@ -885,6 +885,8 @@ namespace RimForex
 
             Text.Font = GameFont.Small;
             string chartTitle = "RimForex_ChartTitle".Translate(sel.PairLabel, FxMarket.QuotesPerCandle);
+            if (Fx.CurrencyHalted(sel)) chartTitle += " " + "RimForex_ChartHalted".Translate();
+            else if (sel.pegUntilTick > GenTicks.TicksGame) chartTitle += " " + "RimForex_ChartPegged".Translate();
             Widgets.Label(new Rect(r.x, r.y, Mathf.Max(60f, titleW), 22f), chartTitle);
 
             // 最新价：原来在左下角，作者要求挪到标题后面
@@ -2005,7 +2007,8 @@ float hintH = 0f;
             float feePct = FxGameComponent.FeeRate * 100f;
             float totalCost = actualMargin + fee;
             bool enough = totalCost <= account.balance;
-            bool canOpen = sel != null && units > 0 && enough;
+            bool halted = Fx != null && Fx.CurrencyHalted(sel);
+            bool canOpen = sel != null && units > 0 && enough && !halted;
 
             // 逐行成本明细可以在模组设置里关掉，只留总花费。
             // 关掉后省下的纵向空间直接让给下方的提示行，不会留空洞。
@@ -2096,6 +2099,13 @@ float hintH = 0f;
             {
                 GUI.color = Color.gray;
                 Widgets.Label(new Rect(left.x, y, left.width, 18f), "RimForex_NoSelection".Translate());
+                GUI.color = Color.white;
+            }
+            else if (halted)
+            {
+                GUI.color = new Color(1f, 0.75f, 0.45f);
+                Widgets.Label(new Rect(left.x, y, left.width, 18f),
+                    "RimForex_MsgTradeHalted".Translate(sel != null ? sel.PairLabel : ""));
                 GUI.color = Color.white;
             }
             else if (!enough)
@@ -2324,6 +2334,13 @@ float hintH = 0f;
                 Messages.Message("RimForex_MsgFrozen".Translate(
                     ((account.frozenUntilTick - GenTicks.TicksGame) / FxGameComponent.TicksPerDay)
                         .ToString("0")), MessageTypeDefOf.RejectInput, false);
+                return;
+            }
+
+            if (Fx != null && Fx.CurrencyHalted(cur))
+            {
+                Messages.Message("RimForex_MsgTradeHalted".Translate(cur.PairLabel),
+                    MessageTypeDefOf.RejectInput, false);
                 return;
             }
 

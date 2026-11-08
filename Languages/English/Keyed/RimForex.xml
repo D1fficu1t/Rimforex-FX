@@ -514,4 +514,24 @@ Let him reach the map edge, or put him down here. Either way, Collections will w
   <RimForex_TestRatingTip>Apply a 3-day downward drift to a random faction's currency.</RimForex_TestRatingTip>
   <RimForex_MsgTestRating>Downgrade fired.</RimForex_MsgTestRating>
   <RimForex_MsgBankAnnounced>The rate decision is out, and the market reacted at once.</RimForex_MsgBankAnnounced>
+  <RimForex_Set_PegCd>Peg defense cooldown: {0} days</RimForex_Set_PegCd>
+  <RimForex_Ev10HaltLabel>{0} suspended</RimForex_Ev10HaltLabel>
+  <RimForex_Ev10Halt>{0} has suspended foreign exchange trading.\n\nDuring the halt you can neither open nor close positions, and overnight interest still accrues.\n\nTrading reopens with a gap in an unknown direction.</RimForex_Ev10Halt>
+  <RimForex_Ev10ReopenLabel>{0} reopened</RimForex_Ev10ReopenLabel>
+  <RimForex_Ev10Reopen>{0}'s currency is trading again, and it gapped the moment it reopened.</RimForex_Ev10Reopen>
+  <RimForex_Ev11PegLabel>{0} pegs its rate</RimForex_Ev11PegLabel>
+  <RimForex_Ev11Peg>{0}'s central bank has pegged its exchange rate. For the next few days the price is confined to a very narrow band.\n\nThere is little to gain inside the band, and overnight interest still applies.</RimForex_Ev11Peg>
+  <RimForex_Ev11HoldLabel>{0} held the peg</RimForex_Ev11HoldLabel>
+  <RimForex_Ev11Hold>{0} successfully defended the peg. The band ended quietly.</RimForex_Ev11Hold>
+  <RimForex_Ev11BreakLabel>{0} broke the peg</RimForex_Ev11BreakLabel>
+  <RimForex_Ev11Break>{0} lost its currency defense. The peg gave way and the rate was repriced in one move.</RimForex_Ev11Break>
+  <RimForex_MsgTradeHalted>{0} is suspended; trading is unavailable.</RimForex_MsgTradeHalted>
+  <RimForex_ChartHalted>(suspended)</RimForex_ChartHalted>
+  <RimForex_ChartPegged>(pegged)</RimForex_ChartPegged>
+  <RimForex_TestHalt>Test: trading halt</RimForex_TestHalt>
+  <RimForex_TestHaltTip>Halt a random currency for 6 hours; it gaps when trading resumes.</RimForex_TestHaltTip>
+  <RimForex_MsgTestHalt>Halt fired.</RimForex_MsgTestHalt>
+  <RimForex_TestPeg>Test: peg defense</RimForex_TestPeg>
+  <RimForex_TestPegTip>Peg a random currency for 6 hours; on expiry it either holds or breaks.</RimForex_TestPegTip>
+  <RimForex_MsgTestPeg>Peg fired.</RimForex_MsgTestPeg>
 </LanguageData>

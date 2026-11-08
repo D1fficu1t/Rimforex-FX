@@ -56,6 +56,18 @@ namespace RimForex
 
         /// <summary>该货币上次触发世界事件的 tick（每货币冷却）。</summary>
         public int lastEventTick;
+
+        // ── 0.3.2 停牌 / 汇率保卫战 ──
+        /// <summary>停牌到什么时候（0 = 正常交易）。停牌期间价格冻结、不能买卖。</summary>
+        public int haltUntilTick;
+        /// <summary>上次停牌的 tick，用于停牌冷却。</summary>
+        public int lastHaltTick;
+        /// <summary>钉住汇率到什么时候（0 = 未钉住）。</summary>
+        public int pegUntilTick;
+        /// <summary>钉住的中心价。</summary>
+        public float pegCenter;
+        /// <summary>钉住的上下带宽（比例，0.0015 = ±0.15%）。</summary>
+        public float pegHalfWidth;
         /// <summary>E4/E5 新闻造成的额外对数漂移（每步）。0 = 无。</summary>
         public float newsDriftLog;
         /// <summary>新闻漂移的到期 tick。</summary>
@@ -266,6 +278,11 @@ namespace RimForex
             Scribe_Values.Look(ref rate, "rate", 100f);
             Scribe_Values.Look(ref previousRate, "previousRate", 100f);
             Scribe_Values.Look(ref lastEventTick, "lastEventTick", 0);
+            Scribe_Values.Look(ref haltUntilTick, "haltUntilTick", 0);
+            Scribe_Values.Look(ref lastHaltTick, "lastHaltTick", 0);
+            Scribe_Values.Look(ref pegUntilTick, "pegUntilTick", 0);
+            Scribe_Values.Look(ref pegCenter, "pegCenter", 0f);
+            Scribe_Values.Look(ref pegHalfWidth, "pegHalfWidth", 0f);
             Scribe_Values.Look(ref newsDriftLog, "newsDriftLog", 0f);
             Scribe_Values.Look(ref newsDriftUntilTick, "newsDriftUntilTick", 0);
             Scribe_Values.Look(ref shortNotional, "shortNotional", 0f);
@@ -1866,6 +1883,22 @@ namespace RimForex
                 var c = currencies[id];
                 if (c == null) continue;
 
+                // ── 停牌：整步冻结 ──
+                // 价格不动、不抽跳空、不产生新闻漂移；K 线照样按步推一根平盘，
+                // 这样图表上是"一条横线"，玩家一眼能看出停牌了。
+                if (c.haltUntilTick > GenTicks.TicksGame)
+                {
+                    c.EnsureOsc();
+                    c.stepLogStart = Log(c.rate);
+                    c.stepLogTarget = c.stepLogStart;
+                    c.stepIsGap = false;
+                    c.subStep = 0;
+                    c.stepBudgetValid = true;
+                    c.AdvanceOscIndex();
+                    AccumulateCandle(c, stepStartTick);
+                    continue;
+                }
+
                 float anchor;
                 if (!anchors.TryGetValue(id, out anchor) || anchor <= 0f)
                 {
@@ -1949,6 +1982,17 @@ namespace RimForex
                     + (float)oscDisp
                     + mult * sigma
                     + NewsDriftStep(c);
+
+                // ── 汇率保卫战：把目标夹进钉住区间 ──
+                // 期间不产生跳空（否则"钉住"就没意义了），价格只能贴着区间边缘走。
+                if (c.pegUntilTick > GenTicks.TicksGame && c.pegCenter > 0.001f)
+                {
+                    float half = c.pegHalfWidth > 0f ? c.pegHalfWidth : FxGameComponent.PegHalfWidthDefault;
+                    float lo = Log(c.pegCenter * (1f - half));
+                    float hi = Log(c.pegCenter * (1f + half));
+                    c.stepLogTarget = Mathf.Clamp(c.stepLogTarget, lo, hi);
+                    c.stepIsGap = false;
+                }
                 c.subStep = 0;
                 c.stepBudgetValid = true;   // 见 stepLogStart 的说明（读档保护）
                 c.AdvanceOscIndex();        // 每步换一条盘内路径
@@ -3204,6 +3248,8 @@ namespace RimForex
         public int nextBankTick;
         /// <summary>下一次评级事件的 tick。</summary>
         public int nextRatingTick;
+        /// <summary>下一次汇率保卫战的 tick。</summary>
+        public int nextPegTick;
 
         // ── 待公布的央行决策（先预告、后落地，预告里不含方向）──
         public int pendingBankCcyId = -1;
@@ -3318,6 +3364,25 @@ namespace RimForex
         public const int BankCooldownDefault = 25;
         public const int RatingCooldownDefault = 20;
         /// <summary>央行事件的跳空幅度（步 σ 倍数）。30σ ≈ 1.4% 的价格跳变。</summary>
+        // ── 停牌（2026-11-08）──
+        public const int HaltMinDays = 2;
+        public const int HaltMaxDays = 4;
+        public const int HaltCooldownDays = 12;
+        /// <summary>复牌跳空幅度（步 σ 倍数）。25~46 ≈ 1.1%~2.1%，方向 50/50。</summary>
+        public const float HaltReopenSigmasMin = 25f;
+        public const float HaltReopenSigmasMax = 46f;
+        /// <summary>触发停牌所需的单日偏离（日 σ 倍数）。</summary>
+        public const float HaltTriggerSigmas = 2.6f;
+
+        // ── 汇率保卫战（2026-11-08）──
+        public const float PegHalfWidthDefault = 0.0015f;
+        public const float PegBreakChance = 0.18f;
+        public const float PegBreakSigmasMin = 55f;
+        public const float PegBreakSigmasMax = 85f;
+        public const int PegCooldownDefault = 25;
+        public const int PegMinDays = 4;
+        public const int PegMaxDays = 8;
+
         public const float BankGapSigmasMin = 20f;
         public const float BankGapSigmasMax = 40f;
 
@@ -3752,6 +3817,7 @@ namespace RimForex
             ProcessWarNews();
             ProcessCentralBank();
             ProcessCreditRating();
+            ProcessCurrencyStates();
             ProcessRetaliation();
             ProcessDebtCase();
             ProcessForcedLiquidation();
@@ -3932,6 +3998,15 @@ namespace RimForex
         /// </summary>
         public void ClosePositionFromUi(FxAccount acc, FxPosition pos)
         {
+            // 停牌期间不能平仓（平台强平不经过这里，不受影响）
+            FxCurrency posCur = market.Get(pos != null ? pos.currencyFactionLoadID : -1);
+            if (CurrencyHalted(posCur))
+            {
+                Messages.Message("RimForex_MsgTradeHalted".Translate(pos.currencyName),
+                    MessageTypeDefOf.RejectInput, false);
+                return;
+            }
+
             if (acc == null || pos == null) return;
 
             // ---- 同一报价步内开仓又平仓 = 交易作废 ----
@@ -5214,6 +5289,135 @@ namespace RimForex
         /// 漂移不直接改价格，而是写进 `newsDriftLog`，由 TickStep 逐步施加 ——
         /// 这样走出来的是一条缓坡，不是跳空。
         /// </summary>
+        /// <summary>
+        /// 停牌与汇率保卫战的推进（2026-11-08）。
+        ///
+        /// 停牌由行情自己触发（单日偏离超过 2.6σ），自己到期复牌；
+        /// 保卫战按设置里的冷却随机发动，到期掷骰决定守住还是破位。
+        /// 两者互斥：已经在停牌的货币不会被钉住，反之亦然。
+        /// </summary>
+        private void ProcessCurrencyStates()
+        {
+            int now = GenTicks.TicksGame;
+            RimForexSettings cfg = RimForexMod.Settings;
+
+            foreach (var c in market.AllCurrencies)
+            {
+                if (c == null) continue;
+
+                // ① 复牌
+                if (c.haltUntilTick > 0 && now >= c.haltUntilTick)
+                {
+                    c.haltUntilTick = 0;
+                    market.ForceGap(c, Rand.Range(HaltReopenSigmasMin, HaltReopenSigmasMax),
+                        Rand.Chance(0.5f));
+                    Find.LetterStack.ReceiveLetter(
+                        "RimForex_Ev10ReopenLabel".Translate(c.factionName),
+                        "RimForex_Ev10Reopen".Translate(c.factionName),
+                        LetterDefOf.NeutralEvent);
+                    continue;
+                }
+
+                // ② 钉住到期
+                if (c.pegUntilTick > 0 && now >= c.pegUntilTick)
+                {
+                    c.pegUntilTick = 0;
+                    if (Rand.Chance(PegBreakChance))
+                    {
+                        market.ForceGap(c, Rand.Range(PegBreakSigmasMin, PegBreakSigmasMax),
+                            Rand.Chance(0.5f));
+                        Find.LetterStack.ReceiveLetter(
+                            "RimForex_Ev11BreakLabel".Translate(c.factionName),
+                            "RimForex_Ev11Break".Translate(c.factionName),
+                            LetterDefOf.ThreatSmall);
+                    }
+                    else
+                    {
+                        Find.LetterStack.ReceiveLetter(
+                            "RimForex_Ev11HoldLabel".Translate(c.factionName),
+                            "RimForex_Ev11Hold".Translate(c.factionName),
+                            LetterDefOf.NeutralEvent);
+                    }
+                    continue;
+                }
+
+                // ③ 触发停牌：单日偏离超过阈值，且不在钉住、冷却已过
+                if (c.haltUntilTick == 0 && c.pegUntilTick == 0
+                    && now - c.lastHaltTick > HaltCooldownDays * TicksPerDay
+                    && c.previousRate > 0.001f)
+                {
+                    float sigmaDay = SigmaDayOf(c);
+                    float dayRet = Mathf.Log(c.rate / c.previousRate);
+                    if (sigmaDay > 0f && Mathf.Abs(dayRet) > HaltTriggerSigmas * sigmaDay)
+                    {
+                        c.haltUntilTick = now + Rand.Range(HaltMinDays, HaltMaxDays + 1) * TicksPerDay;
+                        c.lastHaltTick = now;
+                        Find.LetterStack.ReceiveLetter(
+                            "RimForex_Ev10HaltLabel".Translate(c.factionName),
+                            "RimForex_Ev10Halt".Translate(c.factionName),
+                            LetterDefOf.ThreatSmall);
+                    }
+                }
+            }
+
+            // ④ 发动保卫战：按冷却随机挑一个货币
+            if (now < nextPegTick) return;
+            int cd = cfg != null ? Mathf.Clamp(cfg.pegCooldownDays, 10, 40) : PegCooldownDefault;
+            nextPegTick = now + Mathf.RoundToInt(cd * Rand.Range(0.7f, 1.3f)) * TicksPerDay;
+            if (cfg != null && !cfg.enableWorldEvents) return;
+
+            Faction f;
+            FxCurrency pickCur = PickEventCurrency(out f);
+            if (pickCur == null || f == null) return;
+            if (pickCur.haltUntilTick > 0 || pickCur.pegUntilTick > 0) return;
+
+            pickCur.pegCenter = pickCur.rate;
+            pickCur.pegHalfWidth = PegHalfWidthDefault;
+            pickCur.pegUntilTick = now + Rand.Range(PegMinDays, PegMaxDays + 1) * TicksPerDay;
+
+            Find.LetterStack.ReceiveLetter(
+                "RimForex_Ev11PegLabel".Translate(f.Name),
+                "RimForex_Ev11Peg".Translate(f.Name),
+                LetterDefOf.NeutralEvent);
+        }
+
+        /// <summary>测试按钮：立刻对一个随机货币触发停牌（6 小时，方便观察复牌跳空）。</summary>
+        public bool DebugForceHalt()
+        {
+            Faction f;
+            FxCurrency c = PickEventCurrency(out f);
+            if (c == null) return false;
+            c.haltUntilTick = GenTicks.TicksGame + 6 * TicksPerHour;
+            c.lastHaltTick = GenTicks.TicksGame;
+            Find.LetterStack.ReceiveLetter(
+                "RimForex_Ev10HaltLabel".Translate(c.factionName),
+                "RimForex_Ev10Halt".Translate(c.factionName),
+                LetterDefOf.ThreatSmall);
+            return true;
+        }
+
+        /// <summary>测试按钮：立刻钉住一个随机货币 6 小时（到期会掷骰守住/破位）。</summary>
+        public bool DebugForcePeg()
+        {
+            Faction f;
+            FxCurrency c = PickEventCurrency(out f);
+            if (c == null) return false;
+            c.pegCenter = c.rate;
+            c.pegHalfWidth = PegHalfWidthDefault;
+            c.pegUntilTick = GenTicks.TicksGame + 6 * TicksPerHour;
+            Find.LetterStack.ReceiveLetter(
+                "RimForex_Ev11PegLabel".Translate(f.Name),
+                "RimForex_Ev11Peg".Translate(f.Name),
+                LetterDefOf.NeutralEvent);
+            return true;
+        }
+
+        /// <summary>这个货币现在能不能交易（停牌期间不能）。</summary>
+        public bool CurrencyHalted(FxCurrency c)
+        {
+            return c != null && c.haltUntilTick > GenTicks.TicksGame;
+        }
+
         /// <summary>随机挑一个有货币、还活着的非玩家派系。事件共用。</summary>
         private FxCurrency PickEventCurrency(out Faction faction)
         {
@@ -5227,6 +5431,9 @@ namespace RimForex
                 var f = FactionByID(c.factionLoadID);
                 if (f == null || f.IsPlayer || f.temporary || f.Hidden) continue;
                 if (f.defeated) continue;
+                // 停牌 / 钉住的货币不适合再叠事件：跳空会被冻结或夹住，等于事件白触发
+                if (c.haltUntilTick > GenTicks.TicksGame) continue;
+                if (c.pegUntilTick > GenTicks.TicksGame) continue;
                 pool.Add(c);
             }
             if (pool.Count == 0) return null;
@@ -7450,6 +7657,7 @@ namespace RimForex
             Scribe_Values.Look(ref lastWealthEventTick, "lastWealthEventTick", 0);
             Scribe_Values.Look(ref nextBankTick, "nextBankTick", 0);
             Scribe_Values.Look(ref nextRatingTick, "nextRatingTick", 0);
+            Scribe_Values.Look(ref nextPegTick, "nextPegTick", 0);
             Scribe_Values.Look(ref pendingBankCcyId, "pendingBankCcyId", -1);
             Scribe_Values.Look(ref pendingBankDueTick, "pendingBankDueTick", 0);
             Scribe_Values.Look(ref pendingBankSigmas, "pendingBankSigmas", 0f);
