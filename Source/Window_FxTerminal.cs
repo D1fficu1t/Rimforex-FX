@@ -281,6 +281,15 @@ namespace RimForex
         private float marketPanelW = 486f;
         /// <summary>视图模式：0 = 表+图，1 = 只看表，2 = 只看图。</summary>
         private int chartViewMode;
+        /// <summary>涨跌列显示口径：0 = 日，1 = 5 日，2 = 象（15 日）。</summary>
+        private int changeMode;
+
+        private static string ChangeHeaderKey(int mode)
+        {
+            if (mode == 1) return "RimForex_ColChange5d";
+            if (mode == 2) return "RimForex_ColChangeQtr";
+            return "RimForex_ColChange";
+        }
         /// <summary>下单区高度（可上下拖动，−1 = 用默认值）。</summary>
         private float orderPanelH = -1f;
         private bool draggingHSplit;
@@ -686,7 +695,12 @@ namespace RimForex
             Widgets.Label(new Rect(r.x + 2f, r.y, 152f, 20f), "RimForex_ColPair".Translate());
             Widgets.Label(new Rect(r.x + 156f, r.y, 74f, 20f), "RimForex_ColFaction".Translate());
             Widgets.Label(new Rect(r.x + 232f, r.y, 58f, 20f), "RimForex_ColRate".Translate());
-            Widgets.Label(new Rect(r.x + 292f, r.y, 52f, 20f), "RimForex_ColChange".Translate());
+            Rect changeHdr = new Rect(r.x + 292f, r.y, 52f, 20f);
+            if (Widgets.ButtonText(changeHdr, ChangeHeaderKey(changeMode).Translate()))
+            {
+                changeMode = (changeMode + 1) % 3;
+            }
+            TooltipHandler.TipRegion(changeHdr, "RimForex_ColChangeTip".Translate());
             Widgets.Label(new Rect(r.x + 346f, r.y, 38f, 20f), "RimForex_ColVol".Translate());
             Widgets.Label(new Rect(r.x + 386f, r.y, 72f, 20f), "RimForex_ColPosition".Translate());
             GUI.color = Color.white;
@@ -713,7 +727,19 @@ namespace RimForex
                 if (Widgets.ButtonInvisible(row)) selectedFactionId = cur.factionLoadID;
                 Widgets.DrawHighlightIfMouseover(row);
 
-                float pct = cur.previousRate > 0.01f ? (cur.rate / cur.previousRate - 1f) * 100f : 0f;
+                float pct;
+                if (changeMode == 1)
+                {
+                    pct = FxGameComponent.Return5d(cur) * 100f;
+                }
+                else if (changeMode == 2)
+                {
+                    pct = FxGameComponent.ReturnQtr(cur) * 100f;
+                }
+                else
+                {
+                    pct = cur.previousRate > 0.01f ? (cur.rate / cur.previousRate - 1f) * 100f : 0f;
+                }
 
                 Rect pairRect = new Rect(row.x + 2f, row.y + 5f, 154f, 20f);
             Widgets.Label(pairRect, cur.PairLabel);

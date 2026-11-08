@@ -74,6 +74,9 @@ namespace RimForex
         public float logRate5dAgo;
         /// <summary>记录 logRate5dAgo 时的 tick。</summary>
         public int logRate5dTick;
+        /// <summary>象（15 日）前的价格，用于"象涨跌"列。</summary>
+        public float logRateQtrAgo;
+        public int logRateQtrTick;
         /// <summary>上次保卫战的 tick（防刷屏）。</summary>
         public int lastPegTick;
         /// <summary>最近一次"坏消息"的 tick（破位 / 丢据点），评级下调要用。</summary>
@@ -295,6 +298,8 @@ namespace RimForex
             Scribe_Values.Look(ref pegHalfWidth, "pegHalfWidth", 0f);
             Scribe_Values.Look(ref logRate5dAgo, "logRate5dAgo", 0f);
             Scribe_Values.Look(ref logRate5dTick, "logRate5dTick", 0);
+            Scribe_Values.Look(ref logRateQtrAgo, "logRateQtrAgo", 0f);
+            Scribe_Values.Look(ref logRateQtrTick, "logRateQtrTick", 0);
             Scribe_Values.Look(ref lastPegTick, "lastPegTick", 0);
             Scribe_Values.Look(ref lastBadNewsTick, "lastBadNewsTick", 0);
             Scribe_Values.Look(ref newsDriftLog, "newsDriftLog", 0f);
@@ -3418,7 +3423,8 @@ namespace RimForex
         /// <summary>央行事件的跳空幅度（步 σ 倍数）。30σ ≈ 1.4% 的价格跳变。</summary>
         // ── 关税下调（2026-11-08）──
         /// <summary>互相友好的门槛（双向好感）。</summary>
-        public const int TariffFriendlyGoodwill = 75;
+        /// <summary>双方对玩家的好感门槛（NPC 之间没有好感，只能用这个当"关系好"）。</summary>
+        public const int TariffPlayerFriendlyGoodwill = 40;
         public const int TariffCooldownDefault = 20;
         public const int TariffDriftDays = 3;
 
@@ -5359,8 +5365,15 @@ namespace RimForex
         /// 保卫战按设置里的冷却随机发动，到期掷骰决定守住还是破位。
         /// 两者互斥：已经在停牌的货币不会被钉住，反之亦然。
         /// </summary>
+        /// <summary>象（15 日）累计对数涨跌。</summary>
+        public static float ReturnQtr(FxCurrency c)
+        {
+            if (c == null || c.logRateQtrAgo < 0.0001f || c.rate <= 0.0001f) return 0f;
+            return Mathf.Log(c.rate / c.logRateQtrAgo);
+        }
+
         /// <summary>5 日累计对数涨跌（相对 5 天前的锚点）。</summary>
-        private static float Return5d(FxCurrency c)
+        public static float Return5d(FxCurrency c)
         {
             if (c == null || c.logRate5dAgo < 0.0001f || c.rate <= 0.0001f) return 0f;
             return Mathf.Log(c.rate / c.logRate5dAgo);
@@ -5403,15 +5416,24 @@ namespace RimForex
                     c.logRate5dTick = now;
                 }
 
+                // 维护象（15 日）锚点
+                if (c.logRateQtrTick <= 0 || now - c.logRateQtrTick >= 15 * TicksPerDay)
+                {
+                    c.logRateQtrAgo = c.rate;
+                    c.logRateQtrTick = now;
+                }
+
                 // ① 复牌
                 if (c.haltUntilTick > 0 && now >= c.haltUntilTick)
                 {
                     c.haltUntilTick = 0;
+                    bool reopenUp = Rand.Chance(0.5f);
                     market.ForceGap(c, Rand.Range(HaltReopenSigmasMin, HaltReopenSigmasMax),
-                        Rand.Chance(0.5f));
+                        !reopenUp);
                     Find.LetterStack.ReceiveLetter(
                         "RimForex_Ev10ReopenLabel".Translate(c.factionName),
-                        "RimForex_Ev10Reopen".Translate(c.factionName),
+                        (reopenUp ? "RimForex_Ev10ReopenUp" : "RimForex_Ev10ReopenDown")
+                            .Translate(c.factionName),
                         LetterDefOf.NeutralEvent);
                     continue;
                 }
@@ -5427,9 +5449,11 @@ namespace RimForex
                         c.lastBadNewsTick = now;
                         c.haltUntilTick = now + Rand.Range(1, 3) * TicksPerDay;
                         c.lastHaltTick = now;
+                        Faction breakFaction = FactionByID(c.factionLoadID);
                         Find.LetterStack.ReceiveLetter(
                             "RimForex_Ev11BreakLabel".Translate(c.factionName),
-                            "RimForex_Ev11Break".Translate(c.factionName),
+                            "RimForex_Ev11Break".Translate(c.factionName,
+                                breakFaction != null ? BankNameFor(breakFaction) : ""),
                             LetterDefOf.ThreatSmall);
                     }
                     else
@@ -5453,9 +5477,13 @@ namespace RimForex
                     {
                         c.haltUntilTick = now + Rand.Range(HaltMinDays, HaltMaxDays + 1) * TicksPerDay;
                         c.lastHaltTick = now;
+                        Faction haltFaction = FactionByID(c.factionLoadID);
                         Find.LetterStack.ReceiveLetter(
                             "RimForex_Ev10HaltLabel".Translate(c.factionName),
-                            "RimForex_Ev10Halt".Translate(c.factionName),
+                            "RimForex_Ev10Halt".Translate(
+                                c.factionName,
+                                (dayRet * 100f).ToString("+0.0;-0.0"),
+                                haltFaction != null ? BankNameFor(haltFaction) : ""),
                             LetterDefOf.ThreatSmall);
                     }
                 }
@@ -5484,7 +5512,8 @@ namespace RimForex
 
                 Find.LetterStack.ReceiveLetter(
                     "RimForex_Ev11PegLabel".Translate(tf.Name),
-                    "RimForex_Ev11Peg".Translate(tf.Name, BankNameFor(tf)),
+                    (surge ? "RimForex_Ev11PegUp" : "RimForex_Ev11Peg").Translate(
+                        tf.Name, BankNameFor(tf), (ret5 * 100f).ToString("+0.0;-0.0")),
                     LetterDefOf.NeutralEvent);
             }
         }
@@ -5681,8 +5710,12 @@ namespace RimForex
                     if (fb == null || fb == fa || fb.IsPlayer || fb.temporary || fb.Hidden || fb.defeated) continue;
                     var cb = market.Get(fb.loadID);
                     if (cb == null || cb.haltUntilTick > GenTicks.TicksGame || cb.pegUntilTick > GenTicks.TicksGame) continue;
-                    if (fa.GoodwillWith(fb) < TariffFriendlyGoodwill) continue;
-                    if (fb.GoodwillWith(fa) < TariffFriendlyGoodwill) continue;
+                    // ⚠️ 原版只维护"派系↔玩家"的好感，NPC 之间只有敌对/非敌对，
+                    // GoodwillWith 在 NPC 对 NPC 上恒为 0，拿 75 当门槛永远不成立。
+                    // 所以用：彼此不敌对 + 双方对玩家友好（>= 40）作为"关系好"的判据。
+                    if (fa.HostileTo(fb) || fb.HostileTo(fa)) continue;
+                    if (fa.GoodwillWith(Faction.OfPlayer) < TariffPlayerFriendlyGoodwill) continue;
+                    if (fb.GoodwillWith(Faction.OfPlayer) < TariffPlayerFriendlyGoodwill) continue;
                     a = fa; b = fb;
                     break;
                 }

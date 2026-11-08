@@ -531,15 +531,14 @@
   <RimForex_MsgBankAnnounced>利率决策已公布，市场立即作出反应。</RimForex_MsgBankAnnounced>
   <RimForex_Set_PegCd>汇率保卫战冷却：{0} 日</RimForex_Set_PegCd>
   <RimForex_Ev10HaltLabel>{0} 停牌</RimForex_Ev10HaltLabel>
-  <RimForex_Ev10Halt>{0} 宣布暂停外汇交易。\n\n停牌期间不能开仓，也不能平仓，隔夜利息照收。\n\n复牌时会出现一次跳空，方向未知。</RimForex_Ev10Halt>
+  <RimForex_Ev10Halt>{0} 的货币在一天内变动了 {1}%。\n\n{0} 的{2}宣布暂停外汇交易。停牌期间不能开仓也不能平仓，隔夜利息照收。</RimForex_Ev10Halt>
   <RimForex_Ev10ReopenLabel>{0} 复牌</RimForex_Ev10ReopenLabel>
-  <RimForex_Ev10Reopen>{0} 的货币恢复交易，复牌瞬间出现一次跳空。</RimForex_Ev10Reopen>
   <RimForex_Ev11PegLabel>{0} 宣布钉住汇率</RimForex_Ev11PegLabel>
-  <RimForex_Ev11Peg>{0} 的{1}宣布钉住汇率，未来数日汇价被限制在一个很窄的区间内。\n\n区间里几乎无利可图，还要照付隔夜利息。</RimForex_Ev11Peg>
+  <RimForex_Ev11Peg>{0} 的货币最近 5 天下跌了 {2}%。\n\n{0} 的{1}决定钉住汇率，把汇价限制在一个很窄的区间内。\n\n区间里几乎无利可图，还要照付隔夜利息。</RimForex_Ev11Peg>
   <RimForex_Ev11HoldLabel>{0} 守住了汇率</RimForex_Ev11HoldLabel>
   <RimForex_Ev11Hold>{0} 成功守住了钉住汇率，区间平稳结束。</RimForex_Ev11Hold>
   <RimForex_Ev11BreakLabel>{0} 汇率失守</RimForex_Ev11BreakLabel>
-  <RimForex_Ev11Break>{0} 的汇率保卫战失败，钉住区间被击穿，汇价一次性重估。</RimForex_Ev11Break>
+  <RimForex_Ev11Break>{0} 的汇率保卫战失败，钉住区间被击穿，汇价一次性重估。\n\n{0} 的{1}随即宣布暂停外汇交易，以稳定市场。</RimForex_Ev11Break>
   <RimForex_MsgTradeHalted>{0} 停牌中，无法交易。</RimForex_MsgTradeHalted>
   <RimForex_ChartHalted>（停牌）</RimForex_ChartHalted>
   <RimForex_ChartPegged>（钉住）</RimForex_ChartPegged>
@@ -586,4 +585,10 @@
   <RimForex_TestTariff>测试：关税下调</RimForex_TestTariff>
   <RimForex_TestTariffTip>立刻找一对友好派系触发关税协定，双方货币上涨 3 天。</RimForex_TestTariffTip>
   <RimForex_MsgTestTariff>已触发关税下调。</RimForex_MsgTestTariff>
+  <RimForex_Ev11PegUp>{0} 的货币最近 5 天上涨了 {2}%。\n\n{0} 的{1}决定压住汇率，把汇价限制在一个很窄的区间内。\n\n区间里几乎无利可图，还要照付隔夜利息。</RimForex_Ev11PegUp>
+  <RimForex_Ev10ReopenUp>{0} 的货币复牌。开盘即出现奇迹般的大涨。</RimForex_Ev10ReopenUp>
+  <RimForex_Ev10ReopenDown>{0} 的货币复牌。开盘就继续下跌，跌势比停牌前更凶。</RimForex_Ev10ReopenDown>
+  <RimForex_ColChange5d>5日</RimForex_ColChange5d>
+  <RimForex_ColChangeQtr>象</RimForex_ColChangeQtr>
+  <RimForex_ColChangeTip>点击切换：日涨跌 / 5 日涨跌 / 象（15 日）涨跌。</RimForex_ColChangeTip>
 </LanguageData>

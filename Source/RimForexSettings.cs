@@ -241,6 +241,19 @@ namespace RimForex
             floatPnlX = -1f;
             floatPnlY = -1f;
 
+            // 世界事件相关的全部设置（之前漏掉了，恢复默认对它们无效）
+            enableWorldEvents = true;
+            eventCooldownDays = 20;
+            e3CooldownDays = 15;
+            e4CooldownDays = 12;
+            bankCooldownDays = 25;
+            ratingCooldownDays = 20;
+            pegCooldownDays = 25;
+            merchantCooldownDays = 20;
+            tariffCooldownDays = 20;
+            e3RaidChance = 0.35f;
+            e1RaidChance = 0.60f;
+
             secondsPerQuote = 3f;
             quotesPerCandle = 6;
             gapIntensity = 0.5f;
