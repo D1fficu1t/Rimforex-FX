@@ -694,12 +694,15 @@ namespace RimForex
     public class FxCandle : IExposable
     {
         public float open, high, low, close;
+        /// <summary>这根 K 线的起始游戏 tick（0 = 旧存档没有这个字段）。</summary>
+        public int startTick;
 
         public FxCandle() { }
 
-        public FxCandle(float o, float h, float l, float c)
+        public FxCandle(float o, float h, float l, float c, int startTick = 0)
         {
             open = o; high = h; low = l; close = c;
+            this.startTick = startTick;
         }
 
         public void ExposeData()
@@ -708,6 +711,7 @@ namespace RimForex
             Scribe_Values.Look(ref high, "high");
             Scribe_Values.Look(ref low, "low");
             Scribe_Values.Look(ref close, "close");
+            Scribe_Values.Look(ref startTick, "startTick", 0);
         }
     }
 
@@ -2391,7 +2395,8 @@ namespace RimForex
 
                 if (nowTick - s.periodStartTick >= TicksPerCandle)
                 {
-                    s.candles.Add(new FxCandle(s.curOpen, s.curHigh, s.curLow, rate));
+                    s.candles.Add(new FxCandle(s.curOpen, s.curHigh, s.curLow, rate,
+                        s.periodStartTick));
                     if (s.candles.Count > MaxCandles) s.candles.RemoveAt(0);
                     s.curOpen = rate;
                     s.curHigh = rate;
@@ -5531,7 +5536,7 @@ namespace RimForex
                 if (SigmaDayOf(c) <= 0f) continue;
                 float ret5 = Return5d(c);
                 bool crash = ret5 <= -2.5f * SigmaDayOf(c);
-                bool surge = ret5 >= 3.5f * SigmaDayOf(c);
+                bool surge = ret5 >= 4.5f * SigmaDayOf(c);
                 if (!crash && !surge) continue;
 
                 Faction tf = FactionByID(c.factionLoadID);
@@ -5819,7 +5824,7 @@ namespace RimForex
             if (f == null) return;
             var c = market.Get(f.loadID);
             if (c == null) return;
-            c.newsDriftLog += Rand.Range(0.8f, 1.4f) * SigmaDayOf(c) * TariffDriftDays;
+            c.newsDriftLog += Rand.Range(0.5f, 0.9f) * SigmaDayOf(c) * TariffDriftDays;
             c.newsDriftUntilTick = GenTicks.TicksGame + TariffDriftDays * TicksPerDay;
         }
 

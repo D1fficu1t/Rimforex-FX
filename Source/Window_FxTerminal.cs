@@ -1114,6 +1114,18 @@ float hintH = 0f;
 
             // 涨跌用"收盘 vs 开盘"判定，与蜡烛配色同源
             string title = (c.close >= c.open ? "RimForex_HoverUp" : "RimForex_HoverDown").Translate();
+
+            // 标题前面加日期：日K 上看到的是"5500年素象第3天，收阴"
+            // 旧存档的 K 线没有 startTick（=0），那种情况只显示收阴/收阳。
+            if (c.startTick > 0)
+            {
+                string dateStr = RimWorld.GenDate.DateFullStringAt(
+                    RimWorld.GenDate.TickGameToAbs(c.startTick), Vector2.zero);
+                if (!string.IsNullOrEmpty(dateStr))
+                {
+                    title = dateStr + "，" + title;
+                }
+            }
             string text = body + "\n" + "RimForex_HoverRange".Translate(
                 (c.high - c.low).ToString("F2"),
                 c.open > 0.0001f ? ((c.close / c.open - 1f) * 100f).ToString("+0.00;-0.00;0.00") + "%" : "-");
