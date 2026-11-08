@@ -68,6 +68,16 @@ namespace RimForex
         public float pegCenter;
         /// <summary>钉住的上下带宽（比例，0.0015 = ±0.15%）。</summary>
         public float pegHalfWidth;
+
+        // ── 事件因果链（0.3.2）──
+        /// <summary>5 天前的价格，用来算"最近 5 日累计涨跌"。</summary>
+        public float logRate5dAgo;
+        /// <summary>记录 logRate5dAgo 时的 tick。</summary>
+        public int logRate5dTick;
+        /// <summary>上次保卫战的 tick（防刷屏）。</summary>
+        public int lastPegTick;
+        /// <summary>最近一次"坏消息"的 tick（破位 / 丢据点），评级下调要用。</summary>
+        public int lastBadNewsTick;
         /// <summary>E4/E5 新闻造成的额外对数漂移（每步）。0 = 无。</summary>
         public float newsDriftLog;
         /// <summary>新闻漂移的到期 tick。</summary>
@@ -283,6 +293,10 @@ namespace RimForex
             Scribe_Values.Look(ref pegUntilTick, "pegUntilTick", 0);
             Scribe_Values.Look(ref pegCenter, "pegCenter", 0f);
             Scribe_Values.Look(ref pegHalfWidth, "pegHalfWidth", 0f);
+            Scribe_Values.Look(ref logRate5dAgo, "logRate5dAgo", 0f);
+            Scribe_Values.Look(ref logRate5dTick, "logRate5dTick", 0);
+            Scribe_Values.Look(ref lastPegTick, "lastPegTick", 0);
+            Scribe_Values.Look(ref lastBadNewsTick, "lastBadNewsTick", 0);
             Scribe_Values.Look(ref newsDriftLog, "newsDriftLog", 0f);
             Scribe_Values.Look(ref newsDriftUntilTick, "newsDriftUntilTick", 0);
             Scribe_Values.Look(ref shortNotional, "shortNotional", 0f);
@@ -5345,6 +5359,34 @@ namespace RimForex
         /// 保卫战按设置里的冷却随机发动，到期掷骰决定守住还是破位。
         /// 两者互斥：已经在停牌的货币不会被钉住，反之亦然。
         /// </summary>
+        /// <summary>5 日累计对数涨跌（相对 5 天前的锚点）。</summary>
+        private static float Return5d(FxCurrency c)
+        {
+            if (c == null || c.logRate5dAgo < 0.0001f || c.rate <= 0.0001f) return 0f;
+            return Mathf.Log(c.rate / c.logRate5dAgo);
+        }
+
+        /// <summary>按科技等级决定"央行愿不愿意出手救市"。</summary>
+        private static float PegRescueChance(Faction f)
+        {
+            TechLevel tech = f != null && f.def != null ? f.def.techLevel : TechLevel.Industrial;
+            switch (tech)
+            {
+                case TechLevel.Animal:
+                case TechLevel.Neolithic: return 0.35f;
+                case TechLevel.Medieval: return 0.50f;
+                case TechLevel.Industrial: return 0.70f;
+                default: return 0.85f;
+            }
+        }
+
+        /// <summary>
+        /// 停牌与汇率保卫战的推进（0.3.2 因果链）。
+        ///
+        /// 保卫战不再"到点随机挑一个"，而是由持续贬值触发：
+        /// 最近 5 日累计跌幅 >= 2.5 日σ 时，按派系科技等级掷骰决定是否出手。
+        /// 破位后附带紧急停牌，形成"贬值 → 救市 → 破位 → 停牌 → 复牌"的链条。
+        /// </summary>
         private void ProcessCurrencyStates()
         {
             int now = GenTicks.TicksGame;
@@ -5353,6 +5395,13 @@ namespace RimForex
             foreach (var c in market.AllCurrencies)
             {
                 if (c == null) continue;
+
+                // 维护 5 日锚点
+                if (c.logRate5dTick <= 0 || now - c.logRate5dTick >= 5 * TicksPerDay)
+                {
+                    c.logRate5dAgo = c.rate;
+                    c.logRate5dTick = now;
+                }
 
                 // ① 复牌
                 if (c.haltUntilTick > 0 && now >= c.haltUntilTick)
@@ -5375,6 +5424,9 @@ namespace RimForex
                     {
                         market.ForceGap(c, Rand.Range(PegBreakSigmasMin, PegBreakSigmasMax),
                             Rand.Chance(0.5f));
+                        c.lastBadNewsTick = now;
+                        c.haltUntilTick = now + Rand.Range(1, 3) * TicksPerDay;
+                        c.lastHaltTick = now;
                         Find.LetterStack.ReceiveLetter(
                             "RimForex_Ev11BreakLabel".Translate(c.factionName),
                             "RimForex_Ev11Break".Translate(c.factionName),
@@ -5390,7 +5442,7 @@ namespace RimForex
                     continue;
                 }
 
-                // ③ 触发停牌：单日偏离超过阈值，且不在钉住、冷却已过
+                // ③ 停牌：单日极端波动
                 if (c.haltUntilTick == 0 && c.pegUntilTick == 0
                     && now - c.lastHaltTick > HaltCooldownDays * TicksPerDay
                     && c.previousRate > 0.001f)
@@ -5407,32 +5459,34 @@ namespace RimForex
                             LetterDefOf.ThreatSmall);
                     }
                 }
+
+                // ④ 保卫战：由持续贬值触发，按科技等级决定是否出手
+                if (c.haltUntilTick > 0 || c.pegUntilTick > 0) continue;
+                if (now - c.lastPegTick < PegCooldownDefault * TicksPerDay) continue;
+
+                if (SigmaDayOf(c) <= 0f) continue;
+                float ret5 = Return5d(c);
+                bool crash = ret5 <= -2.5f * SigmaDayOf(c);
+                bool surge = ret5 >= 3.5f * SigmaDayOf(c);
+                if (!crash && !surge) continue;
+
+                Faction tf = FactionByID(c.factionLoadID);
+                if (tf == null || tf.IsPlayer || tf.defeated) continue;
+
+                float chance = PegRescueChance(tf);
+                if (surge) chance *= 0.5f;
+                if (!Rand.Chance(chance)) continue;
+
+                c.pegCenter = c.rate;
+                c.pegHalfWidth = PegHalfWidthDefault;
+                c.pegUntilTick = now + Rand.Range(PegMinDays, PegMaxDays + 1) * TicksPerDay;
+                c.lastPegTick = now;
+
+                Find.LetterStack.ReceiveLetter(
+                    "RimForex_Ev11PegLabel".Translate(tf.Name),
+                    "RimForex_Ev11Peg".Translate(tf.Name, BankNameFor(tf)),
+                    LetterDefOf.NeutralEvent);
             }
-
-            // ④ 发动保卫战：按冷却随机挑一个货币
-            int cd = cfg != null ? Mathf.Clamp(cfg.pegCooldownDays, 10, 40) : PegCooldownDefault;
-            if (nextPegTick <= 0)
-            {
-                nextPegTick = now + Mathf.RoundToInt(cd * Rand.Range(0.7f, 1.3f)) * TicksPerDay;
-                return;
-            }
-            if (now < nextPegTick) return;
-            nextPegTick = now + Mathf.RoundToInt(cd * Rand.Range(0.7f, 1.3f)) * TicksPerDay;
-            if (cfg != null && !cfg.enableWorldEvents) return;
-
-            Faction f;
-            FxCurrency pickCur = PickEventCurrency(out f);
-            if (pickCur == null || f == null) return;
-            if (pickCur.haltUntilTick > 0 || pickCur.pegUntilTick > 0) return;
-
-            pickCur.pegCenter = pickCur.rate;
-            pickCur.pegHalfWidth = PegHalfWidthDefault;
-            pickCur.pegUntilTick = now + Rand.Range(PegMinDays, PegMaxDays + 1) * TicksPerDay;
-
-            Find.LetterStack.ReceiveLetter(
-                "RimForex_Ev11PegLabel".Translate(f.Name),
-                "RimForex_Ev11Peg".Translate(f.Name, BankNameFor(f)),
-                LetterDefOf.NeutralEvent);
         }
 
         /// <summary>测试按钮：立刻对一个随机货币触发停牌（6 小时，方便观察复牌跳空）。</summary>
@@ -5554,6 +5608,8 @@ namespace RimForex
                 int days = 3;
                 c.newsDriftLog -= (0.8f + score) * SigmaDayOf(c) * days;
                 c.newsDriftUntilTick = GenTicks.TicksGame + days * TicksPerDay;
+                // 因果链：丢据点算"坏消息"，3 天内可以被评级机构下调
+                c.lastBadNewsTick = GenTicks.TicksGame;
 
                 Find.LetterStack.ReceiveLetter(
                     "RimForex_Ev12LetterLabel".Translate(f.Name),
@@ -6022,7 +6078,31 @@ namespace RimForex
 
             if (cfg != null && !cfg.enableWorldEvents) return;
 
-            TriggerBankEvent();
+            // 因果链：先看 5 日趋势
+            //   跌 >= 2σ → 加息（救汇率）80%
+            //   涨 >= 2σ → 降息（压出口）60%
+            //   都不满足 → 本周期不触发
+            FxCurrency trendCur = null;
+            Faction trendFaction = null;
+            bool hike = false;
+            foreach (var c in market.AllCurrencies)
+            {
+                if (c == null) continue;
+                if (c.haltUntilTick > 0 || c.pegUntilTick > 0) continue;
+                var f2 = FactionByID(c.factionLoadID);
+                if (f2 == null || f2.IsPlayer || f2.temporary || f2.Hidden || f2.defeated) continue;
+
+                float sigma = SigmaDayOf(c);
+                if (sigma <= 0f) continue;
+                float r5 = Return5d(c);
+
+                if (r5 <= -2f * sigma) { trendCur = c; trendFaction = f2; hike = true; break; }
+                if (r5 >= 2f * sigma) { trendCur = c; trendFaction = f2; hike = false; break; }
+            }
+            if (trendCur == null || trendFaction == null) return;
+            if (!Rand.Chance(hike ? 0.8f : 0.6f)) return;
+
+            TriggerBankEventOn(trendCur, trendFaction, hike);
         }
 
         /// <summary>真正触发一次央行事件。返回是否成功（测试按钮也要用）。</summary>
@@ -6031,10 +6111,12 @@ namespace RimForex
             Faction f;
             FxCurrency c = PickEventCurrency(out f);
             if (c == null || f == null) return false;
+            return TriggerBankEventOn(c, f, Rand.Chance(0.5f));
+        }
 
-            // 方向在这里就定了，但**绝不写进信件** ——
-            // 提前告诉玩家方向等于白送钱（2026-11-08 作者指出）。
-            bool hike = Rand.Chance(0.5f);
+        /// <summary>对指定货币/派系排一次利率决策预告（方向不写进信里）。</summary>
+        private bool TriggerBankEventOn(FxCurrency c, Faction f, bool hike)
+        {
             pendingBankCcyId = c.factionLoadID;
             pendingBankSigmas = Rand.Range(BankGapSigmasMin, BankGapSigmasMax);
             pendingBankDownward = !hike;   // 加息向上、降息向下
@@ -6078,7 +6160,28 @@ namespace RimForex
 
             if (cfg != null && !cfg.enableWorldEvents) return;
 
-            TriggerRatingEvent();
+            // 因果链：评级下调必须有理由
+            //   ① 刚破位 / 刚丢据点（3 天内的坏消息）
+            //   ② 5 日跌幅 >= 3 日σ
+            Faction target = null;
+            foreach (var c in market.AllCurrencies)
+            {
+                if (c == null) continue;
+                var f2 = FactionByID(c.factionLoadID);
+                if (f2 == null || f2.IsPlayer || f2.temporary || f2.Hidden || f2.defeated) continue;
+
+                bool recentBad = c.lastBadNewsTick > 0
+                    && now - c.lastBadNewsTick < 3 * TicksPerDay;
+                float sigma = SigmaDayOf(c);
+                bool deepDrop = sigma > 0f && Return5d(c) <= -3f * sigma;
+                if (!recentBad && !deepDrop) continue;
+
+                target = f2;
+                break;
+            }
+            if (target == null) return;
+
+            TriggerRatingEventOn(target);
         }
 
         /// <summary>真正触发一次评级下调。返回是否成功。</summary>
@@ -6087,6 +6190,15 @@ namespace RimForex
             Faction f;
             FxCurrency c = PickEventCurrency(out f);
             if (c == null || f == null) return false;
+            return TriggerRatingEventOn(f, c);
+        }
+
+        /// <summary>对指定派系（可选指定货币）下调评级。</summary>
+        private bool TriggerRatingEventOn(Faction f, FxCurrency c = null)
+        {
+            if (f == null) return false;
+            if (c == null) c = market.Get(f.loadID);
+            if (c == null) return false;
 
             c.newsDriftLog = -RatingDriftSigma * SigmaDayOf(c) * RatingDriftDays;
             c.newsDriftUntilTick = GenTicks.TicksGame + RatingDriftDays * TicksPerDay;
