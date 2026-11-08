@@ -118,7 +118,7 @@ namespace RimForex
                 && plot.Contains(eScroll.mousePosition))
             {
                 int delta = Mathf.RoundToInt(eScroll.delta.y) * 5;
-                int changed = Mathf.Clamp(candleCount - delta, 10, 120);
+                int changed = Mathf.Clamp(candleCount + delta, 10, 120);
                 if (changed != candleCount)
                 {
                     candleCount = changed;
@@ -147,6 +147,21 @@ namespace RimForex
                 float top = Mathf.Min(yOpen, yClose);
                 Widgets.DrawBoxSolid(new Rect(cx - bodyW * 0.5f, top,
                     bodyW, Mathf.Max(1f, Mathf.Abs(yClose - yOpen))), col);
+            }
+
+            // 当前价常驻线（与终端一致）
+            float lastRate = cur.rate > 0.001f ? cur.rate : candles[n - 1].close;
+            if (lastRate >= min && lastRate <= max)
+            {
+                float curY = PriceToY(lastRate, min, max, area);
+                Widgets.DrawBoxSolid(new Rect(area.x, curY, area.width, 1f),
+                    new Color(0.95f, 0.90f, 0.55f, 0.95f));
+                Text.Font = GameFont.Tiny;
+                GUI.color = new Color(0.95f, 0.90f, 0.55f);
+                Widgets.Label(new Rect(area.xMax + 4f, curY - 8f, 46f, 16f),
+                    lastRate.ToString("F2"));
+                GUI.color = Color.white;
+                Text.Font = GameFont.Small;
             }
 
             // 三条参考线：开仓 / 盈亏平衡 / 爆仓（只取该货币最新一笔持仓）
