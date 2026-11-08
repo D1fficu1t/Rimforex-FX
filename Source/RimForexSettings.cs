@@ -125,6 +125,11 @@ namespace RimForex
         // ── 世界事件频率与概率（作者 2026-10-26 要求做成滑块）──
         /// <summary>单货币事件冷却（游戏日），10~30。</summary>
         public int eventCooldownDays = 20;
+        /// <summary>E8 央行加息/降息的冷却（游戏日），10~40。</summary>
+        public int bankCooldownDays = 25;
+        /// <summary>E9 信用评级下调的冷却（游戏日），10~40。</summary>
+        public int ratingCooldownDays = 20;
+
         /// <summary>E3 外汇奇才的冷却（游戏日），7~30。</summary>
         public int e3CooldownDays = 15;
         /// <summary>E4 战争新闻的冷却（游戏日），5~20。</summary>
@@ -151,6 +156,8 @@ namespace RimForex
             Scribe_Values.Look(ref e3RaidChance, "e3RaidChance", 0.35f);
             Scribe_Values.Look(ref e3CooldownDays, "e3CooldownDays", 15);
             Scribe_Values.Look(ref e4CooldownDays, "e4CooldownDays", 12);
+            Scribe_Values.Look(ref bankCooldownDays, "bankCooldownDays", 25);
+            Scribe_Values.Look(ref ratingCooldownDays, "ratingCooldownDays", 20);
             Scribe_Values.Look(ref e1RaidChance, "e1RaidChance", 0.60f);
 
             // 悬浮盈亏窗（2026-10-20）
@@ -354,6 +361,12 @@ namespace RimForex
 
             Hint(l, "RimForex_Set_E4Cd".Translate(Settings.e4CooldownDays.ToString()));
             Settings.e4CooldownDays = Mathf.RoundToInt(l.Slider(Settings.e4CooldownDays, 5f, 20f));
+
+            Hint(l, "RimForex_Set_BankCd".Translate(Settings.bankCooldownDays.ToString()));
+            Settings.bankCooldownDays = Mathf.RoundToInt(l.Slider(Settings.bankCooldownDays, 10f, 40f));
+
+            Hint(l, "RimForex_Set_RatingCd".Translate(Settings.ratingCooldownDays.ToString()));
+            Settings.ratingCooldownDays = Mathf.RoundToInt(l.Slider(Settings.ratingCooldownDays, 10f, 40f));
 
             Hint(l, "RimForex_Set_E3RaidChance".Translate(
                 (Settings.e3RaidChance * 100f).ToString("0")));
@@ -685,6 +698,36 @@ namespace RimForex
                 }
             }
             Hint(l, "RimForex_TestRetaliationTip".Translate());
+
+            l.Gap(6f);
+            if (l.ButtonText("RimForex_TestBank".Translate()))
+            {
+                FxGameComponent fx = Find.World != null
+                    ? Find.World.GetComponent<FxGameComponent>() : null;
+                if (fx != null)
+                {
+                    Messages.Message(fx.DebugForceBankEvent()
+                            ? "RimForex_MsgTestBank".Translate()
+                            : "RimForex_MsgTestSurgeFail".Translate(),
+                        MessageTypeDefOf.TaskCompletion, false);
+                }
+            }
+            Hint(l, "RimForex_TestBankTip".Translate());
+
+            l.Gap(6f);
+            if (l.ButtonText("RimForex_TestRating".Translate()))
+            {
+                FxGameComponent fx = Find.World != null
+                    ? Find.World.GetComponent<FxGameComponent>() : null;
+                if (fx != null)
+                {
+                    Messages.Message(fx.DebugForceRatingEvent()
+                            ? "RimForex_MsgTestRating".Translate()
+                            : "RimForex_MsgTestSurgeFail".Translate(),
+                        MessageTypeDefOf.TaskCompletion, false);
+                }
+            }
+            Hint(l, "RimForex_TestRatingTip".Translate());
 
             l.Gap(6f);
             if (l.ButtonText("RimForex_TestCrisis".Translate()))

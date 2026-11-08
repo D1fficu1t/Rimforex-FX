@@ -1789,6 +1789,25 @@ namespace RimForex
         private const int ForcedGapExtreme = 2;
         private int forcedGapKind = ForcedGapNone;
 
+        // 定向跳空：指定货币、幅度（步 σ 的倍数）、方向。
+        // 与 forcedGapKind 的区别是"只作用于一个货币且方向由调用方决定"，
+        // 央行加息/降息这类事件需要它。
+        private int forcedGapCcyId = -1;
+        private float forcedGapSigmas;
+
+        /// <summary>
+        /// 让<b>指定货币</b>在下一个报价步发生一次定向跳空。
+        /// <paramref name="sigmas"/> 是步 σ 的倍数（正数），
+        /// <paramref name="downward"/> 决定方向。
+        /// 例：30 步σ ≈ 1.4% 的价格跳变。
+        /// </summary>
+        public void ForceGap(FxCurrency c, float sigmas, bool downward)
+        {
+            if (c == null) return;
+            forcedGapCcyId = c.factionLoadID;
+            forcedGapSigmas = downward ? -Mathf.Abs(sigmas) : Mathf.Abs(sigmas);
+        }
+
         /// <summary>安排下一次报价步发生<b>极端</b>跳空（对所有货币生效，必然向下）。</summary>
         public void ForceExtremeGap()
         {
@@ -1835,6 +1854,11 @@ namespace RimForex
             // 一次性事件：本步对所有货币生效，取走后就清掉，避免连续跳空
             int forcedKind = forcedGapKind;
             forcedGapKind = ForcedGapNone;
+
+            int forcedCcy = forcedGapCcyId;
+            float forcedSig = forcedGapSigmas;
+            forcedGapCcyId = -1;
+            forcedGapSigmas = 0f;
             keyBuffer.AddRange(currencies.Keys);
             for (int i = 0; i < keyBuffer.Count; i++)
             {
@@ -1865,7 +1889,12 @@ namespace RimForex
                 // 方向不偏：对数空间带均值回归，价格会被拉回锚点，
                 // 所以长期不会单边漂移。跳空只负责制造尾部风险。
                 float mult = 0f;
-                if (forcedKind == ForcedGapExtreme)
+                bool gapForced = forcedCcy == id;
+                if (gapForced)
+                {
+                    mult = forcedSig;
+                }
+                else if (forcedKind == ForcedGapExtreme)
                 {
                     // 测试按钮安排的：<b>强制向下</b>且幅度足够大。
                     //
@@ -1894,7 +1923,7 @@ namespace RimForex
                 {
                     mult = GapMinMult + Rand.Value * (GapMaxMult - GapMinMult);
                 }
-                if (mult > 0f)
+                if (!gapForced && mult > 0f)
                 {
                     if (Rand.Chance(0.5f)) mult = -mult;
                 }
@@ -3171,6 +3200,11 @@ namespace RimForex
         public int platformFactionLoadID;
         /// <summary>下次尝试 E4/E5 战争新闻的 tick。</summary>
         public int nextNewsTick;
+        /// <summary>下一次央行事件的 tick。</summary>
+        public int nextBankTick;
+        /// <summary>下一次评级事件的 tick。</summary>
+        public int nextRatingTick;
+
         /// <summary>上次 E3（暴赚）触发的 tick。</summary>
         public int lastWealthEventTick;
 
@@ -3256,7 +3290,7 @@ namespace RimForex
         public const int E3Goodwill = 6;
         /// <summary>E3 额外来袭的概率。</summary>
         public const float E3RaidChance = 0.35f;
-        public const int E3GoodwillCooldown = 15 * TicksPerDay;
+        // E3 的冷却已改为设置项 e3CooldownDays（默认 15 日）
 
         // ── E2 / E4 / E5 参数（作者已拍板）──
         /// <summary>E2-B 弱化据点的生效窗口：10 游戏日。</summary>
@@ -3273,6 +3307,17 @@ namespace RimForex
         public const float NewsDriftOtherSigma = 0.8f;
         /// <summary>E4/E5 新闻兑现的概率。</summary>
         public const float NewsDriftChance = 0.6f;
+
+        // ── E8 央行加息 / 降息（2026-11-08）──
+        public const int BankCooldownDefault = 25;
+        public const int RatingCooldownDefault = 20;
+        /// <summary>央行事件的跳空幅度（步 σ 倍数）。30σ ≈ 1.4% 的价格跳变。</summary>
+        public const float BankGapSigmasMin = 20f;
+        public const float BankGapSigmasMax = 40f;
+
+        // ── E9 信用评级下调 ──
+        public const float RatingDriftSigma = 1.2f;
+        public const int RatingDriftDays = 3;
         /// <summary>战争新闻自己的冷却（天）。不再共享全局冷却。</summary>
         public const int NewsCooldownDays = 12;
 
@@ -3699,6 +3744,8 @@ namespace RimForex
             ProcessWeakenedSettlements();
             ExpireTradeBonus();
             ProcessWarNews();
+            ProcessCentralBank();
+            ProcessCreditRating();
             ProcessRetaliation();
             ProcessDebtCase();
             ProcessForcedLiquidation();
@@ -5161,6 +5208,138 @@ namespace RimForex
         /// 漂移不直接改价格，而是写进 `newsDriftLog`，由 TickStep 逐步施加 ——
         /// 这样走出来的是一条缓坡，不是跳空。
         /// </summary>
+        /// <summary>随机挑一个有货币、还活着的非玩家派系。事件共用。</summary>
+        private FxCurrency PickEventCurrency(out Faction faction)
+        {
+            faction = null;
+            if (market == null) return null;
+
+            var pool = new List<FxCurrency>();
+            foreach (var c in market.AllCurrencies)
+            {
+                if (c == null) continue;
+                var f = FactionByID(c.factionLoadID);
+                if (f == null || f.IsPlayer || f.temporary || f.Hidden) continue;
+                if (f.defeated) continue;
+                pool.Add(c);
+            }
+            if (pool.Count == 0) return null;
+
+            var pick = pool[Rand.Range(0, pool.Count)];
+            faction = FactionByID(pick.factionLoadID);
+            return pick;
+        }
+
+        /// <summary>按科技等级给"央行"换个说法，部落不该有央行。</summary>
+        private static string BankNameFor(Faction f)
+        {
+            TechLevel tech = f != null && f.def != null ? f.def.techLevel : TechLevel.Industrial;
+            switch (tech)
+            {
+                case TechLevel.Animal:
+                case TechLevel.Neolithic:
+                    return "RimForex_BankTribal".Translate();
+                case TechLevel.Medieval:
+                    return "RimForex_BankMedieval".Translate();
+                case TechLevel.Spacer:
+                case TechLevel.Ultra:
+                case TechLevel.Archotech:
+                    return "RimForex_BankSpacer".Translate();
+                default:
+                    return "RimForex_BankIndustrial".Translate();
+            }
+        }
+
+        /// <summary>
+        /// E8：央行加息 / 降息 → 一次定向跳空（2026-11-08）。
+        ///
+        /// 加息通常让货币走强，降息走弱，所以加息向上跳、降息向下跳。
+        /// 幅度用步 σ 的 20~40 倍（约 1%~2%），比常规跳空重、比极端跳空轻。
+        /// 冷却走设置里的 bankCooldownDays，带 ±30% 抖动避免过于规律。
+        /// </summary>
+        private void ProcessCentralBank()
+        {
+            int now = GenTicks.TicksGame;
+            if (now < nextBankTick) return;
+
+            RimForexSettings cfg = RimForexMod.Settings;
+            int cd = cfg != null ? Mathf.Clamp(cfg.bankCooldownDays, 10, 40) : BankCooldownDefault;
+            nextBankTick = now + Mathf.RoundToInt(cd * Rand.Range(0.7f, 1.3f)) * TicksPerDay;
+
+            if (cfg != null && !cfg.enableWorldEvents) return;
+
+            TriggerBankEvent();
+        }
+
+        /// <summary>真正触发一次央行事件。返回是否成功（测试按钮也要用）。</summary>
+        private bool TriggerBankEvent()
+        {
+            Faction f;
+            FxCurrency c = PickEventCurrency(out f);
+            if (c == null || f == null) return false;
+
+            bool hike = Rand.Chance(0.5f);
+            float sigmas = Rand.Range(BankGapSigmasMin, BankGapSigmasMax);
+            market.ForceGap(c, sigmas, !hike);   // 加息向上、降息向下
+
+            string inst = BankNameFor(f);
+            string action = hike ? "RimForex_BankHike".Translate() : "RimForex_BankCut".Translate();
+            Find.LetterStack.ReceiveLetter(
+                "RimForex_Ev8LetterLabel".Translate(f.Name),
+                "RimForex_Ev8Letter".Translate(f.Name, inst, action),
+                LetterDefOf.NeutralEvent);
+            return true;
+        }
+
+        /// <summary>测试按钮用：立刻触发一次央行事件，不看冷却。</summary>
+        public bool DebugForceBankEvent()
+        {
+            return TriggerBankEvent();
+        }
+
+        /// <summary>
+        /// E9：信用评级下调 → 未来几天货币承压下行（2026-11-08）。
+        ///
+        /// 不改价格，只挂一段负向 newsDrift，复用 E4 已经验证过的机制：
+        /// 每天均摊，走缓坡，不会一步跳空。
+        /// </summary>
+        private void ProcessCreditRating()
+        {
+            int now = GenTicks.TicksGame;
+            if (now < nextRatingTick) return;
+
+            RimForexSettings cfg = RimForexMod.Settings;
+            int cd = cfg != null ? Mathf.Clamp(cfg.ratingCooldownDays, 10, 40) : RatingCooldownDefault;
+            nextRatingTick = now + Mathf.RoundToInt(cd * Rand.Range(0.7f, 1.3f)) * TicksPerDay;
+
+            if (cfg != null && !cfg.enableWorldEvents) return;
+
+            TriggerRatingEvent();
+        }
+
+        /// <summary>真正触发一次评级下调。返回是否成功。</summary>
+        private bool TriggerRatingEvent()
+        {
+            Faction f;
+            FxCurrency c = PickEventCurrency(out f);
+            if (c == null || f == null) return false;
+
+            c.newsDriftLog = -RatingDriftSigma * SigmaDayOf(c) * RatingDriftDays;
+            c.newsDriftUntilTick = GenTicks.TicksGame + RatingDriftDays * TicksPerDay;
+
+            Find.LetterStack.ReceiveLetter(
+                "RimForex_Ev9LetterLabel".Translate(f.Name),
+                "RimForex_Ev9Letter".Translate(f.Name, RatingDriftDays.ToString()),
+                LetterDefOf.NeutralEvent);
+            return true;
+        }
+
+        /// <summary>测试按钮用：立刻触发一次评级下调，不看冷却。</summary>
+        public bool DebugForceRatingEvent()
+        {
+            return TriggerRatingEvent();
+        }
+
         private void ProcessWarNews()
         {
             RimForexSettings cfg = RimForexMod.Settings;
@@ -7244,6 +7423,8 @@ namespace RimForex
             Scribe_Values.Look(ref platformFactionLoadID, "platformFactionLoadID", 0);
             Scribe_Values.Look(ref nextNewsTick, "nextNewsTick", 0);
             Scribe_Values.Look(ref lastWealthEventTick, "lastWealthEventTick", 0);
+            Scribe_Values.Look(ref nextBankTick, "nextBankTick", 0);
+            Scribe_Values.Look(ref nextRatingTick, "nextRatingTick", 0);
             Scribe_Collections.Look(ref refugeePawnIds, "refugeePawnIds", LookMode.Value);
             Scribe_Collections.Look(ref weakenedSettlements, "weakenedSettlements", LookMode.Deep);
             Scribe_Collections.Look(ref retaliations, "retaliations", LookMode.Deep);

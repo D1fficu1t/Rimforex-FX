@@ -471,8 +471,8 @@
   <RimForex_Set_EventCdSingle>单货币冷却：{0} 日</RimForex_Set_EventCdSingle>
   <RimForex_Set_E3RaidChance>外汇奇才招来袭击的概率：{0}%</RimForex_Set_E3RaidChance>
   <RimForex_Set_E1RaidChance>军备采购异常触发袭击的概率：{0}%</RimForex_Set_E1RaidChance>
-  <RimForex_Ev8LetterLabel>平台强制清算</RimForex_Ev8LetterLabel>
-  <RimForex_Ev8Letter>你的账户余额已经是负数，却还挂着 {0} 笔仓位。\n\n本平台没有义务陪你赌下去。所有持仓已按市价强制平仓，所得先用于抵债。\n\n如果还有剩下的缺口，清算部的人会面对面来找你谈。</RimForex_Ev8Letter>
+  <RimForex_Ev8LetterLabel>{0} 调整利率</RimForex_Ev8LetterLabel>
+  <RimForex_Ev8Letter>{0} 的{1}宣布{2}。\n\n消息公布后，{0} 的货币出现一次明显跳空。</RimForex_Ev8Letter>
   <RimForex_Ev7OverdueLabel>清算部不再等了</RimForex_Ev7OverdueLabel>
   <RimForex_Ev7Overdue>三天过去了，你既没付钱，也没交人。收债人转身就走，一句话都没说。\n\n他回去交报告了。\n\n机械族已经在路上了。</RimForex_Ev7Overdue>
   <RimForex_Ev6Foot>你可以继续做空他们的货币，或者大发慈悲平仓，让这场金融危机停下来。\n\n如果不那样做，袭击会持续发生。</RimForex_Ev6Foot>
@@ -514,4 +514,20 @@
   <RimForex_Set_E3Cd>外汇奇才冷却：{0} 日</RimForex_Set_E3Cd>
   <RimForex_Set_E4Cd>战争新闻冷却：{0} 日</RimForex_Set_E4Cd>
   <RimForex_MiniResetTip>把蜡烛数量恢复为 40 根。滚轮可以缩放。</RimForex_MiniResetTip>
+  <RimForex_Set_BankCd>央行事件冷却：{0} 日</RimForex_Set_BankCd>
+  <RimForex_Set_RatingCd>评级下调冷却：{0} 日</RimForex_Set_RatingCd>
+  <RimForex_BankHike>加息</RimForex_BankHike>
+  <RimForex_BankCut>降息</RimForex_BankCut>
+  <RimForex_BankTribal>部落议事会</RimForex_BankTribal>
+  <RimForex_BankMedieval>行会</RimForex_BankMedieval>
+  <RimForex_BankIndustrial>中央银行</RimForex_BankIndustrial>
+  <RimForex_BankSpacer>金融委员会</RimForex_BankSpacer>
+  <RimForex_Ev9LetterLabel>{0} 评级下调</RimForex_Ev9LetterLabel>
+  <RimForex_Ev9Letter>评级机构把 {0} 的信用评级下调了一档。\n\n接下来 {1} 天，{0} 的货币会持续承压。</RimForex_Ev9Letter>
+  <RimForex_TestBank>测试：央行加息 / 降息</RimForex_TestBank>
+  <RimForex_TestBankTip>立刻对一个随机派系触发一次定向跳空（加息向上、降息向下）。</RimForex_TestBankTip>
+  <RimForex_MsgTestBank>已触发央行事件。</RimForex_MsgTestBank>
+  <RimForex_TestRating>测试：信用评级下调</RimForex_TestRating>
+  <RimForex_TestRatingTip>立刻对一个随机派系的货币挂 3 天负向漂移。</RimForex_TestRatingTip>
+  <RimForex_MsgTestRating>已触发评级下调。</RimForex_MsgTestRating>
 </LanguageData>

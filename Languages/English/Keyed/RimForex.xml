@@ -456,8 +456,8 @@ Let him reach the map edge, or put him down here. Either way, Collections will w
   <RimForex_Set_EventCdSingle>Per-currency cooldown: {0} days</RimForex_Set_EventCdSingle>
   <RimForex_Set_E3RaidChance>Chance a prodigy draws a raid: {0}%</RimForex_Set_E3RaidChance>
   <RimForex_Set_E1RaidChance>Chance a buildup turns into a raid: {0}%</RimForex_Set_E1RaidChance>
-  <RimForex_Ev8LetterLabel>Forced liquidation</RimForex_Ev8LetterLabel>
-  <RimForex_Ev8Letter>Your balance is negative and you still have {0} position(s) open.\n\nWe are under no obligation to keep betting with you. Every position has been closed at market price, and the proceeds go against the debt.\n\nIf anything is still outstanding, someone from Collections will come and discuss it with you in person.</RimForex_Ev8Letter>
+  <RimForex_Ev8LetterLabel>{0} changes rates</RimForex_Ev8LetterLabel>
+  <RimForex_Ev8Letter>{0}'s {1} announced a {2}.\n\nThe currency gapped sharply when the news broke.</RimForex_Ev8Letter>
   <RimForex_Ev7OverdueLabel>Collections stopped waiting</RimForex_Ev7OverdueLabel>
   <RimForex_Ev7Overdue>Three days passed. No payment, no handover. The collector turned and walked away without a word.\n\nHe has gone back to file his report.\n\nThe mechanoids are already on their way.</RimForex_Ev7Overdue>
   <RimForex_Ev6Foot>You can keep shorting their currency, or show some mercy, close the position and let this financial crisis end.\n\nIf you do neither, the raids will continue.</RimForex_Ev6Foot>
@@ -499,4 +499,20 @@ Let him reach the map edge, or put him down here. Either way, Collections will w
   <RimForex_Set_E3Cd>Prodigy cooldown: {0} days</RimForex_Set_E3Cd>
   <RimForex_Set_E4Cd>War news cooldown: {0} days</RimForex_Set_E4Cd>
   <RimForex_MiniResetTip>Reset to 40 candles. Use the mouse wheel to zoom.</RimForex_MiniResetTip>
+  <RimForex_Set_BankCd>Central bank cooldown: {0} days</RimForex_Set_BankCd>
+  <RimForex_Set_RatingCd>Downgrade cooldown: {0} days</RimForex_Set_RatingCd>
+  <RimForex_BankHike>rate hike</RimForex_BankHike>
+  <RimForex_BankCut>rate cut</RimForex_BankCut>
+  <RimForex_BankTribal>tribal council</RimForex_BankTribal>
+  <RimForex_BankMedieval>guild</RimForex_BankMedieval>
+  <RimForex_BankIndustrial>central bank</RimForex_BankIndustrial>
+  <RimForex_BankSpacer>finance committee</RimForex_BankSpacer>
+  <RimForex_Ev9LetterLabel>{0} downgraded</RimForex_Ev9LetterLabel>
+  <RimForex_Ev9Letter>A rating agency downgraded {0} by one notch.\n\nFor the next {1} days its currency will stay under pressure.</RimForex_Ev9Letter>
+  <RimForex_TestBank>Test: central bank move</RimForex_TestBank>
+  <RimForex_TestBankTip>Trigger a directional gap on a random faction right away.</RimForex_TestBankTip>
+  <RimForex_MsgTestBank>Central bank event fired.</RimForex_MsgTestBank>
+  <RimForex_TestRating>Test: credit downgrade</RimForex_TestRating>
+  <RimForex_TestRatingTip>Apply a 3-day downward drift to a random faction's currency.</RimForex_TestRatingTip>
+  <RimForex_MsgTestRating>Downgrade fired.</RimForex_MsgTestRating>
 </LanguageData>
