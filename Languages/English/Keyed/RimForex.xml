@@ -370,7 +370,7 @@ This is a blow-up: the debt must be covered. Deposit silver at the terminal to b
   <RimForex_FeeCarry>Overnight interest</RimForex_FeeCarry>
   <RimForex_FeeCustody>Custody fee</RimForex_FeeCustody>
   <RimForex_FeeLoan>Loan interest</RimForex_FeeLoan>
-  <RimForex_HistoryFeeRow>charged automatically each day</RimForex_HistoryFeeRow>
+  <RimForex_HistoryFeeRow>deducted from account</RimForex_HistoryFeeRow>
   <RimForex_EvNoTrader>{0}'s trade could not be arranged.</RimForex_EvNoTrader>
   <RimForex_DiagFactions>Caravan-capable: {0} | orbital only: {1} | Imperial tribute: {2}</RimForex_DiagFactions>
   <!-- 0.3.0 Imperial tribute collector (Royalty: the only Empire visit not gated by permits) -->

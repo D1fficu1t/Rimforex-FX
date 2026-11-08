@@ -381,7 +381,7 @@
   <RimForex_FeeCarry>隔夜利息</RimForex_FeeCarry>
   <RimForex_FeeCustody>托管费</RimForex_FeeCustody>
   <RimForex_FeeLoan>贷款利息</RimForex_FeeLoan>
-  <RimForex_HistoryFeeRow>每日自动扣除</RimForex_HistoryFeeRow>
+  <RimForex_HistoryFeeRow>账户扣款</RimForex_HistoryFeeRow>
   <RimForex_EvNoTrader>{0} 的贸易没能安排过来。</RimForex_EvNoTrader>
   <RimForex_DiagFactions>可派陆路商队：{0} 家｜只能派轨道贸易船：{1} 家｜帝国征收队：{2} 家</RimForex_DiagFactions>
   <!-- 0.3.0 帝国征收队（Royalty：唯一不受皇家许可限制的帝国来访）-->

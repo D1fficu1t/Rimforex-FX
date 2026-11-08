@@ -3275,6 +3275,8 @@ namespace RimForex
         /// <summary>正在走过去谈的殖民者（-1 = 没有）。</summary>
         public int pendingTalkPawnId = -1;
         public int pendingTalkUntilTick;
+        /// <summary>下次重新寻路的 tick（商人会走动，走到旧位置就白跑了）。</summary>
+        public int pendingTalkRepathTick;
 
         // ── 据点损失检测（2026-11-08）──
         // 三张平行表：据点 ID、重要性评分、所属派系
@@ -5767,10 +5769,26 @@ namespace RimForex
                 pendingTalkPawnId = -1;
                 return;
             }
-            if ((talker.Position - merchant.Position).LengthHorizontal <= 2.5f)
+            float dist = (talker.Position - merchant.Position).LengthHorizontal;
+            if (dist <= 2.5f)
             {
                 pendingTalkPawnId = -1;
                 OpenMerchantWindow(merchant);
+                return;
+            }
+
+            // 商人在这期间可能挪了位置，殖民者到旧点就站着不动了。
+            // 他一旦空闲下来就重新寻路到商人**当前**的位置，最多每 60 tick 一次。
+            if (talker.jobs.curJob == null && GenTicks.TicksGame >= pendingTalkRepathTick)
+            {
+                pendingTalkRepathTick = GenTicks.TicksGame + 60;
+                try
+                {
+                    talker.jobs.StartJob(
+                        JobMaker.MakeJob(JobDefOf.Goto, merchant.Position),
+                        JobCondition.InterruptForced);
+                }
+                catch { }
             }
         }
 
