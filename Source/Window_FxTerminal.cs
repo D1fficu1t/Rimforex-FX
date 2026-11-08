@@ -715,7 +715,10 @@ namespace RimForex
 
                 float pct = cur.previousRate > 0.01f ? (cur.rate / cur.previousRate - 1f) * 100f : 0f;
 
-                Widgets.Label(new Rect(row.x + 2f, row.y + 5f, 154f, 20f), cur.PairLabel);
+                string pairText = cur.PairLabel;
+            if (Fx.CurrencyHalted(cur)) pairText += " " + "RimForex_RowHalted".Translate();
+            else if (cur.pegUntilTick > GenTicks.TicksGame) pairText += " " + "RimForex_RowPegged".Translate();
+            Widgets.Label(new Rect(row.x + 2f, row.y + 5f, 154f, 20f), pairText);
                 Widgets.Label(new Rect(row.x + 156f, row.y + 5f, 76f, 20f), Truncate(cur.factionName, 5));
                 Widgets.Label(new Rect(row.x + 232f, row.y + 5f, 58f, 20f), cur.rate.ToString("F2"));
                 Widgets.Label(new Rect(row.x + 292f, row.y + 5f, 52f, 20f), ColorizeBySign(pct.ToString("+0.0;-0.0;0.0"), pct));

@@ -549,4 +549,6 @@
   <RimForex_TestPeg>测试：汇率保卫战</RimForex_TestPeg>
   <RimForex_TestPegTip>钉住一个随机货币 6 小时，到期掷骰决定守住还是破位。</RimForex_TestPegTip>
   <RimForex_MsgTestPeg>已触发钉住。</RimForex_MsgTestPeg>
+  <RimForex_RowHalted>·停</RimForex_RowHalted>
+  <RimForex_RowPegged>·钉</RimForex_RowPegged>
 </LanguageData>

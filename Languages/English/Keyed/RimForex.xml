@@ -534,4 +534,6 @@ Let him reach the map edge, or put him down here. Either way, Collections will w
   <RimForex_TestPeg>Test: peg defense</RimForex_TestPeg>
   <RimForex_TestPegTip>Peg a random currency for 6 hours; on expiry it either holds or breaks.</RimForex_TestPegTip>
   <RimForex_MsgTestPeg>Peg fired.</RimForex_MsgTestPeg>
+  <RimForex_RowHalted>·halt</RimForex_RowHalted>
+  <RimForex_RowPegged>·peg</RimForex_RowPegged>
 </LanguageData>

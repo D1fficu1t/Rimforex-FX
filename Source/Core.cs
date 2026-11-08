@@ -2093,6 +2093,15 @@ namespace RimForex
                 return;
             }
 
+            // 停牌：连盘内振荡都不给，价格必须完全不动。
+            // 只在 TickStep 里把 start/target 设成相等还不够 ——
+            // 子步会叠加 OscBank 的 bridge（作者 2026-11-08 看到"很小的波动"）。
+            if (c.haltUntilTick > GenTicks.TicksGame)
+            {
+                c.rate = Clamp(Exp(c.stepLogStart), MinRate, MaxRate);
+                return;
+            }
+
             float logMid = c.stepLogStart + (c.stepLogTarget - c.stepLogStart) * t;
 
             // 盘内形状从【按步轮换的振荡子池】取，而不是那条全局唯一的静态桥。
@@ -5361,8 +5370,13 @@ namespace RimForex
             }
 
             // ④ 发动保卫战：按冷却随机挑一个货币
-            if (now < nextPegTick) return;
             int cd = cfg != null ? Mathf.Clamp(cfg.pegCooldownDays, 10, 40) : PegCooldownDefault;
+            if (nextPegTick <= 0)
+            {
+                nextPegTick = now + Mathf.RoundToInt(cd * Rand.Range(0.7f, 1.3f)) * TicksPerDay;
+                return;
+            }
+            if (now < nextPegTick) return;
             nextPegTick = now + Mathf.RoundToInt(cd * Rand.Range(0.7f, 1.3f)) * TicksPerDay;
             if (cfg != null && !cfg.enableWorldEvents) return;
 
@@ -5488,10 +5502,18 @@ namespace RimForex
                 pendingBankCcyId = -1;
             }
 
-            if (now < nextBankTick) return;
-
             RimForexSettings cfg = RimForexMod.Settings;
             int cd = cfg != null ? Mathf.Clamp(cfg.bankCooldownDays, 10, 40) : BankCooldownDefault;
+
+            // 首次/旧存档：没有排期就只排期，不立刻触发
+            // （否则一读档就"无缘无故"冒事件）
+            if (nextBankTick <= 0)
+            {
+                nextBankTick = now + Mathf.RoundToInt(cd * Rand.Range(0.7f, 1.3f)) * TicksPerDay;
+                return;
+            }
+            if (now < nextBankTick) return;
+
             nextBankTick = now + Mathf.RoundToInt(cd * Rand.Range(0.7f, 1.3f)) * TicksPerDay;
 
             if (cfg != null && !cfg.enableWorldEvents) return;
@@ -5538,10 +5560,16 @@ namespace RimForex
         private void ProcessCreditRating()
         {
             int now = GenTicks.TicksGame;
-            if (now < nextRatingTick) return;
-
             RimForexSettings cfg = RimForexMod.Settings;
             int cd = cfg != null ? Mathf.Clamp(cfg.ratingCooldownDays, 10, 40) : RatingCooldownDefault;
+
+            if (nextRatingTick <= 0)
+            {
+                nextRatingTick = now + Mathf.RoundToInt(cd * Rand.Range(0.7f, 1.3f)) * TicksPerDay;
+                return;
+            }
+            if (now < nextRatingTick) return;
+
             nextRatingTick = now + Mathf.RoundToInt(cd * Rand.Range(0.7f, 1.3f)) * TicksPerDay;
 
             if (cfg != null && !cfg.enableWorldEvents) return;
