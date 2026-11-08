@@ -1844,6 +1844,37 @@ namespace RimForex
             forcedGapSigmas = downward ? -Mathf.Abs(sigmas) : Mathf.Abs(sigmas);
         }
 
+        /// <summary>
+        /// 立刻跳空（不排队）。
+        ///
+        /// 用于"必须马上反映在价格上"的场合 —— 例如保卫战破位后紧接停牌：
+        /// ForceGap 只是排队，下一步 TickStep 会先判停牌并冻结，
+        /// 排队的跳空就被吞掉了（作者 2026-11-08 实测"失守后停牌但没跳"）。
+        /// </summary>
+        public void ForceGapNow(FxCurrency c, float sigmas, bool downward)
+        {
+            if (c == null) return;
+
+            float sigma = DailyVol * (c.volatility > 0.01f ? c.volatility : 1f)
+                          / Mathf.Sqrt(StepsPerDay);
+            float move = (downward ? -Mathf.Abs(sigmas) : Mathf.Abs(sigmas)) * sigma;
+            float before = c.rate;
+            c.rate = Clamp(c.rate * Mathf.Exp(move), MinRate, MaxRate);
+
+            // 当前步的预算也要挪到新价，否则子步会按旧 target 把价格拉回去
+            c.stepLogStart = Log(c.rate);
+            c.stepLogTarget = c.stepLogStart;
+            c.stepIsGap = false;
+            c.subStep = 0;
+            c.stepBudgetValid = true;
+
+            if (before > 0.001f)
+            {
+                c.lastGapPct = (c.rate / before - 1f) * 100f;
+                c.pendingGapPct = c.lastGapPct;
+            }
+        }
+
         /// <summary>安排下一次报价步发生<b>极端</b>跳空（对所有货币生效，必然向下）。</summary>
         public void ForceExtremeGap()
         {
@@ -5444,7 +5475,8 @@ namespace RimForex
                     c.pegUntilTick = 0;
                     if (Rand.Chance(PegBreakChance))
                     {
-                        market.ForceGap(c, Rand.Range(PegBreakSigmasMin, PegBreakSigmasMax),
+                        // 立刻跳空：下一步就要停牌，排队的话会被冻结吞掉
+                        market.ForceGapNow(c, Rand.Range(PegBreakSigmasMin, PegBreakSigmasMax),
                             Rand.Chance(0.5f));
                         c.lastBadNewsTick = now;
                         c.haltUntilTick = now + Rand.Range(1, 3) * TicksPerDay;
