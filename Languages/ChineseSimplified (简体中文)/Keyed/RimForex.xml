@@ -580,4 +580,10 @@
   <RimForex_FeeMerchant>购买情报</RimForex_FeeMerchant>
   <RimForex_MerchantLater>等会再谈</RimForex_MerchantLater>
   <RimForex_MsgMerchantLeft>神秘商人已经离开了。</RimForex_MsgMerchantLeft>
+  <RimForex_Set_TariffCd>关税下调冷却：{0} 日</RimForex_Set_TariffCd>
+  <RimForex_Ev14LetterLabel>{0} 与 {1} 降低关税</RimForex_Ev14LetterLabel>
+  <RimForex_Ev14Letter>{0} 与 {1} 达成了一份关税协定，双方互相降低进口税率。\n\n接下来几天，两国货币预计会一起走强。</RimForex_Ev14Letter>
+  <RimForex_TestTariff>测试：关税下调</RimForex_TestTariff>
+  <RimForex_TestTariffTip>立刻找一对友好派系触发关税协定，双方货币上涨 3 天。</RimForex_TestTariffTip>
+  <RimForex_MsgTestTariff>已触发关税下调。</RimForex_MsgTestTariff>
 </LanguageData>

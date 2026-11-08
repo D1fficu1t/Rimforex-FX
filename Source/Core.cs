@@ -3257,6 +3257,8 @@ namespace RimForex
         public int nextBankTick;
         /// <summary>下一次评级事件的 tick。</summary>
         public int nextRatingTick;
+        /// <summary>下一次关税下调的 tick。</summary>
+        public int nextTariffTick;
         /// <summary>下一次汇率保卫战的 tick。</summary>
         public int nextPegTick;
         /// <summary>下一次神秘商人出现的 tick。</summary>
@@ -3400,6 +3402,12 @@ namespace RimForex
         public const int BankCooldownDefault = 25;
         public const int RatingCooldownDefault = 20;
         /// <summary>央行事件的跳空幅度（步 σ 倍数）。30σ ≈ 1.4% 的价格跳变。</summary>
+        // ── 关税下调（2026-11-08）──
+        /// <summary>互相友好的门槛（双向好感）。</summary>
+        public const int TariffFriendlyGoodwill = 75;
+        public const int TariffCooldownDefault = 20;
+        public const int TariffDriftDays = 3;
+
         // ── 停牌（2026-11-08）──
         public const int HaltMinDays = 2;
         public const int HaltMaxDays = 4;
@@ -3858,6 +3866,7 @@ namespace RimForex
             ProcessMysteryMerchant();
             ProcessMerchantTimeout();
             ProcessMerchantTalk();
+            ProcessTariffCut();
             ProcessRetaliation();
             ProcessDebtCase();
             ProcessForcedLiquidation();
@@ -5567,6 +5576,84 @@ namespace RimForex
                 "RimForex_Ev12Letter".Translate(f.Name),
                 LetterDefOf.NeutralEvent);
             return true;
+        }
+
+        /// <summary>
+        /// 关税下调（0.3.2）：两个互相友好的派系签一份协定，双方货币一起走强。
+        ///
+        /// 找一对双向好感 >= 75、都有货币的派系，各挂 3 天正向漂移。
+        /// 幅度略有差异（各自 0.8~1.4 日σ），看起来像"不同程度的上涨"。
+        /// </summary>
+        private void ProcessTariffCut()
+        {
+            int now = GenTicks.TicksGame;
+            RimForexSettings cfg = RimForexMod.Settings;
+            int cd = cfg != null ? Mathf.Clamp(cfg.tariffCooldownDays, 10, 40) : TariffCooldownDefault;
+
+            if (nextTariffTick <= 0)
+            {
+                nextTariffTick = now + Mathf.RoundToInt(cd * Rand.Range(0.7f, 1.3f)) * TicksPerDay;
+                return;
+            }
+            if (now < nextTariffTick) return;
+            nextTariffTick = now + Mathf.RoundToInt(cd * Rand.Range(0.7f, 1.3f)) * TicksPerDay;
+
+            if (cfg != null && !cfg.enableWorldEvents) return;
+
+            if (!TryFireTariffCut())
+            {
+                // 没有合适的友好派系对，两天后再试
+                nextTariffTick = now + Rand.Range(2, 4) * TicksPerDay;
+            }
+        }
+
+        /// <summary>真正触发一次关税下调。测试按钮也走这里。</summary>
+        private bool TryFireTariffCut()
+        {
+            var all = Find.FactionManager.AllFactionsListForReading;
+            Faction a = null, b = null;
+            for (int i = 0; i < all.Count && a == null; i++)
+            {
+                var fa = all[i];
+                if (fa == null || fa.IsPlayer || fa.temporary || fa.Hidden || fa.defeated) continue;
+                var ca = market.Get(fa.loadID);
+                if (ca == null || ca.haltUntilTick > GenTicks.TicksGame || ca.pegUntilTick > GenTicks.TicksGame) continue;
+
+                for (int j = 0; j < all.Count; j++)
+                {
+                    var fb = all[j];
+                    if (fb == null || fb == fa || fb.IsPlayer || fb.temporary || fb.Hidden || fb.defeated) continue;
+                    var cb = market.Get(fb.loadID);
+                    if (cb == null || cb.haltUntilTick > GenTicks.TicksGame || cb.pegUntilTick > GenTicks.TicksGame) continue;
+                    if (fa.GoodwillWith(fb) < TariffFriendlyGoodwill) continue;
+                    if (fb.GoodwillWith(fa) < TariffFriendlyGoodwill) continue;
+                    a = fa; b = fb;
+                    break;
+                }
+            }
+            if (a == null || b == null) return false;
+
+            var curA = market.Get(a.loadID);
+            var curB = market.Get(b.loadID);
+            if (curA == null || curB == null) return false;
+
+            int until = GenTicks.TicksGame + TariffDriftDays * TicksPerDay;
+            curA.newsDriftLog = Rand.Range(0.8f, 1.4f) * SigmaDayOf(curA) * TariffDriftDays;
+            curA.newsDriftUntilTick = until;
+            curB.newsDriftLog = Rand.Range(0.8f, 1.4f) * SigmaDayOf(curB) * TariffDriftDays;
+            curB.newsDriftUntilTick = until;
+
+            Find.LetterStack.ReceiveLetter(
+                "RimForex_Ev14LetterLabel".Translate(a.Name, b.Name),
+                "RimForex_Ev14Letter".Translate(a.Name, b.Name),
+                LetterDefOf.PositiveEvent);
+            return true;
+        }
+
+        /// <summary>测试按钮：立刻触发一次关税下调。</summary>
+        public bool DebugForceTariffCut()
+        {
+            return TryFireTariffCut();
         }
 
         /// <summary>
@@ -8102,6 +8189,7 @@ namespace RimForex
             Scribe_Values.Look(ref lastWealthEventTick, "lastWealthEventTick", 0);
             Scribe_Values.Look(ref nextBankTick, "nextBankTick", 0);
             Scribe_Values.Look(ref nextRatingTick, "nextRatingTick", 0);
+            Scribe_Values.Look(ref nextTariffTick, "nextTariffTick", 0);
             Scribe_Values.Look(ref nextPegTick, "nextPegTick", 0);
             Scribe_Values.Look(ref nextMerchantTick, "nextMerchantTick", 0);
             Scribe_Values.Look(ref merchantPawnId, "merchantPawnId", -1);
