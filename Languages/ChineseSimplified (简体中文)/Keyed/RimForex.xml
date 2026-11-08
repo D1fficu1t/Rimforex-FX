@@ -596,4 +596,6 @@
   <RimForex_MsgTestPegBreak>已安排必定破位的保卫战。</RimForex_MsgTestPegBreak>
   <RimForex_Ev15LetterLabel>{0} 下调对殖民地的关税</RimForex_Ev15LetterLabel>
   <RimForex_Ev15Letter>{0} 决定单方面下调对殖民地的进口关税。\n\n接下来几天，{0} 的货币预计会走强。</RimForex_Ev15Letter>
+  <RimForex_Ev16LetterLabel>{0} 与 {1} 举行会谈</RimForex_Ev16LetterLabel>
+  <RimForex_Ev16Letter>{0} 与 {1} 的领导人进行了建设性的会谈，初步在某些议程上达成了共识。\n\n接下来几天，两国货币预计会一起走强。</RimForex_Ev16Letter>
 </LanguageData>

@@ -5748,18 +5748,17 @@ namespace RimForex
         }
 
         /// <summary>
-        /// 真正触发一次关税下调（2026-11-08 重做）。
+        /// 关税/贸易事件（2026-11-08 最终版，作者要求简化）。
         ///
-        /// ── 为什么重做 ──
-        /// 原版只维护"派系↔玩家"的好感，NPC 之间只有敌对/非敌对，
-        /// GoodwillWith 在 NPC 对 NPC 上恒为 0，之前拿好感当门槛根本选不出人。
+        /// 不再比较好感、不再要求"双方玩家好感 >= X"——原版根本没有 NPC 间好感，
+        /// 之前那套判定只会让事件反复选不出人。
         ///
-        /// 现在的选取顺序：
-        ///   ① 在所有"有货币、没停牌"的派系里找一对互不敌对的，
-        ///      取"双方对玩家好感的最小值"最高的那一对
-        ///   ② 一个能配对的都没有（只剩一个派系 / 全都互相敌对）时，
-        ///      退化为单边协定：挑对玩家好感最高的那个，只涨它一家
-        /// 这样只要地图上还有一个能交易的派系，事件就不会落空。
+        /// 现在的规则简单粗暴：
+        ///   从所有能交易的派系里随机抽两个；
+        ///   敌对 → "双方领导人进行了建设性的会谈"（Ev16）
+        ///   非敌对 → 正常关税协定（Ev14）
+        /// 两家的货币都涨，只是措辞不同。
+        /// 池子里只剩一个派系时退化为单边协定（Ev15）。
         /// </summary>
         private bool TryFireTariffCut()
         {
@@ -5775,55 +5774,42 @@ namespace RimForex
             }
             if (pool.Count == 0) return false;
 
-            // ① 找最佳配对
-            Faction bestA = null, bestB = null;
-            float bestScore = float.MinValue;
-            for (int i = 0; i < pool.Count; i++)
+            // 只剩一家：单边协定
+            if (pool.Count == 1)
             {
-                for (int j = i + 1; j < pool.Count; j++)
-                {
-                    var fa = pool[i];
-                    var fb = pool[j];
-                    if (fa.HostileTo(fb) || fb.HostileTo(fa)) continue;
-
-                    float score = Mathf.Min(
-                        fa.GoodwillWith(Faction.OfPlayer),
-                        fb.GoodwillWith(Faction.OfPlayer));
-                    if (score > bestScore)
-                    {
-                        bestScore = score;
-                        bestA = fa;
-                        bestB = fb;
-                    }
-                }
-            }
-
-            if (bestA != null && bestB != null)
-            {
-                ApplyTariffDrift(bestA);
-                ApplyTariffDrift(bestB);
+                ApplyTariffDrift(pool[0]);
                 Find.LetterStack.ReceiveLetter(
-                    "RimForex_Ev14LetterLabel".Translate(bestA.Name, bestB.Name),
-                    "RimForex_Ev14Letter".Translate(bestA.Name, bestB.Name),
+                    "RimForex_Ev15LetterLabel".Translate(pool[0].Name),
+                    "RimForex_Ev15Letter".Translate(pool[0].Name),
                     LetterDefOf.PositiveEvent);
                 return true;
             }
 
-            // ② 单边协定
-            Faction solo = null;
-            float soloScore = float.MinValue;
-            for (int i = 0; i < pool.Count; i++)
-            {
-                float g = pool[i].GoodwillWith(Faction.OfPlayer);
-                if (g > soloScore) { soloScore = g; solo = pool[i]; }
-            }
-            if (solo == null) return false;
+            // 随机抽两个不同的
+            int ia = Rand.Range(0, pool.Count);
+            int ib = Rand.Range(0, pool.Count - 1);
+            if (ib >= ia) ib++;
+            Faction fa = pool[ia];
+            Faction fb = pool[ib];
 
-            ApplyTariffDrift(solo);
-            Find.LetterStack.ReceiveLetter(
-                "RimForex_Ev15LetterLabel".Translate(solo.Name),
-                "RimForex_Ev15Letter".Translate(solo.Name),
-                LetterDefOf.PositiveEvent);
+            ApplyTariffDrift(fa);
+            ApplyTariffDrift(fb);
+
+            bool hostile = fa.HostileTo(fb) || fb.HostileTo(fa);
+            if (hostile)
+            {
+                Find.LetterStack.ReceiveLetter(
+                    "RimForex_Ev16LetterLabel".Translate(fa.Name, fb.Name),
+                    "RimForex_Ev16Letter".Translate(fa.Name, fb.Name),
+                    LetterDefOf.PositiveEvent);
+            }
+            else
+            {
+                Find.LetterStack.ReceiveLetter(
+                    "RimForex_Ev14LetterLabel".Translate(fa.Name, fb.Name),
+                    "RimForex_Ev14Letter".Translate(fa.Name, fb.Name),
+                    LetterDefOf.PositiveEvent);
+            }
             return true;
         }
 

@@ -581,4 +581,6 @@ Let him reach the map edge, or put him down here. Either way, Collections will w
   <RimForex_MsgTestPegBreak>Guaranteed peg break scheduled.</RimForex_MsgTestPegBreak>
   <RimForex_Ev15LetterLabel>{0} cuts tariffs for the colony</RimForex_Ev15LetterLabel>
   <RimForex_Ev15Letter>{0} has unilaterally lowered import duties on colony goods.\n\nIts currency is expected to strengthen over the next few days.</RimForex_Ev15Letter>
+  <RimForex_Ev16LetterLabel>{0} and {1} hold talks</RimForex_Ev16LetterLabel>
+  <RimForex_Ev16Letter>The leaders of {0} and {1} held constructive talks and reached an early consensus on several agenda items.\n\nBoth currencies are expected to strengthen over the next few days.</RimForex_Ev16Letter>
 </LanguageData>
