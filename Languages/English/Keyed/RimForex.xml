@@ -579,4 +579,6 @@ Let him reach the map edge, or put him down here. Either way, Collections will w
   <RimForex_TestPegBreak>Test: peg break</RimForex_TestPegBreak>
   <RimForex_TestPegBreakTip>Peg a random currency for 6 hours; it is guaranteed to break on expiry (tests break gap → halt → reopen).</RimForex_TestPegBreakTip>
   <RimForex_MsgTestPegBreak>Guaranteed peg break scheduled.</RimForex_MsgTestPegBreak>
+  <RimForex_Ev15LetterLabel>{0} cuts tariffs for the colony</RimForex_Ev15LetterLabel>
+  <RimForex_Ev15Letter>{0} has unilaterally lowered import duties on colony goods.\n\nIts currency is expected to strengthen over the next few days.</RimForex_Ev15Letter>
 </LanguageData>

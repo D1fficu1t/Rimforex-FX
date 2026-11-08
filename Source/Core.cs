@@ -3457,8 +3457,6 @@ namespace RimForex
         /// <summary>央行事件的跳空幅度（步 σ 倍数）。30σ ≈ 1.4% 的价格跳变。</summary>
         // ── 关税下调（2026-11-08）──
         /// <summary>互相友好的门槛（双向好感）。</summary>
-        /// <summary>双方对玩家的好感门槛（NPC 之间没有好感，只能用这个当"关系好"）。</summary>
-        public const int TariffPlayerFriendlyGoodwill = 40;
         public const int TariffCooldownDefault = 20;
         public const int TariffDriftDays = 3;
 
@@ -5749,51 +5747,94 @@ namespace RimForex
             }
         }
 
-        /// <summary>真正触发一次关税下调。测试按钮也走这里。</summary>
+        /// <summary>
+        /// 真正触发一次关税下调（2026-11-08 重做）。
+        ///
+        /// ── 为什么重做 ──
+        /// 原版只维护"派系↔玩家"的好感，NPC 之间只有敌对/非敌对，
+        /// GoodwillWith 在 NPC 对 NPC 上恒为 0，之前拿好感当门槛根本选不出人。
+        ///
+        /// 现在的选取顺序：
+        ///   ① 在所有"有货币、没停牌"的派系里找一对互不敌对的，
+        ///      取"双方对玩家好感的最小值"最高的那一对
+        ///   ② 一个能配对的都没有（只剩一个派系 / 全都互相敌对）时，
+        ///      退化为单边协定：挑对玩家好感最高的那个，只涨它一家
+        /// 这样只要地图上还有一个能交易的派系，事件就不会落空。
+        /// </summary>
         private bool TryFireTariffCut()
         {
-            var all = Find.FactionManager.AllFactionsListForReading;
-            Faction a = null, b = null;
-            for (int i = 0; i < all.Count && a == null; i++)
+            var pool = new List<Faction>();
+            int now = GenTicks.TicksGame;
+            foreach (var f in Find.FactionManager.AllFactionsListForReading)
             {
-                var fa = all[i];
-                if (fa == null || fa.IsPlayer || fa.temporary || fa.Hidden || fa.defeated) continue;
-                var ca = market.Get(fa.loadID);
-                if (ca == null || ca.haltUntilTick > GenTicks.TicksGame || ca.pegUntilTick > GenTicks.TicksGame) continue;
+                if (f == null || f.IsPlayer || f.temporary || f.Hidden || f.defeated) continue;
+                var c = market.Get(f.loadID);
+                if (c == null) continue;
+                if (c.haltUntilTick > now || c.pegUntilTick > now) continue;
+                pool.Add(f);
+            }
+            if (pool.Count == 0) return false;
 
-                for (int j = 0; j < all.Count; j++)
+            // ① 找最佳配对
+            Faction bestA = null, bestB = null;
+            float bestScore = float.MinValue;
+            for (int i = 0; i < pool.Count; i++)
+            {
+                for (int j = i + 1; j < pool.Count; j++)
                 {
-                    var fb = all[j];
-                    if (fb == null || fb == fa || fb.IsPlayer || fb.temporary || fb.Hidden || fb.defeated) continue;
-                    var cb = market.Get(fb.loadID);
-                    if (cb == null || cb.haltUntilTick > GenTicks.TicksGame || cb.pegUntilTick > GenTicks.TicksGame) continue;
-                    // ⚠️ 原版只维护"派系↔玩家"的好感，NPC 之间只有敌对/非敌对，
-                    // GoodwillWith 在 NPC 对 NPC 上恒为 0，拿 75 当门槛永远不成立。
-                    // 所以用：彼此不敌对 + 双方对玩家友好（>= 40）作为"关系好"的判据。
+                    var fa = pool[i];
+                    var fb = pool[j];
                     if (fa.HostileTo(fb) || fb.HostileTo(fa)) continue;
-                    if (fa.GoodwillWith(Faction.OfPlayer) < TariffPlayerFriendlyGoodwill) continue;
-                    if (fb.GoodwillWith(Faction.OfPlayer) < TariffPlayerFriendlyGoodwill) continue;
-                    a = fa; b = fb;
-                    break;
+
+                    float score = Mathf.Min(
+                        fa.GoodwillWith(Faction.OfPlayer),
+                        fb.GoodwillWith(Faction.OfPlayer));
+                    if (score > bestScore)
+                    {
+                        bestScore = score;
+                        bestA = fa;
+                        bestB = fb;
+                    }
                 }
             }
-            if (a == null || b == null) return false;
 
-            var curA = market.Get(a.loadID);
-            var curB = market.Get(b.loadID);
-            if (curA == null || curB == null) return false;
+            if (bestA != null && bestB != null)
+            {
+                ApplyTariffDrift(bestA);
+                ApplyTariffDrift(bestB);
+                Find.LetterStack.ReceiveLetter(
+                    "RimForex_Ev14LetterLabel".Translate(bestA.Name, bestB.Name),
+                    "RimForex_Ev14Letter".Translate(bestA.Name, bestB.Name),
+                    LetterDefOf.PositiveEvent);
+                return true;
+            }
 
-            int until = GenTicks.TicksGame + TariffDriftDays * TicksPerDay;
-            curA.newsDriftLog = Rand.Range(0.8f, 1.4f) * SigmaDayOf(curA) * TariffDriftDays;
-            curA.newsDriftUntilTick = until;
-            curB.newsDriftLog = Rand.Range(0.8f, 1.4f) * SigmaDayOf(curB) * TariffDriftDays;
-            curB.newsDriftUntilTick = until;
+            // ② 单边协定
+            Faction solo = null;
+            float soloScore = float.MinValue;
+            for (int i = 0; i < pool.Count; i++)
+            {
+                float g = pool[i].GoodwillWith(Faction.OfPlayer);
+                if (g > soloScore) { soloScore = g; solo = pool[i]; }
+            }
+            if (solo == null) return false;
 
+            ApplyTariffDrift(solo);
             Find.LetterStack.ReceiveLetter(
-                "RimForex_Ev14LetterLabel".Translate(a.Name, b.Name),
-                "RimForex_Ev14Letter".Translate(a.Name, b.Name),
+                "RimForex_Ev15LetterLabel".Translate(solo.Name),
+                "RimForex_Ev15Letter".Translate(solo.Name),
                 LetterDefOf.PositiveEvent);
             return true;
+        }
+
+        /// <summary>给一个派系的货币挂 3 天正向漂移。</summary>
+        private void ApplyTariffDrift(Faction f)
+        {
+            if (f == null) return;
+            var c = market.Get(f.loadID);
+            if (c == null) return;
+            c.newsDriftLog += Rand.Range(0.8f, 1.4f) * SigmaDayOf(c) * TariffDriftDays;
+            c.newsDriftUntilTick = GenTicks.TicksGame + TariffDriftDays * TicksPerDay;
         }
 
         /// <summary>测试按钮：立刻触发一次关税下调。</summary>
