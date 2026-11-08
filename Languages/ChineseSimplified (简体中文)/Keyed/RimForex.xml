@@ -591,4 +591,7 @@
   <RimForex_ColChange5d>5日</RimForex_ColChange5d>
   <RimForex_ColChangeQtr>象</RimForex_ColChangeQtr>
   <RimForex_ColChangeTip>点击切换：日涨跌 / 5 日涨跌 / 象（15 日）涨跌。</RimForex_ColChangeTip>
+  <RimForex_TestPegBreak>测试：保卫战破位</RimForex_TestPegBreak>
+  <RimForex_TestPegBreakTip>钉住一个随机货币 6 小时，到期必定破位（用于测试破位跳空 → 停牌 → 复牌）。</RimForex_TestPegBreakTip>
+  <RimForex_MsgTestPegBreak>已安排必定破位的保卫战。</RimForex_MsgTestPegBreak>
 </LanguageData>

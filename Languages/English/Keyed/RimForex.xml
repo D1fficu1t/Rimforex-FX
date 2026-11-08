@@ -576,4 +576,7 @@ Let him reach the map edge, or put him down here. Either way, Collections will w
   <RimForex_ColChange5d>5d</RimForex_ColChange5d>
   <RimForex_ColChangeQtr>Qtr</RimForex_ColChangeQtr>
   <RimForex_ColChangeTip>Click to switch: daily / 5-day / quadrum change.</RimForex_ColChangeTip>
+  <RimForex_TestPegBreak>Test: peg break</RimForex_TestPegBreak>
+  <RimForex_TestPegBreakTip>Peg a random currency for 6 hours; it is guaranteed to break on expiry (tests break gap → halt → reopen).</RimForex_TestPegBreakTip>
+  <RimForex_MsgTestPegBreak>Guaranteed peg break scheduled.</RimForex_MsgTestPegBreak>
 </LanguageData>

@@ -3327,6 +3327,9 @@ namespace RimForex
         /// <summary>正在走过去谈的殖民者（-1 = 没有）。</summary>
         public int pendingTalkPawnId = -1;
         public int pendingTalkUntilTick;
+        /// <summary>测试用：下一次该货币的保卫战必定破位（-1 = 无）。</summary>
+        public int forcedPegBreakCcyId = -1;
+
         /// <summary>下次重新寻路的 tick（商人会走动，走到旧位置就白跑了）。</summary>
         public int pendingTalkRepathTick;
         /// <summary>商人站位的格子（无派系，没有领主，需要自己维持位置）。</summary>
@@ -5473,7 +5476,10 @@ namespace RimForex
                 if (c.pegUntilTick > 0 && now >= c.pegUntilTick)
                 {
                     c.pegUntilTick = 0;
-                    if (Rand.Chance(PegBreakChance))
+                    bool breakNow = forcedPegBreakCcyId == c.factionLoadID
+                                    || Rand.Chance(PegBreakChance);
+                    if (forcedPegBreakCcyId == c.factionLoadID) forcedPegBreakCcyId = -1;
+                    if (breakNow)
                     {
                         // 立刻跳空：下一步就要停牌，排队的话会被冻结吞掉
                         market.ForceGapNow(c, Rand.Range(PegBreakSigmasMin, PegBreakSigmasMax),
@@ -5576,7 +5582,26 @@ namespace RimForex
             c.pegUntilTick = GenTicks.TicksGame + 6 * TicksPerHour;
             Find.LetterStack.ReceiveLetter(
                 "RimForex_Ev11PegLabel".Translate(f.Name),
-                "RimForex_Ev11Peg".Translate(f.Name, BankNameFor(f)),
+                "RimForex_Ev11Peg".Translate(f.Name, BankNameFor(f),
+                    (Return5d(c) * 100f).ToString("+0.0;-0.0")),
+                LetterDefOf.NeutralEvent);
+            return true;
+        }
+
+        /// <summary>测试按钮：钉住一个随机货币 6 小时，并且**必定破位**。</summary>
+        public bool DebugForcePegBreak()
+        {
+            Faction f;
+            FxCurrency c = PickEventCurrency(out f);
+            if (c == null || f == null) return false;
+            c.pegCenter = c.rate;
+            c.pegHalfWidth = PegHalfWidthDefault;
+            c.pegUntilTick = GenTicks.TicksGame + 6 * TicksPerHour;
+            forcedPegBreakCcyId = c.factionLoadID;
+            Find.LetterStack.ReceiveLetter(
+                "RimForex_Ev11PegLabel".Translate(f.Name),
+                "RimForex_Ev11Peg".Translate(f.Name, BankNameFor(f),
+                    (Return5d(c) * 100f).ToString("+0.0;-0.0")),
                 LetterDefOf.NeutralEvent);
             return true;
         }
