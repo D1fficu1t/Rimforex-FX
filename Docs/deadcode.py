@@ -20,8 +20,9 @@ import xml.etree.ElementTree as ET
 # 用 __file__ 推导，两边都成立。
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, "Source")
-EN = os.path.join(ROOT, r"Languages\English\Keyed\RimForex.xml")
-ZH = os.path.join(ROOT, r"Languages\ChineseSimplified (简体中文)\Keyed\RimForex.xml")
+DEV = os.path.join(ROOT, "1.7")
+EN = os.path.join(DEV, r"Languages\English\Keyed\RimForex.xml")
+ZH = os.path.join(DEV, r"Languages\ChineseSimplified (简体中文)\Keyed\RimForex.xml")
 
 findings = []
 
@@ -92,7 +93,7 @@ def main():
             files.append(os.path.join(dirpath, f))
 
     hay = all_raw + open(os.path.join(ROOT, "README.md"), encoding="utf-8").read()
-    tex_dir = os.path.join("Textures", "")
+    tex_dir = os.path.join("1.7", "Textures", "")
     for p in files:
         rel = os.path.relpath(p, ROOT)
         if not rel.startswith(tex_dir):

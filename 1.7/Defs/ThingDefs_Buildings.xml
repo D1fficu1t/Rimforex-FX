@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+
+  <ThingDef ParentName="BuildingBase">
+    <defName>RimForex_TradingTerminal</defName>
+    <label>FX trading terminal</label>
+    <description>A console hardwired into the interstellar FX exchange. Deposit silver as margin and trade faction currencies with leverage.</description>
+    <thingClass>RimForex.Building_FXTradingTerminal</thingClass>
+    <category>Building</category>
+    <designationCategory>Production</designationCategory>
+    <drawerType>MapMeshAndRealTime</drawerType>
+    <selectable>true</selectable>
+    <rotatable>false</rotatable>
+    <terrainAffordanceNeeded>Light</terrainAffordanceNeeded>
+    <size>(1,1)</size>
+    <passability>PassThroughOnly</passability>
+    <fillPercent>0.4</fillPercent>
+    <pathCost>30</pathCost>
+
+    <!-- ── 可搬运 / 可重新放置（2026-10-23 加）──
+         玩家要求能把这台终端"卸载 → 搬走 → 在别处重装"，而不是拆了重建
+         （拆了重建要重新出材料，而重装只是搬动）。
+
+         这两个字段**必须成对出现**，少一个就是配置错误：
+           · minifiedDef      —— 卸载后变成 MinifiedThing。
+                                 注意 `ThingDef.Minifiable` 的判定就是 `minifiedDef != null`，
+                                 写 `<Minifiable>true</Minifiable>` 是**无效的**。
+           · thingCategories  —— 可搬运但不在任何存储分类里会触发
+                                 "is minifiable but not in any thing category"。
+                                 本建筑在生产分类下，用 BuildingsProduction。
+
+         有了 minifiedDef 之后，原版 `Verse.Building.GetGizmos()` 会自动给出
+         「重新安装」（Reinstall at...）命令 —— 条件正是
+         `def.Minifiable && Faction == Faction.OfPlayer`。
+         本建筑的 GetGizmos 重写里已经 `foreach (var g in base.GetGizmos())`，
+         所以不需要额外代码。
+
+         另一个副作用是好的：卸载期间建筑不再 Spawned，
+         已打开的终端窗口会因为 `Usable` 为假自动关闭（见 Building_FXTradingTerminal.Usable）。 -->
+    <minifiedDef>MinifiedThing</minifiedDef>
+    <thingCategories>
+      <li>BuildingsProduction</li>
+    </thingCategories>
+
+    <!-- 建筑必须自带 graphicData，否则 ThingDefGenerator_Buildings 生成蓝图/框架时
+         GraphicData.CopyFrom 会拿到 null 直接崩溃整个 Def 加载阶段。 -->
+    <graphicData>
+      <texPath>Things/Building/RimForex/FXTradingTerminal</texPath>
+      <graphicClass>Graphic_Single</graphicClass>
+      <drawSize>(1,1.2)</drawSize>
+      <damageData>
+        <rect>(0.1,0.1,0.8,0.8)</rect>
+      </damageData>
+    </graphicData>
+    <altitudeLayer>Building</altitudeLayer>
+    <castEdgeShadows>true</castEdgeShadows>
+    <staticSunShadowHeight>0.2</staticSunShadowHeight>
+    <statBases>
+      <WorkToBuild>1500</WorkToBuild>
+      <MaxHitPoints>250</MaxHitPoints>
+      <Flammability>0.5</Flammability>
+      <Beauty>-2</Beauty>
+      <!-- Mass 是【可搬运的强制项】（2026-10-23 补）：
+           可搬运 = 可被搬运，Def 校验会报
+           "is haulable, but does not have an authored mass value"。
+           取 30 —— 原版参考：ButcherSpot 20 / DeepDrill 35 / Bed 30。
+           一个默认小人（承载 75）扛得动，符合"搬走重装"的设计意图。 -->
+      <Mass>30</Mass>
+    </statBases>
+    <costList>
+      <Steel>90</Steel>
+      <ComponentIndustrial>4</ComponentIndustrial>
+      <Silver>150</Silver>
+    </costList>
+    <researchPrerequisites>
+      <li>Electricity</li>
+    </researchPrerequisites>
+    <constructionSkillPrerequisite>4</constructionSkillPrerequisite>
+    <comps>
+      <li Class="CompProperties_Power">
+        <compClass>CompPowerTrader</compClass>
+        <basePowerConsumption>250</basePowerConsumption>
+      </li>
+      <li Class="CompProperties_Flickable" />
+      <li Class="CompProperties_Glower">
+        <glowRadius>3.5</glowRadius>
+        <glowColor>(120,190,255,0)</glowColor>
+      </li>
+    </comps>
+    <building>
+      <ai_chillDestination>false</ai_chillDestination>
+      <isEdifice>false</isEdifice>
+    </building>
+  </ThingDef>
+
+</Defs>

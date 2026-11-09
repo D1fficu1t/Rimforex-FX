@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+  <!-- 平仓心情的中文标签与描述。
+
+       原版把 label/description 直接写在 Defs\ThoughtDefs_Forex.xml 里（那些是默认语言的英文），
+       中文必须放在 DefInjected 下按 Def 类型分目录覆盖，否则中文界面会显示英文。
+       目录名 ThoughtDef 对应 Def 类型名，文件名可任意。
+
+       每档 3 个 stage，依次对应叠了 1 / 2 / 3 层。
+       描述会被单独喂给 LLM 对话模组，所以每条都自带完整语境（外汇 / 方向 / 量级）。 -->
+
+  <!-- ══════════════ 巨亏 ≤ -10000 ══════════════ -->
+  <RimForex_FxLossHuge.stages.0.label>外汇巨亏</RimForex_FxLossHuge.stages.0.label>
+  <RimForex_FxLossHuge.stages.0.description>外汇亏损过万。账房核对了三遍，数字很有耐心，一直没变。</RimForex_FxLossHuge.stages.0.description>
+  <RimForex_FxLossHuge.stages.1.label>外汇巨亏</RimForex_FxLossHuge.stages.1.label>
+  <RimForex_FxLossHuge.stages.1.description>又亏掉一万多。有人提议把交易终端拆了改造成花盆，没人笑。</RimForex_FxLossHuge.stages.1.description>
+  <RimForex_FxLossHuge.stages.2.label>外汇巨亏</RimForex_FxLossHuge.stages.2.label>
+  <RimForex_FxLossHuge.stages.2.description>交易账户上又是一个过万的窟窿。今晚集体早睡，灯灭得比平时早两个钟头。</RimForex_FxLossHuge.stages.2.description>
+
+  <!-- ══════════════ 大亏 -9999 ~ -5000 ══════════════ -->
+  <RimForex_FxLossBig.stages.0.label>外汇大亏</RimForex_FxLossBig.stages.0.label>
+  <RimForex_FxLossBig.stages.0.description>外汇上亏掉了几千近万。这笔钱本来够全殖民地吃一百顿简单食物。</RimForex_FxLossBig.stages.0.description>
+  <RimForex_FxLossBig.stages.1.label>外汇大亏</RimForex_FxLossBig.stages.1.label>
+  <RimForex_FxLossBig.stages.1.description>交易上又亏掉一个近万的数目。有人去问杂货商能不能赊账，杂货商把目光移开了。</RimForex_FxLossBig.stages.1.description>
+  <RimForex_FxLossBig.stages.2.label>外汇大亏</RimForex_FxLossBig.stages.2.label>
+  <RimForex_FxLossBig.stages.2.description>这轮交易亏损接近一万。会上没人提这件事，散会时椅子响得特别整齐。</RimForex_FxLossBig.stages.2.description>
+
+  <!-- ══════════════ 中亏 -4999 ~ -1000 ══════════════ -->
+  <RimForex_FxLossMedium.stages.0.label>外汇中亏</RimForex_FxLossMedium.stages.0.label>
+  <RimForex_FxLossMedium.stages.0.description>外汇亏了几千。屏幕上的数字没怎么动，食堂的菜先素了。</RimForex_FxLossMedium.stages.0.description>
+  <RimForex_FxLossMedium.stages.1.label>外汇中亏</RimForex_FxLossMedium.stages.1.label>
+  <RimForex_FxLossMedium.stages.1.description>外汇上再添一千多的亏损。没人再往交易终端那边看。</RimForex_FxLossMedium.stages.1.description>
+  <RimForex_FxLossMedium.stages.2.label>外汇中亏</RimForex_FxLossMedium.stages.2.label>
+  <RimForex_FxLossMedium.stages.2.description>又一个几千的窟窿。账本现在归我管，谁都别问。</RimForex_FxLossMedium.stages.2.description>
+
+  <!-- ══════════════ 小亏 -999 ~ -1 ══════════════ -->
+  <RimForex_FxLossSmall.stages.0.label>外汇小亏</RimForex_FxLossSmall.stages.0.label>
+  <RimForex_FxLossSmall.stages.0.description>外汇上亏了一笔小钱。就当交学费。</RimForex_FxLossSmall.stages.0.description>
+  <RimForex_FxLossSmall.stages.1.label>外汇小亏</RimForex_FxLossSmall.stages.1.label>
+  <RimForex_FxLossSmall.stages.1.description>外汇上又多了一笔小亏损。学费交得有点勤。</RimForex_FxLossSmall.stages.1.description>
+  <RimForex_FxLossSmall.stages.2.label>外汇小亏</RimForex_FxLossSmall.stages.2.label>
+  <RimForex_FxLossSmall.stages.2.description>连着几笔小亏损下来，这学费够读一整个专业了。</RimForex_FxLossSmall.stages.2.description>
+
+  <!-- ══════════════ 小赚 1 ~ 999 ══════════════ -->
+  <RimForex_FxGainSmall.stages.0.label>外汇小赚</RimForex_FxGainSmall.stages.0.label>
+  <RimForex_FxGainSmall.stages.0.description>外汇上赚了一笔小的。今晚给每人加一勺蜂蜜。</RimForex_FxGainSmall.stages.0.description>
+  <RimForex_FxGainSmall.stages.1.label>外汇小赚</RimForex_FxGainSmall.stages.1.label>
+  <RimForex_FxGainSmall.stages.1.description>交易又小赚了一笔。账户鼓了一点，就一点。</RimForex_FxGainSmall.stages.1.description>
+  <RimForex_FxGainSmall.stages.2.label>外汇小赚</RimForex_FxGainSmall.stages.2.label>
+  <RimForex_FxGainSmall.stages.2.description>外汇上连着几笔盈利，都是小数目。先高兴着，别太得意。</RimForex_FxGainSmall.stages.2.description>
+
+  <!-- ══════════════ 中赚 1000 ~ 4999 ══════════════ -->
+  <RimForex_FxGainMedium.stages.0.label>外汇中赚</RimForex_FxGainMedium.stages.0.label>
+  <RimForex_FxGainMedium.stages.0.description>外汇赚了几千。够修一堵墙，顺带买点草药。</RimForex_FxGainMedium.stages.0.description>
+  <RimForex_FxGainMedium.stages.1.label>外汇中赚</RimForex_FxGainMedium.stages.1.label>
+  <RimForex_FxGainMedium.stages.1.description>交易上再进账一千多，这笔钱是干活挣来的。</RimForex_FxGainMedium.stages.1.description>
+  <RimForex_FxGainMedium.stages.2.label>外汇中赚</RimForex_FxGainMedium.stages.2.label>
+  <RimForex_FxGainMedium.stages.2.description>外汇上又一个几千的盈利。有人在打听沙发多少钱一张。</RimForex_FxGainMedium.stages.2.description>
+
+  <!-- ══════════════ 大赚 5000 ~ 9999 ══════════════ -->
+  <RimForex_FxGainBig.stages.0.label>外汇大赚</RimForex_FxGainBig.stages.0.label>
+  <RimForex_FxGainBig.stages.0.description>外汇大赚，进账数千近万。这个季度能过得体面点了。</RimForex_FxGainBig.stages.0.description>
+  <RimForex_FxGainBig.stages.1.label>外汇大赚</RimForex_FxGainBig.stages.1.label>
+  <RimForex_FxGainBig.stages.1.description>交易上又赚了数千。有人提议给交易终端镀金，项目暂缓，但他很高兴。</RimForex_FxGainBig.stages.1.description>
+  <RimForex_FxGainBig.stages.2.label>外汇大赚</RimForex_FxGainBig.stages.2.label>
+  <RimForex_FxGainBig.stages.2.description>这笔交易盈利数千。交易员换上了一把带软垫的正经椅子。</RimForex_FxGainBig.stages.2.description>
+
+  <!-- ══════════════ 巨赚 ≥ 10000 ══════════════ -->
+  <RimForex_FxGainHuge.stages.0.label>外汇巨赚</RimForex_FxGainHuge.stages.0.label>
+  <RimForex_FxGainHuge.stages.0.description>外汇上赚了整整一万。账房数它的时候手指在抖。</RimForex_FxGainHuge.stages.0.description>
+  <RimForex_FxGainHuge.stages.1.label>外汇巨赚</RimForex_FxGainHuge.stages.1.label>
+  <RimForex_FxGainHuge.stages.1.description>交易上又进账一万多。有人提议扩建银库，不然放不下。</RimForex_FxGainHuge.stages.1.description>
+  <RimForex_FxGainHuge.stages.2.label>外汇巨赚</RimForex_FxGainHuge.stages.2.label>
+  <RimForex_FxGainHuge.stages.2.description>外汇上再赚一万。现在发愁的是怎么花掉，这比亏钱好办。</RimForex_FxGainHuge.stages.2.description>
+
+  <!-- ══════════════ 爆仓 ══════════════ -->
+  <RimForex_FxMarginCall.stages.0.label>外汇爆仓</RimForex_FxMarginCall.stages.0.label>
+  <RimForex_FxMarginCall.stages.0.description>保证金爆了，一声不响就没了。</RimForex_FxMarginCall.stages.0.description>
+  <RimForex_FxMarginCall.stages.1.label>外汇爆仓</RimForex_FxMarginCall.stages.1.label>
+  <RimForex_FxMarginCall.stages.1.description>又一次爆仓，保证金全部清零。交易终端回到了出厂的样子，我们的白银没有。</RimForex_FxMarginCall.stages.1.description>
+  <RimForex_FxMarginCall.stages.2.label>外汇爆仓</RimForex_FxMarginCall.stages.2.label>
+  <RimForex_FxMarginCall.stages.2.description>再一次爆仓。终端前面那把椅子现在是空的，大家绕开它走。</RimForex_FxMarginCall.stages.2.description>
+
+  <!-- ══════════════ 穿仓（不叠加） ══════════════ -->
+  <RimForex_FxBlowUp.stages.0.label>外汇穿仓</RimForex_FxBlowUp.stages.0.label>
+  <RimForex_FxBlowUp.stages.0.description>穿仓了：外汇保证金亏光，账户余额被推成负数。现在我们倒欠交易平台一笔钱。</RimForex_FxBlowUp.stages.0.description>
+
+</LanguageData>

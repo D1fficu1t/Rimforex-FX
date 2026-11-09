@@ -14,8 +14,9 @@ import xml.etree.ElementTree as ET
 # 用 __file__ 推导，两边都成立。
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, "Source")
-EN = os.path.join(ROOT, r"Languages\English\Keyed\RimForex.xml")
-ZH = os.path.join(ROOT, r"Languages\ChineseSimplified (简体中文)\Keyed\RimForex.xml")
+DEV = os.path.join(ROOT, "1.7")
+EN = os.path.join(DEV, r"Languages\English\Keyed\RimForex.xml")
+ZH = os.path.join(DEV, r"Languages\ChineseSimplified (简体中文)\Keyed\RimForex.xml")
 
 fail = 0
 
@@ -98,7 +99,7 @@ def main():
     # 这里把 Defs\*.xml 里出现的所有 defName 收集起来，
     # 再检查每个 DefInjected 键的第一段是不是某个真实 defName。
     def_names = set()
-    def_dir = os.path.join(ROOT, "Defs")
+    def_dir = os.path.join(DEV, "Defs")
     if os.path.isdir(def_dir):
         for f in os.listdir(def_dir):
             if not f.endswith(".xml"):
@@ -112,7 +113,7 @@ def main():
                     if ch.tag == "defName" and ch.text:
                         def_names.add(ch.text.strip())
 
-    inj_dir = os.path.join(ROOT, "Languages")
+    inj_dir = os.path.join(DEV, "Languages")
     checked = 0
     if os.path.isdir(inj_dir):
         for dirpath, _, files in os.walk(inj_dir):
@@ -689,7 +690,7 @@ def main():
         # 与 XML 的 defName 必须逐字一致
         block = re.search(r"TierDefNames\s*=\s*\{(.*?)\};", mood, re.S)
         xml_defs = set()
-        tp = os.path.join(ROOT, "Defs", "ThoughtDefs_Forex.xml")
+        tp = os.path.join(DEV, "Defs", "ThoughtDefs_Forex.xml")
         if os.path.exists(tp):
             xt = open(tp, encoding="utf-8").read()
             xml_defs = set(re.findall(r"<defName>(RimForex_Fx[A-Za-z]+)</defName>", xt))
@@ -1131,7 +1132,7 @@ def main():
 
     def _defs_fields():
         out = []
-        for dp, _, fsn in os.walk(os.path.join(ROOT, "Defs")):
+        for dp, _, fsn in os.walk(os.path.join(DEV, "Defs")):
             for fn in sorted(fsn):
                 if not fn.endswith(".xml"):
                     continue
@@ -1163,7 +1164,7 @@ def main():
 
     def _inj_keys(langdir):
         keys = set()
-        base = os.path.join(ROOT, "Languages", langdir, "DefInjected")
+        base = os.path.join(DEV, "Languages", langdir, "DefInjected")
         if not os.path.isdir(base):
             return keys
         for dp, _, fsn in os.walk(base):
@@ -1318,7 +1319,7 @@ def main():
     #   · minifiedDef     决定 Minifiable（ThingDef.Minifiable 就是 minifiedDef != null）
     #   · thingCategories 可搬运却不在任何存储分类里 → 配置错误
     bdef = ""
-    bp = os.path.join(ROOT, "Defs", "ThingDefs_Buildings.xml")
+    bp = os.path.join(DEV, "Defs", "ThingDefs_Buildings.xml")
     if os.path.exists(bp):
         with open(bp, encoding="utf-8") as fh:
             bdef = fh.read()
