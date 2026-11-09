@@ -5573,9 +5573,12 @@ namespace RimForex
             if (c == null) return false;
             c.haltUntilTick = GenTicks.TicksGame + 6 * TicksPerHour;
             c.lastHaltTick = GenTicks.TicksGame;
+            float dayPct = c.previousRate > 0.01f
+                ? (c.rate / c.previousRate - 1f) * 100f : 0f;
             Find.LetterStack.ReceiveLetter(
                 "RimForex_Ev10HaltLabel".Translate(c.factionName),
-                "RimForex_Ev10Halt".Translate(c.factionName),
+                "RimForex_Ev10Halt".Translate(c.factionName,
+                    dayPct.ToString("+0.0;-0.0"), BankNameFor(f)),
                 LetterDefOf.ThreatSmall);
             return true;
         }
@@ -6880,8 +6883,8 @@ namespace RimForex
                 if (closed > 0)
                 {
                     Find.LetterStack.ReceiveLetter(
-                        "RimForex_Ev8LetterLabel".Translate(),
-                        "RimForex_Ev8Letter".Translate(closed.ToString()),
+                        "RimForex_LiquidationLabel".Translate(),
+                        "RimForex_LiquidationText".Translate(closed.ToString()),
                         LetterDefOf.NegativeEvent);
                 }
             }

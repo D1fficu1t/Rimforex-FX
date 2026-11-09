@@ -25,6 +25,67 @@ def load_keys(path):
     return {c.tag: (c.text or "") for c in ET.parse(path).getroot()}
 
 
+
+def dup_key_names(path):
+    """文件内重复出现的 Keyed 键名（RimWorld 会报 translation error）。"""
+    txt = open(path, encoding="utf-8").read()
+    tags = re.findall(r"<([A-Za-z_][A-Za-z0-9_]*)(?:\s[^>]*)?>", txt)
+    seen = {}
+    for tag in tags:
+        seen[tag] = seen.get(tag, 0) + 1
+    return sorted(k for k, c in seen.items() if c > 1 and k not in ("li", "LanguageData"))
+
+
+def placeholder_arity(text):
+    """文案里最大占位符序号 + 1（{0}{2} → 3）。"""
+    nums = [int(x) for x in re.findall(r"\{(\d+)\}", text)]
+    return (max(nums) + 1) if nums else 0
+
+
+def translate_calls(src_dir):
+    """扫描 .cs，取出 "RimForex_Xxx".Translate(...) 的 (键, 实参个数, 文件:行)。"""
+    out = []
+    for fn in os.listdir(src_dir):
+        if not fn.endswith(".cs"):
+            continue
+        txt = open(os.path.join(src_dir, fn), encoding="utf-8").read()
+        for m in re.finditer(r'"(RimForex_[A-Za-z0-9_]+)"\s*\.Translate\s*\(', txt):
+            key = m.group(1)
+            i = m.end()
+            depth = 1
+            args = 0
+            token_start = i
+            in_str = False
+            esc = False
+            while i < len(txt) and depth > 0:
+                ch = txt[i]
+                if in_str:
+                    if esc:
+                        esc = False
+                    elif ch == "\\":
+                        esc = True
+                    elif ch == '"':
+                        in_str = False
+                else:
+                    if ch == '"':
+                        in_str = True
+                    elif ch == "(":
+                        depth += 1
+                    elif ch == ")":
+                        depth -= 1
+                        if depth == 0:
+                            if txt[token_start:i].strip():
+                                args += 1
+                            break
+                    elif ch == "," and depth == 1:
+                        if txt[token_start:i].strip():
+                            args += 1
+                        token_start = i + 1
+                i += 1
+            line = txt.count("\n", 0, m.start()) + 1
+            out.append((key, args, "%s:%d" % (fn, line)))
+    return out
+
 def main():
     global fail
 
@@ -1514,6 +1575,35 @@ def main():
     else:
         fail += 1
         print("  !! 跳空播报可能又提前了 —— 会重新出现套利窗口")
+
+    # ---- 4c. 语言文件内部不得有重复键 ----
+    for label, path in (("EN", EN), ("ZH", ZH)):
+        dups = dup_key_names(path)
+        if dups:
+            fail += 1
+            print("  !! %s 存在重复键（会触发 translation error）: %s" % (label, dups))
+        else:
+            print("  OK %s 无重复键" % label)
+
+    # ---- 4d. Translate 调用的实参个数必须够填占位符 ----
+    #     这一条是 2026-11-08~09 两次线上红字的直接教训：
+    #     文案改成 {0}{1}{2} 后，调用处仍只传两个参数，游戏里报
+    #     "Could not resolve symbol 1/2"。
+    arity_bad = []
+    for key, argc, where in translate_calls(SRC):
+        if key not in en:
+            arity_bad.append((key, where, "键不存在于 EN"))
+            continue
+        need = max(placeholder_arity(en.get(key, "")), placeholder_arity(zh.get(key, "")))
+        if argc < need:
+            arity_bad.append((key, where, "需要 %d 个参数，调用只传了 %d 个" % (need, argc)))
+    if arity_bad:
+        fail += 1
+        print("  !! Translate 参数不足 %d 处:" % len(arity_bad))
+        for key, where, why in arity_bad[:20]:
+            print("     %-42s %-22s %s" % (key, where, why))
+    else:
+        print("  OK 所有 Translate 调用参数充足")
 
     print()
     print("结果:", "全部通过" if fail == 0 else "%d 项失败" % fail)
