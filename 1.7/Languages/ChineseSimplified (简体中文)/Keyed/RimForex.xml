@@ -214,8 +214,6 @@
   <RimForex_MsgGap>行情跳空：{0} 一步变动 {1}%</RimForex_MsgGap>
   <RimForex_MsgReportCopied>已复制 {0} 笔交易报告到剪贴板。</RimForex_MsgReportCopied>
   <RimForex_MsgReportCopyFailed>复制失败：{0}</RimForex_MsgReportCopyFailed>
-  <RimForex_Zero>归零</RimForex_Zero>
-  <RimForex_ZeroTip>把数量清回最小值（1 单位）。</RimForex_ZeroTip>
   <RimForex_TipTooSoon>新持仓需要跨过一次报价才能平仓。还需 {0} 秒。</RimForex_TipTooSoon>
   <RimForex_MsgDeposited>已存入 {0} 白银作为保证金。</RimForex_MsgDeposited>
   <RimForex_MsgWithdrew>已提取 {0} 白银。</RimForex_MsgWithdrew>

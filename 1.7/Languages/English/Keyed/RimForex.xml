@@ -203,8 +203,6 @@ A blow-up (margin gone and balance pushed negative) is a heavier tier at base -2
   <RimForex_MsgGap>Price gap: {0} moved {1}% in a single quote</RimForex_MsgGap>
   <RimForex_MsgReportCopied>Copied {0} trades to the clipboard.</RimForex_MsgReportCopied>
   <RimForex_MsgReportCopyFailed>Copy failed: {0}</RimForex_MsgReportCopyFailed>
-  <RimForex_Zero>Zero</RimForex_Zero>
-  <RimForex_ZeroTip>Clear the quantity back to the minimum (1 unit).</RimForex_ZeroTip>
   <RimForex_TipTooSoon>A new position has to survive one quote before it can be closed. Ready in {0}s.</RimForex_TipTooSoon>
   <RimForex_MsgDeposited>Deposited {0} silver as margin.</RimForex_MsgDeposited>
   <RimForex_MsgWithdrew>Withdrew {0} silver.</RimForex_MsgWithdrew>
