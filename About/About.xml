@@ -5,6 +5,7 @@
   <packageId>KIWI.Rimforex.Trading</packageId>
   <modVersion>0.3.2</modVersion>
   <supportedVersions>
+    <li>1.6</li>
     <li>1.7</li>
   </supportedVersions>
   <description>星际外汇交易平台：每个派系拥有自己的货币，在 FX 交易终端上用白银作保证金进行杠杆交易。

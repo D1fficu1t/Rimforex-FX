@@ -94,7 +94,7 @@
 
   <PropertyGroup>
     <ModRoot>$(MSBuildProjectDirectory)\..</ModRoot>
-    <ModAssemblies>$(ModRoot)\Assemblies</ModAssemblies>
+    <ModAssemblies>$(ModRoot)\1.7\Assemblies</ModAssemblies>
   </PropertyGroup>
 
   <!-- ══════════════════════════════════════════════════════════════════════
