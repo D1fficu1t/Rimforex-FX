@@ -2,6 +2,7 @@
 # 每次构建都会重新生成，且内容随编译器版本变化，没有版本控制价值
 Source/bin/
 Source/obj/
+dist/
 
 # ── 本机配置 ──
 # Source/Local.props 里存的是**这台机器**的 RimWorld 安装路径。
