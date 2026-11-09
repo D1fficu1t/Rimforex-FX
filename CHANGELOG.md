@@ -49,6 +49,9 @@
 - 央行事件在货币停牌或钉住期间到点时，跳空会被冻结吞掉，只剩一条「决策已公布」的消息。
   现在改为立即落地；仍在停牌中的最多顺延一天。
 - 前一条央行决策尚未落地时，新事件会把它覆盖，玩家收了预告却永远等不到跳空。现在只保留一条。
+- 穿仓后收债人一直不来：负余额被「空账户」判定误删，账户消失，收债流程失去对象。
+  现在判定改用绝对值；负余额计时也从每日结算里独立出来，每 250 tick 检查一次，
+  不再受跳时间影响。
 - 商人被领主拽回殖民地、殖民者追着旧位置跑、到点不肯离场、关窗就被赶走等问题。
 
 **其他**
@@ -108,6 +111,9 @@
   leaving only the "decision is out" message. It now applies at once and waits at most a day.
 - A new bank event could overwrite a pending one, so the earlier announcement never resolved.
   Only one pending decision is kept now.
+- Debt collectors never arrived after a blow-up: a negative balance counted as an "empty account"
+  and was pruned, taking the debt case with it. The check now uses the absolute value, and the
+  negative-balance timer runs every 250 ticks instead of only at daily settlement.
 - Merchant fixes: dragged back by a lord, colonist chasing the old position, refusing to leave,
   and being dismissed merely by closing the window.
 

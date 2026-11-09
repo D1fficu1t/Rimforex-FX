@@ -1621,6 +1621,20 @@ def main():
         fail += 1
         print("  !! 央行跳空仍用 ForceGap，停牌时会被冻结吞掉")
 
+    # ---- 4f. 收债链路（2026-11-09 实战教训）----
+    #     ① 负余额不能被当成"空账户"剪掉，否则收债人永远等不到
+    #     ② 计时与触发不能只挂在每日结算上（跳时间可能跳过午夜那个 tick）
+    if "Mathf.Abs(acc.balance) < 0.01f" in core_src:
+        print("  OK 空账户判定不会误删负余额")
+    else:
+        fail += 1
+        print("  !! 空账户判定把负余额也算空了，收债流程会断")
+    if "MaybeStartDebtCollection" in core_src and "% 250 == 0) MaybeStartDebtCollection" in core_src:
+        print("  OK 收债计时不依赖每日结算")
+    else:
+        fail += 1
+        print("  !! 收债只挂在每日结算上，跳时间可能永远不触发")
+
     print()
     print("结果:", "全部通过" if fail == 0 else "%d 项失败" % fail)
     return 1 if fail else 0

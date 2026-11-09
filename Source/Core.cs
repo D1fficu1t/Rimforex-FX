@@ -3928,6 +3928,12 @@ namespace RimForex
             ProcessCreditRating();
             ProcessCurrencyStates();
             ProcessSettlementLoss();
+
+            // E7 收债的计时与触发每 250 tick 检查一次。
+            // 不能只挂在每日结算上：开发者跳时间时未必会落在午夜那个 tick 上，
+            // 结算被跳过，负余额就永远等不到收债人（作者 2026-11-09 实测）。
+            if (GenTicks.TicksGame % 250 == 0) MaybeStartDebtCollection();
+
             ProcessMysteryMerchant();
             ProcessMerchantTimeout();
             ProcessMerchantTalk();
@@ -7236,8 +7242,19 @@ namespace RimForex
                 // 下一次结算又会开一单，收债窗口反复弹出（作者 2026-10-25 实测）
                 if (acc.frozenUntilTick > now) continue;
 
-                if (acc.negativeSinceTick <= 0) continue;
+                // 第一次看到负余额就开始计时，不用等当天结算的收尾逻辑
+                if (acc.negativeSinceTick <= 0)
+                {
+                    acc.negativeSinceTick = now;
+                    Log.Message("[RimForex] debt: started negative timer, balance "
+                        + acc.balance.ToString("F0"));
+                    continue;
+                }
                 if (now - acc.negativeSinceTick < E7NegativeDays * TicksPerDay) continue;
+
+                Log.Message("[RimForex] debt: negative for "
+                    + ((now - acc.negativeSinceTick) / TicksPerDay) + " days, balance "
+                    + acc.balance.ToString("F0") + " -> sending collector");
 
                 StartDebtCase(acc);
                 return;
@@ -8261,10 +8278,14 @@ namespace RimForex
         ///
         /// 这种账户只可能来自旧版本为每张看过 / 停留过的地图建的幽灵账户。
         /// 剪掉它们不影响任何玩家资产 —— 上面任意一条非零即视为非空，一律保留。
+        ///
+        /// ⚠️ 余额判据必须取绝对值。旧写法是 `balance < 0.01f`，
+        /// 于是负余额（穿仓）也会被当成"空账户"删掉 ——
+        /// 收债流程依赖账户存在，账户没了，收债人自然不会来（作者 2026-11-09 实测）。
         /// </summary>
         private static bool IsEmptyAccount(FxAccount acc)
         {
-            return acc.balance < 0.01f
+            return Mathf.Abs(acc.balance) < 0.01f
                 && acc.positions.Count == 0
                 && acc.history.Count == 0
                 && System.Math.Abs(acc.equityAtLastSettle) < 0.01f;
