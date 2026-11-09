@@ -2,127 +2,91 @@
 
 ## 0.3.2
 
-> 相对 0.3.1：一个包同时兼容 1.6 与 1.7，事件补上因果，新增停牌、汇率保卫战、
-> 神秘商人、据点损失与关税协定，另外修掉了几处会报红字的老问题。
+> 相对 0.3.1：一个包同时兼容 1.6 与 1.7；世界事件补上因果，并新增停牌、
+> 汇率保卫战、神秘商人、据点损失与关税协定。
 
 ### 中文
 
 **新增**
 
-- 单包双版本：`1.6/` 与 `1.7/` 各自携带完整的 Defs / Languages / Textures / Assemblies，
-  由 `LoadFolders.xml` 按游戏版本选择。1.6 冻结在 0.3.1，1.7 及以后走主线。
-- 停牌：单日剧烈波动，或汇率保卫战破位之后，该货币暂停交易 2 到 4 天。
-  期间不能开仓也不能平仓，隔夜利息照收；复牌时出现一次跳空，方向未知。
-- 汇率保卫战：最近五日持续贬值的货币，可能被央行出手钉住。是否出手看派系科技等级：
-  部落 35%、中世纪 50%、工业 70%、太空 85%，升值过猛时的反向钉住概率减半。
-  钉住区间只有 ±0.15%，期间禁止跳空；到期 18% 概率破位，汇价一次性重估。
+- 单包双版本：同一个 Mod 目录同时支持 1.6 与 1.7，程序集与资源按版本分目录。
+- 停牌：单日剧烈波动，或保卫战破位之后，该货币暂停交易 2 到 4 天。
+  期间不能开仓也不能平仓，隔夜利息照收；复牌时出现一次跳空。
+- 汇率保卫战：连续贬值的货币可能被央行出手钉住，是否出手看派系科技等级，
+  区间只有 ±0.15%，到期有概率破位并一次性重估。
 - 事件因果链：贬值招来救市，破位触发停牌，停牌复牌再跳空，跌幅仍大才轮到评级下调。
-  央行加息或降息也要先满足五日趋势（跌 2σ 加息、涨 2σ 降息），预告依然不透露方向。
-- 神秘商人：一个无派系的陌生人走到殖民地边缘。派殖民者过去谈，付白银买一条
-  未来五日走势的情报，六成是真的。可以选「等会再谈」把他留在原地。
-- 据点损失：据点被摧毁会让该派系货币承压三天，幅度按据点重要性（科技等级、
-  是否有商队、派系据点数量）计算。
-- 关税协定：随机两个派系签下协定，双方货币一起走强；若两家敌对，则表现为
-  「领导人进行了建设性的会谈」。只剩一个派系时退化为单边协定。
-- 涨跌列可点表头循环切换：日涨跌 / 5 日涨跌 / 象涨跌；K 线悬停会显示游戏内日期。
-- 爆仓预警分成 45% / 40% / 35% 三档，各自独立冷却；预警窗口提供 45 / 50 / 60
-  三个补保证金档位。
+- 神秘商人：一个无派系的陌生人走到殖民地边缘，派殖民者去谈，
+  付白银可以买一条未来五日走势的情报。
+- 据点损失：据点被摧毁会让该派系货币承压三天，幅度按据点重要性计算。
+- 关税协定：随机两个派系签下协定，双方货币一起走强。
+- 爆仓预警分成 45% / 40% / 35% 三档，各自独立冷却；预警窗口提供
+  45 / 50 / 60 三个补保证金档位。
 - 顶部工具栏：把终端、图表、模组设置这些按钮收进一条工具栏。
-- 隔夜利息重新配平：持仓按名义仓位每日 0.02% 计息。
-- 跳空改成落地之后才播报，堵掉「看到提示再下单」的套利窗口。
-- 部落货币的设定补完：教程说明交易所不要求现代央行，行情表悬停会显示
-  该货币的结算方式（贝壳串与牲畜 / 银币与布匹 / 本票与信用点 / 链上信用点）。
-- 央行事件改为「先预告、后落地」：预告不写加息还是降息，方向只能自己判断。
-- 设置页补全「恢复默认」，并新增停牌、保卫战破位、神秘商人、据点损失、关税下调
-  五个测试按钮。
+- 涨跌列可以点表头切换：日涨跌 / 5 日涨跌 / 象涨跌；K 线悬停会显示游戏内日期。
+- 部落货币的设定补完：教程说明交易所不要求现代央行，行情表悬停会显示结算方式。
+
+**调整**
+
+- 隔夜利息从名义仓位的 0.2%/日 降到 0.02%/日。
+- 取消世界事件的全局冷却，改成每个事件各自的间隔。
+- 央行事件改为先预告、后落地：预告不写加息还是降息，方向只能自己判断。
+- 战争新闻改成先找一对敌对派系再掷骰，找不到合适的派系不消耗冷却。
+- 评级下调改为需要前因：刚破位、刚丢据点，或五日大幅下跌。
 
 **修复**
 
-- 停牌期间 K 线仍有微小波动：子步的盘内振荡没有被冻结，现在整段价格完全不动。
-- 读档后立刻冒出一个世界事件：排期字段为 0 时被当成「已到期」，现在只排期不触发。
-- 汇率保卫战破位时没有跳空：排队的跳空被下一步的停牌冻结吞掉，改成立即跳空。
-- 关税事件永远选不出派系：NPC 之间没有好感度，原先的门槛不可能成立；
-  现在改为随机抽两个派系，不再做关系判定。
-- 爆仓清算信误用了央行预告的文案，标题变成「将发表利率声明」且参数不足报错。
-- 翻译键重复（`RimForex_Zero` / `ZeroTip`）导致主菜单报 translation error。
-- 测试按钮的文案占位符与调用参数不匹配，点击时报 "Could not resolve symbol"。
-- 央行事件在货币停牌或钉住期间到点时，跳空会被冻结吞掉，只剩一条「决策已公布」的消息。
-  现在改为立即落地；仍在停牌中的最多顺延一天。
-- 前一条央行决策尚未落地时，新事件会把它覆盖，玩家收了预告却永远等不到跳空。现在只保留一条。
-- 穿仓后收债人一直不来：负余额被「空账户」判定误删，账户消失，收债流程失去对象。
-  现在判定改用绝对值；负余额计时也从每日结算里独立出来，每 250 tick 检查一次，
-  不再受跳时间影响。
-- 商人被领主拽回殖民地、殖民者追着旧位置跑、到点不肯离场、关窗就被赶走等问题。
+- 跳空提示在价格更新之前就播报，玩家可以据此提前下单套利；现在落地之后才播报。
+- 穿仓后账户被当成空账户删除，导致收债人永远不来。
+- 补足保证金之后，爆仓预警窗口仍会反复弹出。
+- 主菜单因翻译键重复而报 translation error。
 
 **其他**
 
-- 门禁新增两项静态检查：语言文件重复键、`Translate` 调用参数是否够填占位符。
-- 门禁路径改为指向 `1.7/`，1.6 作为冻结快照不参与检查。
-- 新增 `Docs/package.py`：一条命令产出单包双版本的 zip，并在打包前核对两边 DLL 版本。
-- About 简介注明 1.6 使用 0.3.1 固化版。
+- 优化了开发门禁。
 
 ### English
 
 **Added**
 
-- One package for both versions: `1.6/` and `1.7/` each carry a full set of Defs / Languages /
-  Textures / Assemblies, selected by `LoadFolders.xml`. 1.6 is frozen at 0.3.1; 1.7 and later
-  follow the mainline.
-- Trading halts: after a violent one-day move, or a broken peg, the currency stops trading for
-  2-4 days. You cannot open or close, overnight interest still runs, and it reopens with a gap
-  in an unknown direction.
-- Peg defense: a currency that keeps falling over five days may be pegged by its central bank.
-  Whether it acts depends on the faction's tech level: tribal 35%, medieval 50%, industrial 70%,
-  spacer 85%, halved for a reverse peg after a sharp rise. The band is only ±0.15% wide and
-  suppresses gaps; 18% of pegs break into a violent repricing.
+- One package for both versions: the same mod folder supports 1.6 and 1.7, with assemblies and
+  assets split per version.
+- Trading halts: after a violent one-day move or a broken peg, the currency stops trading for
+  2-4 days. You cannot open or close, overnight interest still runs, and it reopens with a gap.
+- Peg defense: a currency that keeps falling may be pegged by its central bank, depending on the
+  faction's tech level. The band is only ±0.15% wide, and a peg can break into a repricing.
 - Causal chains: devaluation invites a peg, a broken peg triggers a halt, the halt reopens with a
-  gap, and only a deep enough fall brings a ratings cut. Central bank decisions now require a
-  five-day trend (hike on a 2σ fall, cut on a 2σ rise) and still never reveal the direction.
-- Mystery merchant: a factionless stranger walks to the colony edge. Send a colonist to talk, pay
-  silver for a five-day forecast that is right 60% of the time. "Later" keeps him waiting.
-- Settlement loss: a destroyed settlement pressures its faction's currency for three days, scaled
-  by the settlement's importance (tech level, trader, number of settlements).
-- Tariff agreements: two random factions sign a deal and both currencies rise; hostile pairs are
-  framed as constructive talks. With only one faction left it becomes a unilateral cut.
-- The change column cycles daily / 5-day / quadrum; candle tooltips show the in-game date.
+  gap, and only a deep enough fall brings a ratings cut.
+- Mystery merchant: a factionless stranger walks to the colony edge. Send a colonist to talk and
+  pay silver for a five-day forecast.
+- Settlement loss: a destroyed settlement pressures its faction's currency for three days,
+  scaled by the settlement's importance.
+- Tariff agreements: two random factions sign a deal and both currencies rise.
 - Margin warnings now have three tiers (45% / 40% / 35%) with independent cooldowns, and the
   warning window offers 45 / 50 / 60 top-up presets.
 - A top toolbar collects the terminal, chart and settings buttons.
-- Overnight interest rebalanced to 0.02% of notional per day.
-- Gaps are announced only after they land, closing the "read the warning, then trade" window.
-- Tribal currencies explained: the guide notes that no modern central bank is required, and
-  hovering a currency shows how it settles (shell strings and livestock / silver and cloth /
-  notes and credits / on-chain credits).
-- Central bank events are now pre-announced: the letter never says hike or cut.
-- Settings gained a working "reset to defaults" and five test buttons (halt, peg break, merchant,
-  settlement loss, tariff cut).
+- The change column cycles daily / 5-day / quadrum; candle tooltips show the in-game date.
+- Tribal currencies explained: no modern central bank is required, and hovering a currency shows
+  how it settles.
+
+**Changed**
+
+- Overnight interest cut from 0.2% to 0.02% of notional per day.
+- The global world-event cooldown is gone; each event keeps its own interval.
+- Central bank events are pre-announced, and the letter never reveals hike or cut.
+- War news now picks a hostile pair first; failing to find one no longer consumes the cooldown.
+- Ratings cuts now require a cause: a recent broken peg, a lost settlement, or a deep five-day drop.
 
 **Fixed**
 
-- Candles still jittered during a halt; the intra-step oscillator was not frozen.
-- Loading a save could fire a world event immediately; a zero schedule is now treated as unscheduled.
-- A broken peg produced no gap because the queued gap was swallowed by the halt; it now applies at once.
-- Tariff events could never find a faction pair (NPCs have no mutual goodwill); the check is gone
-  and two factions are picked at random.
-- Liquidation letters reused the central bank announcement text and threw argument errors.
-- Duplicate translation keys (`RimForex_Zero` / `ZeroTip`) caused a translation error on the main menu.
-- Test buttons passed too few arguments to their letters and logged "Could not resolve symbol".
-- A central bank gap due while the currency was halted or pegged was swallowed by the freeze,
-  leaving only the "decision is out" message. It now applies at once and waits at most a day.
-- A new bank event could overwrite a pending one, so the earlier announcement never resolved.
-  Only one pending decision is kept now.
-- Debt collectors never arrived after a blow-up: a negative balance counted as an "empty account"
-  and was pruned, taking the debt case with it. The check now uses the absolute value, and the
-  negative-balance timer runs every 250 ticks instead of only at daily settlement.
-- Merchant fixes: dragged back by a lord, colonist chasing the old position, refusing to leave,
-  and being dismissed merely by closing the window.
+- Gap warnings were announced before the price moved, which allowed front-running; they are now
+  announced after the gap lands.
+- After a blow-up the account was pruned as "empty", so debt collectors never arrived.
+- The margin warning window kept popping up again after topping up the margin.
+- The main menu logged a translation error caused by duplicate keys.
 
 **Other**
 
-- Two new static gates: duplicate keys per language file, and `Translate` call arity versus placeholders.
-- Gate scripts now point at `1.7/`; the frozen 1.6 snapshot is excluded.
-- `Docs/package.py` builds the single-package zip and verifies both DLL versions before packing.
-- The About description notes that 1.6 uses the frozen 0.3.1 build.
+- Development gates were tightened.
 
 ---
 
