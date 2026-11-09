@@ -49,15 +49,14 @@ jobs:
 
       # ── 先备份仓库里的 DLL（必须排在构建之前）──
       # csproj 有 CopyToModFolder（AfterTargets="Build"），构建会把新 DLL 直接
-      # 拷进 Assemblies/ —— 所以**一旦构建过，仓库那份就没了**。
-      # 原来在构建之后才去比 "Assemblies/ 里的" 与 "Source/bin/ 里的"，
-      # 比的是同一次构建的两个副本，永远相等，这条检查等于不存在（V02）。
-      # 现在先备份，构建后再与备份比。
+      # 拷进 1.7/Assemblies/ —— 所以**一旦构建过，仓库那份就没了**。
+      # 原来在构建之后才去比，比的是同一次构建的两个副本，永远相等，
+      # 这条检查等于不存在（V02）。现在先备份，构建后再与备份比。
       - name: 备份仓库里的 DLL（构建会覆盖它）
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path "$env:RUNNER_TEMP/rimforex-orig" | Out-Null
-          Copy-Item "Assemblies/RimForex.dll" "$env:RUNNER_TEMP/rimforex-orig/RimForex.dll"
+          Copy-Item "1.7/Assemblies/RimForex.dll" "$env:RUNNER_TEMP/rimforex-orig/RimForex.dll"
           Write-Host "已备份：$((Get-Item "$env:RUNNER_TEMP/rimforex-orig/RimForex.dll").Length) B"
 
       # ── 这里是最关键的一步 ──
@@ -109,7 +108,7 @@ jobs:
       - name: 比对「仓库里的 DLL」与「CI 刚构建的 DLL」
         shell: pwsh
         run: |
-          # 与【构建前备份的仓库原件】比，而不是与构建后被覆盖的 Assemblies/ 比
+          # 与【构建前备份的仓库原件】比，而不是与构建后被覆盖的 1.7/Assemblies 比
           $repoDll = "$env:RUNNER_TEMP/rimforex-orig/RimForex.dll"
           if (-not (Test-Path $repoDll)) { Write-Error "找不到备份的仓库 DLL"; exit 1 }
           $builtDll = Get-ChildItem -Recurse -Filter RimForex.dll -Path Source/bin |
@@ -141,23 +140,18 @@ jobs:
             Write-Warning "这意味着 CI 构建的 DLL 不能直接当作本机构建的结果使用。"
           }
 
-      - name: 按 RimWorld 的目录约定打包
+      - name: 单包多版本打包（复用 Docs/package.py 的硬检查）
         shell: pwsh
         run: |
-          # 只打包游戏真正会读的目录 —— 这样解压出来就是一个可直接放进
-          # Mods\ 的文件夹，不需要玩家自己挑文件。
-          # Source/ 与 Docs/ 不打进去（游戏不读它们，只会让包变大）。
-          $stage = "stage/RimForex"
-          New-Item -ItemType Directory -Force -Path $stage | Out-Null
-          foreach ($d in @("About", "Assemblies", "Defs", "Languages", "Textures")) {
-            if (Test-Path $d) { Copy-Item $d -Destination $stage -Recurse -Force }
-          }
-          Copy-Item README.md -Destination $stage -Force
-          Copy-Item LICENSE   -Destination $stage -Force
-
-          Compress-Archive -Path $stage -DestinationPath "RimForex-${{ github.ref_name }}.zip" -Force
-          Write-Host "已打包（解压后即为 Mods\RimForex\ 的完整内容）"
-          Get-ChildItem "RimForex-${{ github.ref_name }}.zip" | Format-List Name, Length
+          # package.py 会先核对：LoadFolders 声明、两个版本目录四件套齐全、
+          # 1.6 的 DLL 是 0.3.1、1.7 的 DLL 与 About 的 modVersion 一致。
+          # 任何一项不过都会直接中止，避免把半成品传上工坊。
+          python Docs/package.py
+          $zip = Get-ChildItem dist/RimForex-*.zip | Select-Object -First 1
+          if (-not $zip) { Write-Error "package.py 没有产出 zip"; exit 1 }
+          Copy-Item $zip.FullName "RimForex-${{ github.ref_name }}.zip" -Force
+          Write-Host "已打包（解压后即为 Mods\RimForex\ 的完整内容，含 1.6 与 1.7 两套）"
+          Get-Item "RimForex-${{ github.ref_name }}.zip" | Format-List Name, Length
 
       - name: 发布 Release
         uses: softprops/action-gh-release@v2
@@ -167,6 +161,9 @@ jobs:
           body: |
             下载下面的 zip，解压到 RimWorld 的 `Mods\` 目录即可
             （解压后应得到 `Mods\RimForex\About\About.xml`）。
+
+            同一个包同时支持 1.6 与 1.7：`1.6/` 是 0.3.1 的固化版，
+            `1.7/` 是当前版本，由 `LoadFolders.xml` 自动选择。
 
             本包不含 `Source\` 与 `Docs\`（游戏不读它们）。
             需要源码或开发文档请看仓库首页。
