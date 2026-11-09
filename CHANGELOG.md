@@ -22,6 +22,7 @@
 - 爆仓预警分成 45% / 40% / 35% 三档，各自独立冷却；预警窗口提供
   45 / 50 / 60 三个补保证金档位。
 - 顶部工具栏：把终端、图表、模组设置这些按钮收进一条工具栏。
+- 终端与迷你 K 线图新增跟随价格线移动的价格数字标签。
 - 涨跌列可以点表头切换：日涨跌 / 5 日涨跌 / 象涨跌；K 线悬停会显示游戏内日期。
 - 部落货币的设定补完：教程说明交易所不要求现代央行，行情表悬停会显示结算方式。
 
@@ -64,6 +65,7 @@
 - Margin warnings now have three tiers (45% / 40% / 35%) with independent cooldowns, and the
   warning window offers 45 / 50 / 60 top-up presets.
 - A top toolbar collects the terminal, chart and settings buttons.
+- The terminal and the mini chart now show a price tag that follows the price line.
 - The change column cycles daily / 5-day / quadrum; candle tooltips show the in-game date.
 - Tribal currencies explained: no modern central bank is required, and hovering a currency shows
   how it settles.
