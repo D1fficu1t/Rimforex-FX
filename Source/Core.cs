@@ -3356,6 +3356,8 @@ namespace RimForex
         // ── 待公布的央行决策（先预告、后落地，预告里不含方向）──
         public int pendingBankCcyId = -1;
         public int pendingBankDueTick;
+        /// <summary>预告发出的 tick，用于"停牌拖太久就放弃"的兜底。</summary>
+        public int pendingBankAnnouncedTick;
         public float pendingBankSigmas;
         public bool pendingBankDownward;
 
@@ -6183,14 +6185,33 @@ namespace RimForex
             if (pendingBankCcyId >= 0 && now >= pendingBankDueTick)
             {
                 FxCurrency pc = market.Get(pendingBankCcyId);
-                if (pc != null)
+                if (pc == null)
                 {
-                    market.ForceGap(pc, pendingBankSigmas, pendingBankDownward);
+                    pendingBankCcyId = -1;
+                }
+                else if (pc.haltUntilTick > now || pc.pegUntilTick > now)
+                {
+                    // 停牌 / 钉住期间跳空会被冻结或夹住 —— 顺延一小时再看，
+                    // 最多拖一天。否则玩家会收到"决策已公布"却没有价格反应。
+                    pendingBankDueTick = now + FxGameComponent.TicksPerHour;
+                    if (now - pendingBankAnnouncedTick > FxGameComponent.TicksPerDay)
+                    {
+                        pendingBankCcyId = -1;
+                        Log.Message("[RimForex] bank: dropped, "
+                            + pc.name + " still halted/pegged after a day");
+                    }
+                    return;
+                }
+                else
+                {
+                    // 立即跳空：ForceGap 是排队，遇到下一步的停牌判定会被吞掉
+                    market.ForceGapNow(pc, pendingBankSigmas, pendingBankDownward);
+                    Log.Message("[RimForex] bank: applied gap on " + pc.name);
                     Messages.Message(
                         "RimForex_MsgBankAnnounced".Translate(),
                         MessageTypeDefOf.NeutralEvent, false);
+                    pendingBankCcyId = -1;
                 }
-                pendingBankCcyId = -1;
             }
 
             RimForexSettings cfg = RimForexMod.Settings;
@@ -6248,7 +6269,11 @@ namespace RimForex
         /// <summary>对指定货币/派系排一次利率决策预告（方向不写进信里）。</summary>
         private bool TriggerBankEventOn(FxCurrency c, Faction f, bool hike)
         {
+            // 同一时间只保留一条待落地的利率决策，避免后一条把前一条覆盖掉
+            if (pendingBankCcyId >= 0) return false;
+
             pendingBankCcyId = c.factionLoadID;
+            pendingBankAnnouncedTick = GenTicks.TicksGame;
             pendingBankSigmas = Rand.Range(BankGapSigmasMin, BankGapSigmasMax);
             pendingBankDownward = !hike;   // 加息向上、降息向下
             // 2~6 小时后落地，给玩家留出"猜"的空间
@@ -8452,6 +8477,7 @@ namespace RimForex
             if (knownSettlementFactions == null) knownSettlementFactions = new List<int>();
             Scribe_Values.Look(ref pendingBankCcyId, "pendingBankCcyId", -1);
             Scribe_Values.Look(ref pendingBankDueTick, "pendingBankDueTick", 0);
+            Scribe_Values.Look(ref pendingBankAnnouncedTick, "pendingBankAnnouncedTick", 0);
             Scribe_Values.Look(ref pendingBankSigmas, "pendingBankSigmas", 0f);
             Scribe_Values.Look(ref pendingBankDownward, "pendingBankDownward", false);
             Scribe_Collections.Look(ref refugeePawnIds, "refugeePawnIds", LookMode.Value);

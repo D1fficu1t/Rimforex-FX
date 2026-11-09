@@ -1605,6 +1605,22 @@ def main():
     else:
         print("  OK 所有 Translate 调用参数充足")
 
+    # ---- 4e. 世界事件的两条硬约束 ----
+    #     ① 同一时间只允许一条待落地的央行决策（后一条会把前一条覆盖掉，
+    #        玩家收到预告却永远等不到跳空）
+    #     ② 落地必须用 ForceGapNow：ForceGap 是排队，遇到停牌冻结会被吞掉
+    core_src = open(os.path.join(SRC, "Core.cs"), encoding="utf-8").read()
+    if "if (pendingBankCcyId >= 0) return false;" in core_src:
+        print("  OK 央行事件不会互相覆盖")
+    else:
+        fail += 1
+        print("  !! 央行事件缺少待落地保护，可能被后一条覆盖")
+    if "ForceGapNow(pc" in core_src:
+        print("  OK 央行跳空用的是立即落地")
+    else:
+        fail += 1
+        print("  !! 央行跳空仍用 ForceGap，停牌时会被冻结吞掉")
+
     print()
     print("结果:", "全部通过" if fail == 0 else "%d 项失败" % fail)
     return 1 if fail else 0

@@ -46,6 +46,9 @@
 - 爆仓清算信误用了央行预告的文案，标题变成「将发表利率声明」且参数不足报错。
 - 翻译键重复（`RimForex_Zero` / `ZeroTip`）导致主菜单报 translation error。
 - 测试按钮的文案占位符与调用参数不匹配，点击时报 "Could not resolve symbol"。
+- 央行事件在货币停牌或钉住期间到点时，跳空会被冻结吞掉，只剩一条「决策已公布」的消息。
+  现在改为立即落地；仍在停牌中的最多顺延一天。
+- 前一条央行决策尚未落地时，新事件会把它覆盖，玩家收了预告却永远等不到跳空。现在只保留一条。
 - 商人被领主拽回殖民地、殖民者追着旧位置跑、到点不肯离场、关窗就被赶走等问题。
 
 **其他**
@@ -101,6 +104,10 @@
 - Liquidation letters reused the central bank announcement text and threw argument errors.
 - Duplicate translation keys (`RimForex_Zero` / `ZeroTip`) caused a translation error on the main menu.
 - Test buttons passed too few arguments to their letters and logged "Could not resolve symbol".
+- A central bank gap due while the currency was halted or pegged was swallowed by the freeze,
+  leaving only the "decision is out" message. It now applies at once and waits at most a day.
+- A new bank event could overwrite a pending one, so the earlier announcement never resolved.
+  Only one pending decision is kept now.
 - Merchant fixes: dragged back by a lord, colonist chasing the old position, refusing to leave,
   and being dismissed merely by closing the window.
 
