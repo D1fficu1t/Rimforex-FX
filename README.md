@@ -218,7 +218,8 @@ git clone https://github.com/D1fficu1t/Rimforex-FX.git RimForex
 
 ## 开发
 
-- [`Docs/开发笔记.md`](Docs/开发笔记.md) —— 编译与发布、数值设计、实现细节、验证门禁、历史踩坑
+- [`Docs/开发笔记.md`](Docs/开发笔记.md) —— 编译与发布、实现细节、验证门禁、历史踩坑
+- [`Docs/设计存档.md`](Docs/设计存档.md) —— 产品层面的设计推导与历史决策（原路线图的技术细节）
 - [`CHANGELOG.md`](CHANGELOG.md) —— 版本记录
 - `Docs/` 下有六个离线脚本（四道门禁 + 打包 + 节奏分析），改代码或改数值前建议先读开发笔记的 §4
 - 打包：`python Docs/package.py`，产出 `dist/RimForex-<版本>.zip`
