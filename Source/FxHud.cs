@@ -132,25 +132,21 @@ namespace RimForex
 
             Rect box = CurrentRect(cfg, w, h);
 
-            // 半透明底 + 细边框，尽量贴近原版 HUD 的观感
-            Widgets.DrawBoxSolid(box, new Color(0.10f, 0.11f, 0.13f, 0.72f));
-            Widgets.DrawBox(box, 1);
+            FxTheme.Fill(box, new Color32(14, 17, 22, 235));
+            FxTheme.Border(box, FxTheme.LineHi);
 
             Text.Font = GameFont.Small;
 
             // ---- 头部：标签 + 总浮盈 ----
-            GUI.color = new Color(0.72f, 0.76f, 0.82f);
-            Widgets.Label(new Rect(box.x + PadX, box.y + 6f, labelW + 2f, lineH), label);
-            GUI.color = Color.white;
-
-            GUI.color = Window_FxTerminal.PnlGuiColor(acc.FloatingPnl);
-            Widgets.Label(new Rect(box.x + PadX + labelW + 8f, box.y + 6f, valueW + 2f, lineH), value);
-            GUI.color = Color.white;
+            FxTheme.Tiny(new Rect(box.x + PadX, box.y + 6f, labelW + 2f, lineH),
+                label, FxTheme.Muted);
+            FxTheme.Small(new Rect(box.x + PadX + labelW + 8f, box.y + 6f,
+                valueW + 2f, lineH), value, FxTheme.PnlColor(acc.FloatingPnl));
 
             // ---- 右上角：打开终端 ----
             Rect openBtn = new Rect(box.xMax - OpenBtnW - 4f, box.y + 3f, OpenBtnW, lineH + 2f);
             buttonRects.Add(openBtn);
-            if (Widgets.ButtonText(openBtn, ">>"))
+            if (FxWidgets.Button(openBtn, ">>"))
             {
                 if (!OpenTerminal(map)) Messages.Message("RimForex_MsgNoTerminal".Translate(),
                     MessageTypeDefOf.RejectInput, false);
@@ -161,7 +157,7 @@ namespace RimForex
             if (expanded)
             {
                 float y = box.y + headerH;
-                Widgets.DrawLineHorizontal(box.x + 4f, y - 2f, box.width - 8f);
+                FxTheme.HLine(box.x + 4f, box.xMax - 4f, y - 2f, FxTheme.Line);
 
                 FxGameComponent fx = Find.World != null ? Find.World.GetComponent<FxGameComponent>() : null;
 
@@ -183,24 +179,19 @@ namespace RimForex
                     float rowY = y + i * RowH;
 
                     // 名称 + 方向
-                    GUI.color = p.isLong
-                        ? new Color(0.62f, 0.86f, 0.62f)
-                        : new Color(0.92f, 0.62f, 0.62f);
-                    Widgets.Label(new Rect(box.x + PadX, rowY + 2f, box.width - CloseBtnW - PadX * 2f - 60f, lineH),
-                        RowLabel(p));
-                    GUI.color = Color.white;
+                    FxTheme.Small(new Rect(box.x + PadX, rowY + 2f,
+                            box.width - CloseBtnW - PadX * 2f - 60f, lineH),
+                        RowLabel(p), p.isLong ? FxTheme.Long : FxTheme.Short);
 
                     // 该笔盈亏（右对齐，压住平仓按钮左侧）
                     string pnlStr = p.Pnl.ToString("+0;-0;0");
                     float pw = Text.CalcSize(pnlStr).x;
                     Rect pnlR = new Rect(box.xMax - CloseBtnW - 34f - pw, rowY + 2f, pw, lineH);
-                    GUI.color = Window_FxTerminal.PnlGuiColor(p.Pnl);
-                    Widgets.Label(pnlR, pnlStr);
-                    GUI.color = Color.white;
+                    FxTheme.Small(pnlR, pnlStr, FxTheme.PnlColor(p.Pnl));
 
                     // K 线按钮：打开/关闭这一笔货币的小 K 线窗口
                     Rect kBtn = new Rect(box.xMax - CloseBtnW - 28f, rowY + 1f, 24f, RowH - 4f);
-                    if (Widgets.ButtonText(kBtn, "K"))
+                    if (FxWidgets.Button(kBtn, "K", true, accent: true))
                     {
                         ToggleMiniChart(fx, acc, p);
                     }
@@ -210,8 +201,8 @@ namespace RimForex
                     Rect closeBtn = new Rect(box.xMax - CloseBtnW - 4f, rowY + 1f, CloseBtnW, RowH - 4f);
                     buttonRects.Add(closeBtn);
                     bool closable = hasPower && fx != null && fx.CanClose(p);
-                    if (!closable) GUI.color = new Color(0.5f, 0.5f, 0.5f);
-                    if (Widgets.ButtonText(closeBtn, "RimForex_HudClose".Translate()) && closable)
+                    if (FxWidgets.Button(closeBtn, "RimForex_HudClose".Translate(),
+                            closable, false, !closable) && closable)
                     {
                         // 与终端完全同一套记账（手续费 / 点差 / 历史 / 心情）
                         fx.ClosePositionFromUi(acc, p);

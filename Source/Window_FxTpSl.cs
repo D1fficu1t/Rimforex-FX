@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using RimWorld;
 using UnityEngine;
 using Verse;
@@ -6,9 +5,9 @@ using Verse;
 namespace RimForex
 {
     /// <summary>
-    /// 编辑某一笔持仓的止盈 / 止损（0.3.1）。
+    /// 编辑某一笔持仓的止盈 / 止损（0.3.1，0.3.3 换新界面）。
     ///
-    /// 判定口径：**方向价**（markRate），和强平线、持仓线一致；
+    /// 判定口径：方向价（markRate），和强平线、持仓线一致；
     /// 触发后按市价平仓，不按设定价成交 —— 跳空越过设定价时的滑点是真实的。
     /// </summary>
     public class Window_FxTpSl : Window
@@ -33,17 +32,16 @@ namespace RimForex
             tpBuf = tp > 0f ? tp.ToString("F2") : "";
             slBuf = sl > 0f ? sl.ToString("F2") : "";
 
-            doCloseX = true;
-            doCloseButton = false;
             draggable = true;
             resizeable = false;
             absorbInputAroundWindow = false;
             forcePause = false;
+            FxWindowChrome.Prepare(this);
         }
 
         public override Vector2 InitialSize
         {
-            get { return new Vector2(420f, 260f); }
+            get { return new Vector2(460f, 300f); }
         }
 
         public override void DoWindowContents(Rect inRect)
@@ -54,54 +52,57 @@ namespace RimForex
                 return;
             }
 
-            float lhS = Text.LineHeightOf(GameFont.Small);
-            float y = 0f;
+            Rect r = FxWindowChrome.Draw(this, inRect, "RimForex_TpSlTitle".Translate());
 
-            Text.Font = GameFont.Medium;
-            Widgets.Label(new Rect(0f, y, inRect.width, Text.LineHeightOf(GameFont.Medium) + 2f),
-                "RimForex_TpSlTitle".Translate());
-            Text.Font = GameFont.Small;
-            y += Text.LineHeightOf(GameFont.Medium) + 8f;
-
-            Widgets.Label(new Rect(0f, y, inRect.width, lhS + 2f),
+            FxTheme.Small(new Rect(r.x, r.y, r.width, 20f),
                 "RimForex_TpSlPosLine".Translate(
                     pos.currencyName,
                     (pos.isLong ? "RimForex_Long" : "RimForex_Short").Translate(),
                     pos.entryRate.ToString("F2"),
-                    pos.markRate.ToString("F2")));
-            y += lhS + 10f;
+                    pos.markRate.ToString("F2")),
+                FxTheme.Muted);
 
-            Widgets.Label(new Rect(0f, y + 4f, 44f, lhS), "RimForex_TpShort".Translate());
-            tpBuf = Widgets.TextField(new Rect(48f, y, 100f, 24f), tpBuf ?? "");
+            float y = r.y + 30f;
+            float fieldW = 150f;
+            float rowH = 30f;
+
+            FxTheme.Tiny(new Rect(r.x, y, 80f, 18f), "RimForex_TpShort".Translate(),
+                FxTheme.Muted);
+            tpBuf = FxWidgets.TextField(new Rect(r.x + 50f, y, fieldW, 26f), tpBuf, 12,
+                "fx-tpsl-tp");
             tp = Parse(tpBuf);
-            DrawPct(new Rect(154f, y + 4f, 120f, lhS), tp);
-            y += 30f;
+            DrawPct(new Rect(r.x + 210f, y + 4f, r.width - 210f, 18f), tp);
+            y += rowH;
 
-            Widgets.Label(new Rect(0f, y + 4f, 44f, lhS), "RimForex_SlShort".Translate());
-            slBuf = Widgets.TextField(new Rect(48f, y, 100f, 24f), slBuf ?? "");
+            FxTheme.Tiny(new Rect(r.x, y, 80f, 18f), "RimForex_SlShort".Translate(),
+                FxTheme.Muted);
+            slBuf = FxWidgets.TextField(new Rect(r.x + 50f, y, fieldW, 26f), slBuf, 12,
+                "fx-tpsl-sl");
             sl = Parse(slBuf);
-            DrawPct(new Rect(154f, y + 4f, 120f, lhS), sl);
-            y += 36f;
+            DrawPct(new Rect(r.x + 210f, y + 4f, r.width - 210f, 18f), sl);
+            y += rowH + 4f;
 
-            Text.Font = GameFont.Tiny;
-            GUI.color = new Color(0.72f, 0.74f, 0.78f);
-            Widgets.Label(new Rect(0f, y, inRect.width, lhS * 2f), "RimForex_TpSlHint".Translate());
-            GUI.color = Color.white;
-            Text.Font = GameFont.Small;
+            FxTheme.Tiny(new Rect(r.x, y, r.width, 34f), "RimForex_TpSlHint".Translate(),
+                FxTheme.Muted);
 
-            float by = inRect.yMax - 30f;
-            if (Widgets.ButtonText(new Rect(0f, by, 110f, 28f), "RimForex_TpSlSave".Translate()))
+            float by = r.yMax - 32f;
+            if (FxWidgets.Button(new Rect(r.x, by, 110f, 32f),
+                    "RimForex_TpSlSave".Translate(), true, true))
             {
                 Apply();
                 Close();
+                return;
             }
-            if (Widgets.ButtonText(new Rect(118f, by, 110f, 28f), "RimForex_TpSlClear".Translate()))
+            if (FxWidgets.Button(new Rect(r.x + 118f, by, 100f, 32f),
+                    "RimForex_TpSlClear".Translate()))
             {
                 pos.tpRate = 0f;
                 pos.slRate = 0f;
                 Close();
+                return;
             }
-            if (Widgets.ButtonText(new Rect(236f, by, 110f, 28f), "RimForex_TpSlClose".Translate()))
+            if (FxWidgets.Button(new Rect(r.x + 226f, by, 90f, 32f),
+                    "RimForex_TpSlClose".Translate()))
             {
                 Close();
             }
@@ -141,9 +142,8 @@ namespace RimForex
             float mark = pos.markRate > 0f ? pos.markRate : pos.entryRate;
             if (mark <= 0.001f) return;
             float pct = (price / mark - 1f) * 100f;
-            GUI.color = pct > 0f ? new Color(0.55f, 0.90f, 0.60f) : new Color(1f, 0.55f, 0.50f);
-            Widgets.Label(r, pct.ToString("+0.0;-0.0;0.0") + "%");
-            GUI.color = Color.white;
+            FxTheme.Tiny(r, pct.ToString("+0.0;-0.0;0.0") + "%",
+                pct >= 0f ? FxTheme.Long : FxTheme.Short, TextAnchor.MiddleLeft);
         }
     }
 }

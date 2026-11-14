@@ -5,19 +5,13 @@ using Verse;
 namespace RimForex
 {
     /// <summary>
-    /// 临近爆仓预警窗口。
+    /// 临近爆仓预警窗口（0.3.0，0.3.3 换新界面）。
     ///
-    /// 暂停由窗口自己持有（forcePause = true），而不是依赖某一时刻的 TogglePaused 调用 ——
-    /// 这样暂停状态与窗口的存在严格绑定：窗口在 → 游戏暂停 → 下一 tick 不执行
-    /// → 健康度不会变化 → 预警不会被自动作废。
-    /// 早期版本用 TogglePaused + 无 forcePause，结果是窗口弹出后下一 tick 又把预警清掉了，
-    /// 表现就是"弹出来一秒就被自动关掉，而且时间没暂停"。
-    ///
-    /// 另外加了一个短暂的输入保护期：触发预警的那一次点击/按键不会立刻把窗口关掉。
+    /// 暂停由窗口自己持有（forcePause = true），窗口在就暂停，
+    /// 健康度不会在玩家读提示时继续恶化。
     /// </summary>
     public class Window_MarginCall : Window
     {
-        /// <summary>窗口刚弹出后的输入保护时长（真实秒）。</summary>
         private const float InputGuardSeconds = 0.4f;
 
         private readonly FxGameComponent fx;
@@ -28,7 +22,7 @@ namespace RimForex
         private string addBuffer = "0";
         private bool bufferDirty = true;
 
-        public override Vector2 InitialSize => new Vector2(560f, 356f);
+        public override Vector2 InitialSize => new Vector2(600f, 400f);
 
         public Window_MarginCall(FxGameComponent fx, FxPosition position)
         {
@@ -36,16 +30,14 @@ namespace RimForex
             this.position = position;
             openedAt = Time.realtimeSinceStartup;
 
-            doCloseX = true;
-            doCloseButton = false;
             draggable = true;
             resizeable = false;
             absorbInputAroundWindow = true;
-            // 关键：由窗口持有暂停权，而不是靠一次性的 TogglePaused
             forcePause = true;
             preventCameraMotion = true;
             onlyOneOfTypeAllowed = false;
             closeOnClickedOutside = false;
+            FxWindowChrome.Prepare(this);
         }
 
         private bool InputGuarded => Time.realtimeSinceStartup - openedAt < InputGuardSeconds;
@@ -64,42 +56,30 @@ namespace RimForex
             MarginWarning warn = Current;
             if (warn == null || warn.position == null || warn.account == null)
             {
-                // 仓位已平掉 / 已处理 / 已恢复安全
                 Close();
                 return;
             }
 
             FxPosition p = warn.position;
             FxAccount acc = warn.account;
-            Rect r = inRect.ContractedBy(4f);
+            Rect r = FxWindowChrome.Draw(this, inRect,
+                "RimForex_MarginCallTitle".Translate(), FxTheme.Danger);
 
-            Text.Font = GameFont.Medium;
-            GUI.color = new Color(1f, 0.55f, 0.5f);
-            Widgets.Label(new Rect(r.x, r.y, r.width, 30f), "RimForex_MarginCallTitle".Translate());
-            GUI.color = Color.white;
-            Text.Font = GameFont.Small;
-
-            float y = r.y + 32f;
-
-            string health = (p.MarginHealth * 100f).ToString("F0");
-            // 正文按实际需要的高度预留（最少 3 行）。早期固定只给 62px（约 3 行），
-            // 中文/英文稍长就把最后一行裁掉一半 —— 截图里那行"只出现一半"就是这个原因。
-            string body = "RimForex_MarginCallBody".Translate(p.currencyName, health, p.Pnl.ToString("F0"));
+            float health = p.MarginHealth * 100f;
+            string body = "RimForex_MarginCallBody".Translate(
+                p.currencyName, health.ToString("F0"), p.Pnl.ToString("F0"));
             float bodyH = Mathf.Max(64f, Text.CalcHeight(body, r.width));
-            Widgets.Label(new Rect(r.x, y, r.width, bodyH), body);
-            y += bodyH + 8f;
+            FxTheme.Small(new Rect(r.x, r.y, r.width, bodyH), body, FxTheme.TextColor);
+            float y = r.y + bodyH + 8f;
 
-            Text.Font = GameFont.Tiny;
-            GUI.color = new Color(0.78f, 0.80f, 0.82f);
-            Widgets.Label(new Rect(r.x, y, r.width, 18f),
+            FxTheme.Tiny(new Rect(r.x, y, r.width, 20f),
                 "RimForex_MarginCallDetail".Translate(
                     p.margin.ToString("F0"),
                     acc.balance.ToString("F0"),
                     p.markRate.ToString("F2"),
-                    p.leverage.ToString("F0")));
-            GUI.color = Color.white;
-            Text.Font = GameFont.Small;
-            y += 26f;
+                    p.leverage.ToString("F0")),
+                FxTheme.Muted);
+            y += 28f;
 
             if (bufferDirty)
             {
@@ -108,41 +88,40 @@ namespace RimForex
                 bufferDirty = false;
             }
 
-            Widgets.Label(new Rect(r.x, y + 5f, 96f, 24f), "RimForex_MarginAdd".Translate());
-            Rect field = new Rect(r.x + 100f, y, 110f, 28f);
-            Widgets.TextFieldNumeric(field, ref addAmount, ref addBuffer, 0f, 100000000f);
+            FxTheme.Tiny(new Rect(r.x, y + 6f, 92f, 18f),
+                "RimForex_MarginAdd".Translate(), FxTheme.Muted);
+            addBuffer = FxWidgets.TextField(new Rect(r.x + 96f, y, 110f, 28f),
+                addBuffer, 12, "fx-margin-add");
+            int parsed;
+            if (!int.TryParse(addBuffer, out parsed)) parsed = 0;
+            addAmount = Mathf.Clamp(parsed, 0, 100000000);
 
-            Rect allBtn = new Rect(field.xMax + 4f, y, 52f, 28f);
-            if (Widgets.ButtonText(allBtn, "RimForex_All".Translate()))
+            if (FxWidgets.Button(new Rect(r.x + 214f, y, 52f, 28f),
+                    "RimForex_All".Translate()))
             {
                 addAmount = Mathf.Max(0, Mathf.FloorToInt(acc.balance));
                 addBuffer = addAmount.ToString();
             }
-
-            TooltipHandler.TipRegion(new Rect(r.x, y, field.xMax - r.x, 28f),
+            TooltipHandler.TipRegion(new Rect(r.x, y, 266f, 28f),
                 "RimForex_MarginAddTip".Translate(acc.balance.ToString("F0")));
-            y += 34f;
+            y += 36f;
 
-            // ── 三档一键补足：45% / 50% / 60%（2026-11-07）──
-            // 补到 45% 只比强平线高 0.15 个初始保证金，价格抖一下就回去了；
-            // 50% / 60% 才是真正能把仓位救回来的量。
-            // 需要金额 = 目标 × 初始保证金 − 当前净值（健康度的分母是 BaseMargin）
-            Widgets.Label(new Rect(r.x, y + 5f, 96f, 24f), "RimForex_MarginTo".Translate());
-            float bx = r.x + 100f;
-            float bw = Mathf.Clamp((r.width - 100f - 8f) / 3f, 84f, 130f);
+            FxTheme.Tiny(new Rect(r.x, y + 6f, 92f, 18f),
+                "RimForex_MarginTo".Translate(), FxTheme.Muted);
+            float bx = r.x + 96f;
+            float bw = Mathf.Clamp((r.width - 100f - 8f) / 3f, 84f, 150f);
             float[] presets = { 0.45f, 0.50f, 0.60f };
             for (int k = 0; k < presets.Length; k++)
             {
                 float target = presets[k];
-                Rect btn = new Rect(bx + (bw + 4f) * k, y, bw, 28f);
                 float need = target * p.BaseMargin - p.Equity;
                 int needInt = Mathf.CeilToInt(Mathf.Max(0f, need));
                 bool affordable = needInt <= acc.balance;
-
-                GUI.color = affordable ? Color.white : new Color(0.62f, 0.62f, 0.62f);
+                Rect btn = new Rect(bx + (bw + 6f) * k, y, bw, 28f);
                 string label = "RimForex_MarginPreset".Translate(
                     (target * 100f).ToString("F0"), needInt.ToString("F0"));
-                if (Widgets.ButtonText(btn, label))
+                if (FxWidgets.Button(btn, label, true,
+                        primary: affordable, danger: !affordable))
                 {
                     if (affordable)
                     {
@@ -152,28 +131,25 @@ namespace RimForex
                     else
                     {
                         Messages.Message(
-                            "RimForex_MarginPresetShort".Translate((needInt - Mathf.FloorToInt(acc.balance)).ToString("F0")),
+                            "RimForex_MarginPresetShort".Translate(
+                                (needInt - Mathf.FloorToInt(acc.balance)).ToString("F0")),
                             MessageTypeDefOf.RejectInput, false);
                     }
                 }
-                GUI.color = Color.white;
             }
-            y += 36f;
+            y += 40f;
 
             bool canAdd = addAmount > 0 && addAmount <= acc.balance;
-
-            float halfW = (r.width - 8f) / 2f;
-            Rect addBtnRect = new Rect(r.x, y, halfW, 34f);
-            Rect laterBtn = new Rect(r.x + halfW + 8f, y, halfW, 34f);
-
-            if (!canAdd) GUI.color = Color.gray;
-            if (Widgets.ButtonText(addBtnRect, "RimForex_MarginDoAdd".Translate()) && canAdd)
+            float by = r.yMax - 34f;
+            if (FxWidgets.Button(new Rect(r.x, by, (r.width - 8f) / 2f, 34f),
+                    "RimForex_MarginDoAdd".Translate(), canAdd, true))
             {
                 DoAddMargin(warn, addAmount);
+                return;
             }
-            GUI.color = Color.white;
-
-            if (Widgets.ButtonText(laterBtn, "RimForex_MarginLater".Translate()))
+            if (FxWidgets.Button(new Rect(r.x + (r.width - 8f) / 2f + 8f, by,
+                    (r.width - 8f) / 2f, 34f),
+                    "RimForex_MarginLater".Translate()))
             {
                 Dismiss();
             }
@@ -192,16 +168,9 @@ namespace RimForex
             p.margin += clamped;
             p.addedMargin += clamped;
 
-            // ⚠️ 这里绝对不能重置预警状态（2026-11-08 实测的无限弹窗根源）：
-            // 玩家每次只补几十白银、健康度刚过 45%，ResetWarnState 就把
-            // warn45Tick 清零，下一 tick 跌破 45% 又弹，形成无限补仓循环。
-            // 冷却从"弹窗那一刻"开始，只有两种情况清零：
-            //   ① 健康度回到 100% 以上
-            //   ② 连续一小时保持在 45% 以上
-            // 补仓本身不清冷却。
-
             Messages.Message(
-                "RimForex_MsgMarginAdded".Translate(p.currencyName, clamped, (p.MarginHealth * 100f).ToString("F0")),
+                "RimForex_MsgMarginAdded".Translate(p.currencyName, clamped,
+                    (p.MarginHealth * 100f).ToString("F0")),
                 MessageTypeDefOf.PositiveEvent, false);
 
             Dismiss();
@@ -209,30 +178,26 @@ namespace RimForex
 
         private void Dismiss()
         {
-            // 只把窗口从队列里摘掉。
-            // 千万不要在这里重置 warnedHealth / criticalWarned ——
-            // 那样下一个 tick 的 MaybeWarn 会立刻重新入队，窗口无限重弹。
-            // 告警水位的复位交给 MaybeWarn：只有健康度回到安全区才复位。
             RemoveOwnPending();
             Close();
         }
 
         /// <summary>
-        /// 只删除"自己这条"预警。
+        /// 只删除“自己这条”预警。
         /// 窗口开着时若排进了更深档的新预警，直接 Remove(position)
-        /// 会把新预警一起删掉 —— 这正是 40% / 35% 漏报的第二个原因。
+        /// 会把新预警一起删掉。
         /// </summary>
         private void RemoveOwnPending()
         {
-            if (fx == null) return;
+            if (fx == null || position == null) return;
             MarginWarning queued;
-            if (!fx.pendingWarnings.TryGetValue(position, out queued) || ReferenceEquals(queued, Current))
+            if (!fx.pendingWarnings.TryGetValue(position, out queued)
+                || ReferenceEquals(queued, Current))
             {
                 fx.pendingWarnings.Remove(position);
             }
         }
 
-        /// <summary>X 按钮 / Esc 走的路径。清理队列，但不重置告警水位。</summary>
         public override void PreClose()
         {
             base.PreClose();
@@ -241,7 +206,6 @@ namespace RimForex
 
         public override void OnCancelKeyPressed()
         {
-            // 刚弹出时的按键事件属于"触发预警的那次操作"，忽略掉
             if (InputGuarded) return;
             Dismiss();
         }
