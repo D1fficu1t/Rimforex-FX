@@ -454,7 +454,6 @@
   <RimForex_TestDebt>测试：触发收债</RimForex_TestDebt>
   <RimForex_TestDebtTip>直接把账户做成负余额并启动收债流程，省去等两天。</RimForex_TestDebtTip>
   <RimForex_MsgTestDebt>已启动收债流程</RimForex_MsgTestDebt>
-  <RimForex_Ev7CanClose>可以关掉这个窗口去筹钱。之后选中终端，命令栏里有「债务清算」可以再次打开。\n\n时间不会暂停，收债人会在殖民地附近等你。</RimForex_Ev7CanClose>
   <RimForex_FrozenWarning>账户冻结：还要 {0} 天（不能开仓/提款）</RimForex_FrozenWarning>
   <RimForex_LoanFrozen>账户冻结中，冻结满 30 天后才能借款</RimForex_LoanFrozen>
   <RimForex_Ev7FleeLabel>收债人翻脸了</RimForex_Ev7FleeLabel>
@@ -643,4 +642,5 @@
   <RimForex_FeeDebtInherited>接受债务转让（{0}）</RimForex_FeeDebtInherited>
   <RimForex_FeeLoanDefault>贷款违约（{0}）</RimForex_FeeLoanDefault>
   <RimForex_DebtCollectorTalk>谈谈</RimForex_DebtCollectorTalk>
+  <RimForex_Ev7Think>让我想想</RimForex_Ev7Think>
 </LanguageData>

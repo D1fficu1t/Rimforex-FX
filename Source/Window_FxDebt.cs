@@ -6,13 +6,11 @@ using Verse;
 namespace RimForex
 {
     /// <summary>
-    /// E7 收债窗口（0.3.0）。
+    /// E7 收债窗口（0.3.0，0.3.3 改为右键打开）。
     ///
-    /// 为什么是窗口而不是右键：原版 `Thing.GetFloatMenuOptions` 是 virtual，
-    /// 但改不了原版的 Thing 子类，所以给穿梭机/运输舱加右键菜单这条路走不通。
-    /// 作者已选"事件触发时直接弹窗"。
+    /// 入口是选中殖民者后右键收债人。终端上的旧 gizmo 已经删除。
     ///
-    /// 三个选项：付清 / 交人 / 拒绝。
+    /// 四个选项：付清 / 交人 / 拒绝动手 / 让我想想。
     /// </summary>
     public class Window_FxDebt : Window
     {
@@ -28,8 +26,7 @@ namespace RimForex
             this.fx = fx;
             this.account = account;
 
-            // 作者实测：不给关、又强制暂停，玩家根本没法去筹钱。
-            // 现在可以随时关掉去存银，之后从终端上的「债务清算」按钮再打开。
+            // 右上角 X 与「让我想想」都只是关窗；报价/收债状态不动，时间继续走。
             doCloseX = true;
             doCloseButton = false;
             draggable = true;
@@ -112,18 +109,19 @@ namespace RimForex
                 if (fx != null) fx.RefuseDebt(account);
                 Close();
             }
+            y += H + 10f;
+
+            // 让我想想：只关窗，去筹钱或干别的；回来右键收债人还能再谈
+            if (Widgets.ButtonText(new Rect(0f, y, W, H), "RimForex_Ev7Think".Translate()))
+            {
+                Close();
+            }
             y += H + 8f;
 
             Text.Font = GameFont.Tiny;
             GUI.color = new Color(0.70f, 0.72f, 0.76f);
             Widgets.Label(new Rect(0f, y, body.width, 40f),
                 "RimForex_Ev7RefuseTip".Translate());
-            GUI.color = Color.white;
-
-            GUI.color = new Color(0.62f, 0.78f, 0.92f);
-            // 高度原来给 40，三行小字放不下会被裁掉（作者 2026-10-25 截图）
-            Widgets.Label(new Rect(0f, y + 46f, body.width, 76f),
-                "RimForex_Ev7CanClose".Translate());
             GUI.color = Color.white;
             Text.Font = GameFont.Small;
         }
