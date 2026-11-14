@@ -606,19 +606,20 @@ namespace RimForex
 
             Rect marginRect = new Rect(x, y, w - 60f, 28f);
             marginBuffer = FxWidgets.TextField(marginRect, marginBuffer, 14, "fx-order-margin");
-            if (FxWidgets.Button(new Rect(x + w - 56f, y, 26f, 28f), "−"))
+            orderMargin = Mathf.Max(minMarginCeil, parsed);
+
+            Rect minusBtn = new Rect(x + w - 56f, y, 26f, 28f);
+            Rect plusBtn = new Rect(x + w - 26f, y, 26f, 28f);
+            FxWidgets.ButtonVisual(minusBtn, "−");
+            FxWidgets.ButtonVisual(plusBtn, "+");
+
+            // 与原版风 UI 一致：短按 1，按住后 5 / 10 / 50 / 200 逐档加速
+            HoldInt(minusBtn, plusBtn, 1, delegate(int dir, int step)
             {
-                orderMargin = Mathf.Max(minMarginCeil, parsed - 1);
+                orderMargin = Mathf.Max(minMarginCeil, orderMargin + dir * step);
                 marginBuffer = orderMargin.ToString();
                 marginAtMinimum = orderMargin <= minMarginCeil;
-            }
-            if (FxWidgets.Button(new Rect(x + w - 26f, y, 26f, 28f), "+"))
-            {
-                orderMargin = Mathf.Max(minMarginCeil, parsed + 1);
-                marginBuffer = orderMargin.ToString();
-                marginAtMinimum = false;
-            }
-            orderMargin = Mathf.Max(minMarginCeil, parsed);
+            });
             y += 34f;
 
             float half = (w - 6f) / 2f;
@@ -752,26 +753,30 @@ namespace RimForex
             float fieldW = r.width - btnW * 2f - pctW - gap * 3f;
             float rowY = r.y + 16f;
 
-            if (FxWidgets.Button(new Rect(r.x, rowY, btnW, 26f), "−"))
+            Rect minusRect = new Rect(r.x, rowY, btnW, 26f);
+            Rect plusRect = new Rect(r.x + btnW + gap + fieldW + gap, rowY, btnW, 26f);
+            FxWidgets.ButtonVisual(minusRect, "−");
+            FxWidgets.ButtonVisual(plusRect, "+");
+
+            // 闭包不能捕获 ref 参数，先落到局部变量，画完再写回
+            string localBuf = buf;
+            float cur = value;
+            localBuf = FxWidgets.TextField(new Rect(r.x + btnW + gap, rowY, fieldW, 26f),
+                localBuf, 10, isTp ? "fx-order-tp" : "fx-order-sl");
+            cur = ParsePrice(localBuf);
+
+            // 与原版风 UI 一致：短按 0.01，之后 0.05 / 0.5 / 5 / 20 逐档加速
+            HoldFloat(minusRect, plusRect, isTp ? 2 : 3, delegate(int dir, float step)
             {
-                float baseValue = value > 0f ? value : (sel != null ? sel.rate : 0f);
-                value = Mathf.Max(0f, baseValue - 0.01f);
-                buf = value.ToString("F2");
-            }
+                float baseValue = cur > 0f ? cur : (sel != null ? sel.rate : 0f);
+                cur = Mathf.Max(0f, baseValue + dir * step);
+                localBuf = cur.ToString("F2");
+            });
 
-            buf = FxWidgets.TextField(new Rect(r.x + btnW + gap, rowY, fieldW, 26f),
-                buf, 10, isTp ? "fx-order-tp" : "fx-order-sl");
-            value = ParsePrice(buf);
+            buf = localBuf;
+            value = cur;
 
-            if (FxWidgets.Button(new Rect(r.x + btnW + gap + fieldW + gap, rowY,
-                    btnW, 26f), "+"))
-            {
-                float baseValue = value > 0f ? value : (sel != null ? sel.rate : 0f);
-                value = Mathf.Max(0f, baseValue + 0.01f);
-                buf = value.ToString("F2");
-            }
-
-            float pct = PctVs(sel, value, isTp);
+            float pct = PctVs(sel, cur, isTp);
             if (Mathf.Abs(pct) >= 0.005f)
             {
                 FxTheme.Tiny(new Rect(r.x + r.width - pctW, rowY + 5f, pctW, 16f),

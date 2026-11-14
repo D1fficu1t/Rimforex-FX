@@ -90,6 +90,20 @@ namespace RimForex
             return enabled && Widgets.ButtonInvisible(r);
         }
 
+        /// <summary>
+        /// 只画按钮，不处理事件。
+        /// 用于 HoldInt/HoldFloat：事件必须留给长按逻辑，否则 MouseDown 会被按钮吃掉。
+        /// </summary>
+        public static void ButtonVisual(Rect r, string label)
+        {
+            bool hover = Mouse.IsOver(r);
+            FxTheme.Fill(r, hover ? new Color32(40, 50, 64, 255)
+                : new Color32(28, 36, 48, 255));
+            FxTheme.Border(r, hover ? FxTheme.LineHi : new Color32(60, 74, 90, 255));
+            FxTheme.Label(r, label, GameFont.Small, FxTheme.TextColor,
+                TextAnchor.MiddleCenter);
+        }
+
         public static bool Tab(Rect r, string label, bool active)
         {
             bool hover = Mouse.IsOver(r);
