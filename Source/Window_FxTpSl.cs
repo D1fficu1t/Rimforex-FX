@@ -21,6 +21,12 @@ namespace RimForex
         private string tpBuf = "";
         private string slBuf = "";
 
+        // 长按连发状态：2 = 止盈，3 = 止损
+        private int holdTarget;
+        private int holdDir;
+        private float holdTime;
+        private float holdAcc;
+
         public Window_FxTpSl(FxGameComponent fx, FxAccount account, FxPosition pos)
         {
             this.fx = fx;
@@ -70,43 +76,37 @@ namespace RimForex
 
             FxTheme.Tiny(new Rect(r.x, y, 50f, 18f), "RimForex_TpShort".Translate(),
                 FxTheme.Muted);
-            if (FxWidgets.Button(new Rect(r.x + 50f, y, btnW, 26f), "−"))
-            {
-                float b = tp > 0f ? tp : mark;
-                tp = Mathf.Max(0f, b - 0.01f);
-                tpBuf = tp.ToString("F2");
-            }
+            Rect tpMinus = new Rect(r.x + 50f, y, btnW, 26f);
+            Rect tpPlus = new Rect(r.x + 50f + btnW + 4f + fieldW + 4f, y, btnW, 26f);
+            FxWidgets.ButtonVisual(tpMinus, "−");
+            FxWidgets.ButtonVisual(tpPlus, "+");
             tpBuf = FxWidgets.TextField(new Rect(r.x + 50f + btnW + 4f, y, fieldW, 26f),
                 tpBuf, 12, "fx-tpsl-tp");
             tp = Parse(tpBuf);
-            if (FxWidgets.Button(new Rect(r.x + 50f + btnW + 4f + fieldW + 4f, y,
-                    btnW, 26f), "+"))
+            HoldTpSl(tpMinus, tpPlus, 2, delegate(int dir, float step)
             {
                 float b = tp > 0f ? tp : mark;
-                tp = Mathf.Max(0f, b + 0.01f);
+                tp = Mathf.Max(0f, b + dir * step);
                 tpBuf = tp.ToString("F2");
-            }
+            });
             DrawPct(new Rect(r.x + 222f, y + 4f, r.width - 222f, 18f), tp);
             y += rowH;
 
             FxTheme.Tiny(new Rect(r.x, y, 50f, 18f), "RimForex_SlShort".Translate(),
                 FxTheme.Muted);
-            if (FxWidgets.Button(new Rect(r.x + 50f, y, btnW, 26f), "−"))
-            {
-                float b = sl > 0f ? sl : mark;
-                sl = Mathf.Max(0f, b - 0.01f);
-                slBuf = sl.ToString("F2");
-            }
+            Rect slMinus = new Rect(r.x + 50f, y, btnW, 26f);
+            Rect slPlus = new Rect(r.x + 50f + btnW + 4f + fieldW + 4f, y, btnW, 26f);
+            FxWidgets.ButtonVisual(slMinus, "−");
+            FxWidgets.ButtonVisual(slPlus, "+");
             slBuf = FxWidgets.TextField(new Rect(r.x + 50f + btnW + 4f, y, fieldW, 26f),
                 slBuf, 12, "fx-tpsl-sl");
             sl = Parse(slBuf);
-            if (FxWidgets.Button(new Rect(r.x + 50f + btnW + 4f + fieldW + 4f, y,
-                    btnW, 26f), "+"))
+            HoldTpSl(slMinus, slPlus, 3, delegate(int dir, float step)
             {
                 float b = sl > 0f ? sl : mark;
-                sl = Mathf.Max(0f, b + 0.01f);
+                sl = Mathf.Max(0f, b + dir * step);
                 slBuf = sl.ToString("F2");
-            }
+            });
             DrawPct(new Rect(r.x + 222f, y + 4f, r.width - 222f, 18f), sl);
             y += rowH + 4f;
 
@@ -123,16 +123,73 @@ namespace RimForex
             if (FxWidgets.Button(new Rect(r.x + 118f, by, 100f, 32f),
                     "RimForex_TpSlClear".Translate()))
             {
-                pos.tpRate = 0f;
-                pos.slRate = 0f;
-                Close();
-                return;
+                // 只清输入框，是否写回仓位交给保存按钮
+                tp = 0f;
+                sl = 0f;
+                tpBuf = "";
+                slBuf = "";
             }
             if (FxWidgets.Button(new Rect(r.x + 226f, by, 90f, 32f),
                     "RimForex_TpSlClose".Translate()))
             {
                 Close();
             }
+        }
+
+        /// <summary>
+        /// 和下单区的 HoldFloat 同一套手感：短按 0.01，按住后 0.05 / 0.5 / 5 / 20 加速。
+        /// </summary>
+        private void HoldTpSl(Rect minus, Rect plus, int target,
+            System.Action<int, float> apply)
+        {
+            Event e = Event.current;
+            if (e == null) return;
+            Vector2 m = e.mousePosition;
+
+            if (e.type == EventType.MouseDown && e.button == 0)
+            {
+                if (minus.Contains(m))
+                {
+                    holdTarget = target; holdDir = -1; holdTime = 0f; holdAcc = 0f;
+                    apply(-1, 0.01f);
+                    e.Use();
+                }
+                else if (plus.Contains(m))
+                {
+                    holdTarget = target; holdDir = 1; holdTime = 0f; holdAcc = 0f;
+                    apply(1, 0.01f);
+                    e.Use();
+                }
+                else
+                {
+                    holdTarget = 0;
+                }
+                return;
+            }
+
+            if (e.type == EventType.MouseUp)
+            {
+                if (holdTarget == target) holdTarget = 0;
+                return;
+            }
+
+            if (holdTarget != target || holdDir == 0) return;
+
+            holdTime += UnityEngine.Time.unscaledDeltaTime;
+            if (holdTime > 30f) { holdTarget = 0; return; }
+            if (holdTime < 0.30f) return;
+
+            holdAcc += UnityEngine.Time.unscaledDeltaTime;
+            float interval = holdTime > 6f ? 0.04f
+                : holdTime > 4f ? 0.05f
+                : holdTime > 2f ? 0.08f : 0.12f;
+            if (holdAcc < interval) return;
+            holdAcc = 0f;
+
+            float step = holdTime > 6f ? 20f
+                : holdTime > 4f ? 5f
+                : holdTime > 2f ? 0.5f : 0.05f;
+            apply(holdDir, step);
         }
 
         private bool Apply()
