@@ -3348,6 +3348,8 @@ namespace RimForex
         public int pendingDebtTalkPawnId = -1;
         public int pendingDebtTalkUntilTick;
         public int pendingDebtTalkRepathTick;
+        /// <summary>收债人头顶的问号，运行时对象，不进存档。</summary>
+        private OverlayHandle? debtCollectorQuestionMark;
         /// <summary>商人站位的格子（无派系，没有领主，需要自己维持位置）。</summary>
         public int merchantHomeX = -1;
         public int merchantHomeZ = -1;
@@ -5917,7 +5919,8 @@ namespace RimForex
             if (merchantPawnId >= 0) return false;   // 已经有一个在场上
 
             FxAccount acc = ColonyAccount(map);
-            if (acc == null || acc.Equity <= 0f) return false;
+            if (acc == null) return false;
+            // 余额为负时商人一样会出现；报价会用最低价，不按负净值算
 
             Faction f;
             FxCurrency c = PickEventCurrency(out f);
@@ -7609,7 +7612,7 @@ namespace RimForex
                 LetterDefOf.ThreatBig,
                 collector != null ? new LookTargets(collector) : null);
 
-            Find.WindowStack.Add(new Window_FxDebt(this, acc));
+            EnsureDebtCollectorQuestionMark();
         }
 
         /// <summary>
@@ -7745,8 +7748,13 @@ namespace RimForex
         /// <summary>每 250 tick 检查收债进度。</summary>
         private void ProcessDebtCase()
         {
-            if (!debtActive) return;
+            if (!debtActive)
+            {
+                ClearDebtCollectorQuestionMark();
+                return;
+            }
             if (GenTicks.TicksGame % 250 != 0) return;
+            EnsureDebtCollectorQuestionMark();
 
             // ── 已经翻脸：等他跑出地图或被打死，再招机械族 ──
             if (debtHostile)
@@ -7968,6 +7976,7 @@ namespace RimForex
         private void ResolveDebtCase(Pawn collector, string reason)
         {
             if (!debtActive) return;
+            ClearDebtCollectorQuestionMark();
             debtActive = false;
             debtCollectorId = -1;
 
@@ -8131,6 +8140,47 @@ namespace RimForex
             FxAccount acc = ColonyAccount(collector.Map);
             if (acc == null) return;
             Find.WindowStack.Add(new Window_FxDebt(this, acc));
+        }
+
+        /// <summary>
+        /// 给收债人头顶挂一个问号，和原版商队里能交易的那位一样。
+        /// 问号用 OverlayDrawer 的持久 handle，不保存，读档后由 ProcessDebtCase 重新挂。
+        /// </summary>
+        private void EnsureDebtCollectorQuestionMark()
+        {
+            if (!debtActive || debtHostile)
+            {
+                ClearDebtCollectorQuestionMark();
+                return;
+            }
+
+            Pawn collector = FindPawnById(debtCollectorId);
+            if (collector == null || !collector.Spawned || collector.Map == null)
+            {
+                ClearDebtCollectorQuestionMark();
+                return;
+            }
+
+            if (!debtCollectorQuestionMark.HasValue)
+            {
+                debtCollectorQuestionMark = collector.Map.overlayDrawer.Enable(
+                    collector, OverlayTypes.QuestionMark);
+            }
+        }
+
+        private void ClearDebtCollectorQuestionMark()
+        {
+            if (!debtCollectorQuestionMark.HasValue) return;
+
+            Pawn collector = FindPawnById(debtCollectorId);
+            if (collector != null && collector.Spawned && collector.Map != null)
+            {
+                collector.Map.overlayDrawer.Disable(collector, ref debtCollectorQuestionMark);
+            }
+            else
+            {
+                debtCollectorQuestionMark = null;
+            }
         }
 
         private Pawn FindPawnById(int id)

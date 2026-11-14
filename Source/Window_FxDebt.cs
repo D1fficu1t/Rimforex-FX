@@ -35,7 +35,8 @@ namespace RimForex
             draggable = true;
             resizeable = false;
             absorbInputAroundWindow = false;
-            forcePause = false;
+            // 和神秘商人一致：读债务条款时暂停
+            forcePause = true;
             closeOnClickedOutside = false;
             closeOnAccept = true;
             closeOnCancel = true;

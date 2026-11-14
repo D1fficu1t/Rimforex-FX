@@ -429,7 +429,7 @@
 
 清算部派了一名收债人过来。你有 {1} 天时间处理：付清、交人，或者把他打一顿。
 
-第三种方案我们见得多，处理流程也很成熟。</RimForex_Ev7Letter>
+第三种方案我们见得多，处理流程也很成熟。\n\n收债人就在殖民地附近。派个人过去，和他当面谈。</RimForex_Ev7Letter>
   <RimForex_Ev7WindowTitle>债务清算</RimForex_Ev7WindowTitle>
   <RimForex_Ev7WindowSub>欠款 {0} 银　·　剩余 {1} 天</RimForex_Ev7WindowSub>
   <RimForex_Ev7WindowBody>本平台提供三种结清方式。选一种，别让他久等 —— 他带着枪，也带着耐心。</RimForex_Ev7WindowBody>
@@ -455,8 +455,6 @@
   <RimForex_TestDebtTip>直接把账户做成负余额并启动收债流程，省去等两天。</RimForex_TestDebtTip>
   <RimForex_MsgTestDebt>已启动收债流程</RimForex_MsgTestDebt>
   <RimForex_Ev7CanClose>可以关掉这个窗口去筹钱。之后选中终端，命令栏里有「债务清算」可以再次打开。\n\n时间不会暂停，收债人会在殖民地附近等你。</RimForex_Ev7CanClose>
-  <RimForex_Ev7Gizmo>债务清算</RimForex_Ev7Gizmo>
-  <RimForex_Ev7GizmoDesc>清算部的收债人还在等你答复。</RimForex_Ev7GizmoDesc>
   <RimForex_FrozenWarning>账户冻结：还要 {0} 天（不能开仓/提款）</RimForex_FrozenWarning>
   <RimForex_LoanFrozen>账户冻结中，冻结满 30 天后才能借款</RimForex_LoanFrozen>
   <RimForex_Ev7FleeLabel>收债人翻脸了</RimForex_Ev7FleeLabel>

@@ -74,21 +74,8 @@ namespace RimForex
                 }
                 yield return loans;
 
-                // ── 债务清算（E7）──
-                // 收债窗口可以关掉去筹钱，这里提供再次打开的入口。
                 var debtFx = Find.World != null
                     ? Find.World.GetComponent<FxGameComponent>() : null;
-                if (debtFx != null && debtFx.debtActive)
-                {
-                    var debt = new Command_Action
-                    {
-                        defaultLabel = "RimForex_Ev7Gizmo".Translate(),
-                        defaultDesc = "RimForex_Ev7GizmoDesc".Translate(),
-                        icon = ThingDefOf.Silver.uiIcon,
-                        action = OpenDebt
-                    };
-                    yield return debt;
-                }
 
                 // ── 债务转让报价（0.3.3）──
                 if (debtFx != null && debtFx.debtOfferActive)
@@ -124,16 +111,6 @@ namespace RimForex
         private void OpenTerminal()
         {
             TryOpenTerminalWindow();
-        }
-
-        /// <summary>重新打开债务清算窗口。</summary>
-        private void OpenDebt()
-        {
-            var fx = Find.World.GetComponent<FxGameComponent>();
-            if (fx == null || !fx.debtActive) return;
-            var acc = fx.ColonyAccount(Map);
-            if (acc == null) return;
-            Find.WindowStack.Add(new Window_FxDebt(fx, acc));
         }
 
         /// <summary>打开「官方借贷服务」窗口。</summary>

@@ -414,7 +414,7 @@ Their settlements remain on the world as independent places that still fly the o
   <!-- 0.3.0 E7 debt collection -->
   <RimForex_PlatformName>FX Exchange Collections</RimForex_PlatformName>
   <RimForex_Ev7LetterLabel>The collector has arrived</RimForex_Ev7LetterLabel>
-  <RimForex_Ev7Letter>Your account balance with us is now negative. You owe {0} silver.\n\nCollections has sent a man. You have {1} days to settle: pay, hand someone over, or beat his ass up.\n\nWe have seen the third option before. The paperwork is well established.</RimForex_Ev7Letter>
+  <RimForex_Ev7Letter>Your account balance with us is now negative. You owe {0} silver.\n\nCollections has sent a man. You have {1} days to settle: pay, hand someone over, or beat his ass up.\n\nWe have seen the third option before. The paperwork is well established.\n\nThe collector is waiting near the colony. Send someone to talk to him.</RimForex_Ev7Letter>
   <RimForex_Ev7WindowTitle>Debt settlement</RimForex_Ev7WindowTitle>
   <RimForex_Ev7WindowSub>Outstanding {0} silver   ·   {1} day(s) left</RimForex_Ev7WindowSub>
   <RimForex_Ev7WindowBody>We offer three ways to close this. Pick one. Do not keep him waiting - he brought a gun and a great deal of patience.</RimForex_Ev7WindowBody>
@@ -440,8 +440,6 @@ We wish you a pleasant week.</RimForex_Ev7Attack>
   <RimForex_TestDebtTip>Force the account negative and start collection immediately, skipping the two-day wait.</RimForex_TestDebtTip>
   <RimForex_MsgTestDebt>Debt collection started</RimForex_MsgTestDebt>
   <RimForex_Ev7CanClose>You can close this window and go raise the money. Select the terminal later and use the "Debt settlement" gizmo to reopen it.\n\nTime is not paused, and the collector will wait near your colony.</RimForex_Ev7CanClose>
-  <RimForex_Ev7Gizmo>Debt settlement</RimForex_Ev7Gizmo>
-  <RimForex_Ev7GizmoDesc>Collections is still waiting for your answer.</RimForex_Ev7GizmoDesc>
   <RimForex_FrozenWarning>Account frozen: {0} day(s) left (no positions, no withdrawals)</RimForex_FrozenWarning>
   <RimForex_LoanFrozen>Account frozen. Borrowing unlocks 30 days into the freeze.</RimForex_LoanFrozen>
   <RimForex_Ev7FleeLabel>The collector bolted</RimForex_Ev7FleeLabel>
