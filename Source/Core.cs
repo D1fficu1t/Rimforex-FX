@@ -7326,9 +7326,10 @@ namespace RimForex
             // 不生成在地图上，只放进世界 pawn 池，等玩家接受
             Find.WorldPawns.PassToWorld(pawn, PawnDiscardDecideMode.KeepForever);
 
-            Messages.Message(
-                "RimForex_MsgDebtOfferArrived".Translate(pawn.LabelShortCap),
-                MessageTypeDefOf.NeutralEvent, false);
+            Find.LetterStack.ReceiveLetter(
+                "RimForex_EvDebtOfferLabel".Translate(),
+                "RimForex_EvDebtOffer".Translate(pawn.LabelShortCap),
+                LetterDefOf.NeutralEvent);
             Log.Message("[RimForex] offer: created " + pawn.LabelShortCap
                 + " debt " + debt.ToString("F0"));
             return true;
@@ -7400,12 +7401,34 @@ namespace RimForex
             return score;
         }
 
-        /// <summary>债务 = 400 + 技能分 × 15，取整到 50，夹在 600~3000。</summary>
+        /// <summary>
+        /// 债务 = 市场价值 × 2 + 技能分 × 5 + 200，取整到 50，夹在 800~6000。
+        ///
+        /// 旧公式用固定底价 400，结果一个市场价值 1410 的高技能 pawn 只背 1550 的债，
+        /// 玩家白捡一个人。现在以 pawn 的实际市场价值为底，技能与单火/双火作为溢价。
+        /// </summary>
         public static float DebtAmountFor(Pawn pawn)
         {
-            float raw = 400f + DebtorScore(pawn) * 15f;
+            float market = pawn != null ? Mathf.Max(100f, pawn.MarketValue) : 100f;
+            float score = DebtorScore(pawn);
+            float raw = market * 2f + score * 5f + 200f;
             int rounded = Mathf.RoundToInt(raw / 50f) * 50;
-            return Mathf.Clamp(rounded, 600, 3000);
+            return Mathf.Clamp(rounded, 800, 6000);
+        }
+
+        /// <summary>报价窗口用：等级最高的一项技能（跳过完全禁用项）。</summary>
+        public static SkillRecord TopSkillOf(Pawn pawn)
+        {
+            if (pawn == null || pawn.skills == null) return null;
+            SkillRecord best = null;
+            var skills = pawn.skills.skills;
+            for (int i = 0; i < skills.Count; i++)
+            {
+                var sk = skills[i];
+                if (sk == null || sk.TotallyDisabled) continue;
+                if (best == null || sk.Level > best.Level) best = sk;
+            }
+            return best;
         }
 
         /// <summary>打开报价窗口。终端 gizmo 调这里。</summary>
@@ -7438,6 +7461,7 @@ namespace RimForex
 
             float debt = debtOfferAmount;
             acc.balance -= debt;
+            acc.RecordFee("RimForex_FeeDebtInherited".Translate(pawn.LabelShortCap), debt);
 
             pawn.SetFaction(Faction.OfPlayer);
             IntVec3 cell;
@@ -8485,6 +8509,7 @@ namespace RimForex
             if (acc == null || loan == null) return;
             float owed = loan.Owed;
             acc.balance -= owed;
+            acc.RecordFee("RimForex_FeeLoanDefault".Translate(LenderName(loan.lender)), owed);
             acc.loans.Remove(loan);
             // 用信件而不是角落消息：违约是"钱被一次性划走"的重大事件，
             // 一闪而过的提示玩家根本注意不到（作者 2026-10-25 反馈）。

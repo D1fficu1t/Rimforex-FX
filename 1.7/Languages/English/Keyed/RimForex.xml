@@ -414,7 +414,7 @@ Their settlements remain on the world as independent places that still fly the o
   <!-- 0.3.0 E7 debt collection -->
   <RimForex_PlatformName>FX Exchange Collections</RimForex_PlatformName>
   <RimForex_Ev7LetterLabel>The collector has arrived</RimForex_Ev7LetterLabel>
-  <RimForex_Ev7Letter>Your account with us has blown up. You owe {0} silver.\n\nCollections has sent a man. You have {1} days to settle: pay, hand someone over, or beat his ass up.\n\nWe have seen the third option before. The paperwork is well established.</RimForex_Ev7Letter>
+  <RimForex_Ev7Letter>Your account balance with us is now negative. You owe {0} silver.\n\nCollections has sent a man. You have {1} days to settle: pay, hand someone over, or beat his ass up.\n\nWe have seen the third option before. The paperwork is well established.</RimForex_Ev7Letter>
   <RimForex_Ev7WindowTitle>Debt settlement</RimForex_Ev7WindowTitle>
   <RimForex_Ev7WindowSub>Outstanding {0} silver   ·   {1} day(s) left</RimForex_Ev7WindowSub>
   <RimForex_Ev7WindowBody>We offer three ways to close this. Pick one. Do not keep him waiting - he brought a gun and a great deal of patience.</RimForex_Ev7WindowBody>
@@ -583,7 +583,6 @@ Let him reach the map edge, or put him down here. Either way, Collections will w
   <RimForex_Ev16Letter>The leaders of {0} and {1} held constructive talks and reached an early consensus on several agenda items.\n\nBoth currencies are expected to strengthen over the next few days.</RimForex_Ev16Letter>
   <RimForex_LiquidationLabel>Liquidation</RimForex_LiquidationLabel>
   <RimForex_LiquidationText>{0} position(s) hit the stop-out line and were forcibly closed.</RimForex_LiquidationText>
-  <RimForex_MsgDebtOfferArrived>{0} owes the exchange money and has been brought to the edge of the colony by FX Collections.</RimForex_MsgDebtOfferArrived>
   <RimForex_DebtOfferGizmo>From FX Collections</RimForex_DebtOfferGizmo>
   <RimForex_DebtOfferGizmoDesc>Collections has sent a debt transfer offer.</RimForex_DebtOfferGizmoDesc>
   <RimForex_DebtOfferTitle>From FX Collections</RimForex_DebtOfferTitle>
@@ -625,4 +624,9 @@ Let him reach the map edge, or put him down here. Either way, Collections will w
   <RimForex_TestDebtOffer>Test: debt transfer</RimForex_TestDebtOffer>
   <RimForex_TestDebtOfferTip>Immediately have Collections bring a debtor for an offer, ignoring the cooldown.</RimForex_TestDebtOfferTip>
   <RimForex_MsgTestDebtOffer>Debt transfer offer created.</RimForex_MsgTestDebtOffer>
+  <RimForex_EvDebtOfferLabel>Debt transfer offer</RimForex_EvDebtOfferLabel>
+  <RimForex_EvDebtOffer>{0} owes the exchange money and has been brought to the edge of the colony by FX Collections.\n\nAn offer has arrived at your terminal.</RimForex_EvDebtOffer>
+  <RimForex_DebtOfferTopSkill>Standout skill: {0}</RimForex_DebtOfferTopSkill>
+  <RimForex_FeeDebtInherited>Debt transfer accepted ({0})</RimForex_FeeDebtInherited>
+  <RimForex_FeeLoanDefault>Loan default ({0})</RimForex_FeeLoanDefault>
 </LanguageData>

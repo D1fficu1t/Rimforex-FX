@@ -55,6 +55,16 @@ namespace RimForex
                 fx.debtOfferAmount.ToString("F0"));
             float h = Text.CalcHeight(body, inRect.width);
             Widgets.Label(new Rect(0f, y, inRect.width, h), body);
+            y += h + 8f;
+
+            SkillRecord top = FxGameComponent.TopSkillOf(fx.debtOfferPawn);
+            if (top != null)
+            {
+                GUI.color = new Color(0.86f, 0.78f, 0.55f);
+                Widgets.Label(new Rect(0f, y, inRect.width, Text.LineHeight + 2f),
+                    "RimForex_DebtOfferTopSkill".Translate(top.def.LabelCap));
+                GUI.color = Color.white;
+            }
 
             float by = inRect.yMax - 34f;
             if (Widgets.ButtonText(new Rect(0f, by, 150f, 32f),
