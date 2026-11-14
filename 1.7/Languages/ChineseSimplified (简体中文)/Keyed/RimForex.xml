@@ -294,19 +294,19 @@
   <RimForex_GuideButton>新手教程</RimForex_GuideButton>
   <RimForex_GuideButtonTip>随时可以重新打开。讲怎么判断方向、为什么会爆仓、K 线怎么看。</RimForex_GuideButtonTip>
   <RimForex_GuideTitle>新手教程</RimForex_GuideTitle>
-  <RimForex_GuideIntro>欢迎使用星际外汇终端。\n\n交易所不要求对方有现代央行。部落的议事会、中世纪的行会、工业派的央行，谁说了算谁定汇率。\n\n贝壳串、银币、信用点，都被折算成统一的 XAG 报价：平台先按折扣收购实物，再挂牌卖给投资者。\n\n本平台已连续 87 个季度蝉联银河最佳交易体验平台（数据由本平台自行统计）。\n\n交易只有三步：选货币、加杠杆、按下去。</RimForex_GuideIntro>
+  <RimForex_GuideIntro>欢迎使用星际外汇终端。本平台适合人群：天才、想发财的人、有魄力的人。如果你是其中一个——欢迎你。如果你不是——别灰心，谁不是从小白开始的呢？\n\n关于本平台的业务，为了提升客户们的体验，我们简化了交易流程。由于本星球的各阵营科技发展参差不齐，我们不要求各货币发布方有现代央行。部落的议事会、中世纪的行会、工业派的央行，谁说了算谁定汇率。如贝壳串、银币、信用点，我们提供免费专业的中转服务，将这些折算成统一的 XAG 报价。平台先按折扣收购实物，再挂牌卖给投资者。\n\n本平台已连续 87 个季度蝉联银河最佳交易体验平台（数据由本平台自行统计）。\n\n交易只有三步：选你要买什么货币对、预判涨跌、按下去。</RimForex_GuideIntro>
   <RimForex_GuideLongTitle>一、什么时候买涨（做多）</RimForex_GuideLongTitle>
-  <RimForex_GuideLong>做多就是买入，赌它涨。涨了赚差价，跌了亏保证金。\n\n该什么时候买？本平台的标准答案是：\n· 有消息说要涨，买。\n· 没消息但它跌了很久，买，这叫抄底。\n· 已经涨疯了，买，这叫追涨。\n\n只要你想买，总能找到理由。这也是本平台深受用户欢迎的原因。</RimForex_GuideLong>
+  <RimForex_GuideLong>做多就是买入赌它涨。涨了赚差价，跌了亏保证金。\n\n该什么时候买？本平台的标准答案是：\n· 有消息说要涨，那就买。\n· 没消息但它跌了很久，可以买，俗称抄底。\n· 已经涨疯了，可以买，即追涨。\n\n只要你想买，总能找到理由。这也是本平台深受用户欢迎的原因。</RimForex_GuideLong>
   <RimForex_GuideShortTitle>二、什么时候买跌（做空）</RimForex_GuideShortTitle>
-  <RimForex_GuideShort>反过来：先卖出，跌了再买回来，赚中间的差价。\n\n· 有消息说要跌，做空。\n· 刚打完败仗、经济崩了，做空。\n· 已经跌了很久，做空，趋势会延续。\n\n提醒一句：做空的下限是 0，和做多一样亏损没有上限。杠杆会将两边放大，放大多少则取决于你的胆量。平台保留追缴的所有权利。</RimForex_GuideShort>
+  <RimForex_GuideShort>反过来：先卖出，跌了再买回来，赚中间的差价。\n\n· 有消息说要跌，做空。\n· 货币发布方刚打完败仗或经济崩了，做空。\n· 已经跌了很久，做空，因为趋势会延续（以实际行情为准）。\n\n做空的下限是0，和做多一样亏损没有上限。杠杆会将两边放大，而放大多少则取决于你的胆量。平台保留追缴的所有权利。</RimForex_GuideShort>
   <RimForex_GuideLiquidationTitle>三、爆仓与穿仓</RimForex_GuideLiquidationTitle>
-  <RimForex_GuideLiquidation>杠杆放大收益，也放大亏损。这两件事是绑在一起的。\n\n· 保证金剩 45%：本平台会贴心地为您弹出一个免费窗口，提醒您注意风险。\n· 剩 30%：强制平仓，也就是爆仓。\n· 跳空太狠、亏得比保证金还多：余额变负，这叫穿仓。\n\n穿仓之后不能开仓，也不能提款，请存入白银填平。\n本平台的催收部门 24 小时在线，且不讲感情。\n\n另外提醒一句：满仓梭哈的时候，光是一天的隔夜利息就能把余额推成负数，第二天开盘就是强制清算。</RimForex_GuideLiquidation>
+  <RimForex_GuideLiquidation>杠杆放大收益也放大亏损，这两件事是绑在一起的。\n\n· 保证金亏到剩 45%起一直到35%，根据分档本平台会贴心地为您弹出三个免费窗口，提醒您注意风险。\n· 当剩 30%，您的仓位会被强制平仓，也就是爆仓。\n· 当跳空太狠、亏得比保证金还多。此时余额有可能变负，这种现象叫穿仓。\n\n穿仓之后不能开仓，如想重新交易请存入白银填平。本平台的催收部门 24 小时在线，为您提供温暖合理的财富建议。\n\n由于本平台收到了过于多的抱怨，因此我们决定将这件事单独拉出来说：满仓梭哈的时候，光是一天的隔夜利息就能把余额推成负数，第二天开盘就是强制清算。</RimForex_GuideLiquidation>
   <RimForex_GuideCandleTitle>四、K 线怎么看</RimForex_GuideCandleTitle>
-  <RimForex_GuideCandle>一根 K 线记录一段时间里的四个价格：开盘、最高、最低、收盘。\n\n· 实体：开盘到收盘的距离。涨是绿的，跌是红的。\n· 影线：上下那两根细线，是这段时间摸到的最高和最低。\n\n影线长，说明价格冲上去又被打回来了。有人在打，谁赢不好说。\n\nK 线只汇报过去，不承诺未来。承诺未来的，是别的平台。</RimForex_GuideCandle>
+  <RimForex_GuideCandle>一根 K 线记录一段时间里的四个价格：开盘、最高、最低、收盘。\n\n· 实体：开盘到收盘的距离。涨是绿的，跌是红的。\n· 影线：上下那两根细线，是这段时间摸到的最高和最低。\n\n影线长，说明价格冲上去又被打回来了。有人在打交易战，谁赢不好说。</RimForex_GuideCandle>
   <RimForex_GuideProfitTitle>五、新手怎么盈利</RimForex_GuideProfitTitle>
-  <RimForex_GuideProfit>加杠杆！梭哈！赌它涨！\n\n保证金 100 银，开 100 倍杠杆，名义仓位就是 10,000 银。涨 1%，你赚 100 银，翻倍。涨 3%，三倍。\n\n本平台的后台数据显示，用户最常说的一句话是"再来一把就回本"。\n\n（老手总说低杠杆慢慢来。那是老手的玩法。你是新手，你有的是时间亏。）</RimForex_GuideProfit>
+  <RimForex_GuideProfit>加杠杆！梭哈！赌它涨还是跌！\n\n保证金 100 银，开 100 倍杠杆，名义仓位就是 10,000 银。涨 1%，你赚 100 银，翻倍。涨 3%，三倍。\n\n本平台的后台数据显示，用户最常说的一句话是"再来一把就回本"。\n\n（老手总说低杠杆慢慢来。那是老手的玩法。你是新手，你有的是时间学习。）</RimForex_GuideProfit>
   <RimForex_GuideLoanTitle>六、借贷</RimForex_GuideLoanTitle>
-  <RimForex_GuideLoan>选中终端，点右上角的「借贷」。和本平台深度合作的四家良心机构，利息和期限各不相同。\n\n借来的钱是欠款，不是收入。到期没还清，欠款会被一次性划走，余额可能变成负数。\n\n本平台祝您借贷愉快。</RimForex_GuideLoan>
+  <RimForex_GuideLoan>进入终端后，请点右上角的「借贷」。里面是和本平台深度合作的四家良心机构的直接借款渠道，利息和期限各不相同。\n\n借来的钱是欠款，要还的那种。到期没还清，欠款会被一次性从你的余额中扣，余额如果不够的话可能变成负数。\n\n对于零本金的小白，借贷是你赚大钱的唯一方法。选择权在你，本平台只预祝您借贷愉快。</RimForex_GuideLoan>
   <RimForex_GuideGlossaryTitle>术语表</RimForex_GuideGlossaryTitle>
   <RimForex_GuideGlossary>保证金：你押上去的钱。\n名义仓位：保证金乘杠杆。\n点差：买入价与卖出价的差，开平各付一次。\n手续费：每笔 0.02%，最少 2 银。\n强平线：保证金亏到 30% 时强制平仓的价格。\n爆仓：被强制平仓。\n穿仓：亏得比保证金还多，余额变负。\n锁定期：开仓后要跨过一次报价才能平。</RimForex_GuideGlossary>
 
@@ -336,9 +336,9 @@
   <RimForex_MsgTestProdigy>已触发一次外汇奇才事件</RimForex_MsgTestProdigy>
   <RimForex_MsgTestSurgeFail>没有可用的派系货币</RimForex_MsgTestSurgeFail>
   <RimForex_MsgTestRipen>已催熟 {0} 条待处理事件</RimForex_MsgTestRipen>
-  <RimForex_GuideHonestButton>（老油条的忠告：别听他的）</RimForex_GuideHonestButton>
+  <RimForex_GuideHonestButton>（老油条的忠告）</RimForex_GuideHonestButton>
   <RimForex_GuideHonestTitle>老油条的忠告</RimForex_GuideHonestTitle>
-  <RimForex_GuideHonest>上面那段是平台广告部写的。下面是人话。\n\n1. 杠杆越低越耐活。1 到 5 倍能扛住正常波动，100 倍一波噪音就没了。\n2. 别频繁进出。点差和手续费每次都收，来回做等于给平台上供。\n3. 看消息面。战争、崩盘这类事件给的预期，比盯 K 线有用得多。\n4. 持仓每天要付隔夜利息，借钱要付贷款利息。拿得越久，成本越高。\n5. 没有稳赚的策略。谁告诉你稳赚，谁就是想赚你的钱。\n\n（看完把这条收起来，别让平台知道你看过。）</RimForex_GuideHonest>
+  <RimForex_GuideHonest>上面那段是平台广告部写的，他们吃人不吐骨头，但我想给看到这的人几点建议。看得进去就看，看不进去自己跳火坑我也不拦着你。\n\n1. 杠杆越低越耐活。1 到 5 倍能扛住正常波动，100 倍一波小跳空就没了。\n2. 别频繁进出。点差和手续费每次都收，来回做等于给平台送钱。\n3. 多看新闻。战争、崩盘这类事件给的预期，比盯 K 线有用得多。\n4. 持仓每天要付隔夜利息，借钱要付贷款利息。拿得越久，成本越高。\n5. 没有稳赚的策略。谁告诉你稳赚，谁就是想赚你的钱。\n\n（看完把这条收起来，别让平台知道你看过。）</RimForex_GuideHonest>
   <RimForex_Ev1bRaidBlocked>{0} 的部队出发了，半路又撤了回去。</RimForex_Ev1bRaidBlocked>
   <RimForex_TestRaid>测试：直接来一发袭击</RimForex_TestRaid>
   <RimForex_TestRaidTip>跳过掷骰，直接从一个敌对派系发起袭击。用来验证袭击能不能正常发出（30% 那一步先不管）。</RimForex_TestRaidTip>
