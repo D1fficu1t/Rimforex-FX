@@ -650,8 +650,6 @@
   <RimForex_UiGuide>教程</RimForex_UiGuide>
   <RimForex_UiLoans>借贷</RimForex_UiLoans>
   <RimForex_UiMarket>行情</RimForex_UiMarket>
-  <RimForex_UiChart>图表</RimForex_UiChart>
-  <RimForex_UiOrder>下单</RimForex_UiOrder>
   <RimForex_UiPositions>持仓</RimForex_UiPositions>
   <RimForex_UiHistory>交易历史</RimForex_UiHistory>
   <RimForex_UiLog>事件日志</RimForex_UiLog>
@@ -662,7 +660,26 @@
   <RimForex_UiColVol>波动</RimForex_UiColVol>
   <RimForex_UiSelectCurrency>选择一种货币</RimForex_UiSelectCurrency>
   <RimForex_UiNoData>暂无行情</RimForex_UiNoData>
-  <RimForex_UiOrderWip>下单区迁移中</RimForex_UiOrderWip>
-  <RimForex_UiOrderWipTip>阶段 C 会把做多、做空、保证金、杠杆、止盈止损与费用明细全部接进来。</RimForex_UiOrderWipTip>
-  <RimForex_UiBottomHint>持仓 {0} 笔　·　底部页签迁移中</RimForex_UiBottomHint>
+  <RimForex_UiStatusHalt>停牌</RimForex_UiStatusHalt>
+  <RimForex_UiStatusPeg>钉住</RimForex_UiStatusPeg>
+  <RimForex_UiBid>买价</RimForex_UiBid>
+  <RimForex_UiAsk>卖价</RimForex_UiAsk>
+  <RimForex_UiSpread>点差</RimForex_UiSpread>
+  <RimForex_UiFeeLine>保证金 {0}　·　手续费 {1}</RimForex_UiFeeLine>
+  <RimForex_UiLogWip>事件日志尚未接入</RimForex_UiLogWip>
+  <RimForex_UiNoHistory>还没有交易记录。</RimForex_UiNoHistory>
+  <RimForex_UiDeposit>存入</RimForex_UiDeposit>
+  <RimForex_UiWithdraw>提取</RimForex_UiWithdraw>
+  <RimForex_UiCashDepositTitle>存入白银</RimForex_UiCashDepositTitle>
+  <RimForex_UiCashWithdrawTitle>提取白银</RimForex_UiCashWithdrawTitle>
+  <RimForex_UiAvailableSilver>地图可用白银：{0}</RimForex_UiAvailableSilver>
+  <RimForex_UiAvailableBalance>账户可用余额：{0}</RimForex_UiAvailableBalance>
+  <RimForex_UiAmount>金额</RimForex_UiAmount>
+  <RimForex_UiConfirm>确认</RimForex_UiConfirm>
+  <RimForex_UiCancel>取消</RimForex_UiCancel>
+  <RimForex_UiEntryLine>开仓</RimForex_UiEntryLine>
+  <RimForex_FeeDeposit>存入白银</RimForex_FeeDeposit>
+  <RimForex_FeeWithdraw>提取白银</RimForex_FeeWithdraw>
+  <RimForex_UiQuoteLine>买 {0}　卖 {1}　点差 {2}%</RimForex_UiQuoteLine>
+  <RimForex_UiCompactLine>{0} 单位　·　总花费 {1} / 可用 {2}</RimForex_UiCompactLine>
 </LanguageData>

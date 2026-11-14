@@ -146,9 +146,11 @@ namespace RimForex
             {
                 if (UseNewUi)
                 {
-                    return new Vector2(
-                        Mathf.Min(1180f, UI.screenWidth - 40f),
-                        Mathf.Min(820f, UI.screenHeight - 40f));
+                    float w = Mathf.Clamp(UI.screenWidth * 0.88f, 1100f, 1800f);
+                    float h = Mathf.Clamp(UI.screenHeight * 0.86f, 680f, 1000f);
+                    w = Mathf.Min(w, UI.screenWidth - 24f);
+                    h = Mathf.Min(h, UI.screenHeight - 80f);
+                    return new Vector2(w, h);
                 }
                 return new Vector2(980f, Mathf.Min(838f, UI.screenHeight - BottomOffset - 16f));
             }
@@ -2599,6 +2601,17 @@ float hintH = 0f;
             // 记入"期间外部现金流"：存入是玩家自己搬进来的钱，不是交易收益。
             // 不计的话每日结算会把它报成等额的假盈利（见 FxAccount.cashFlowSinceSettle）。
             account.cashFlowSinceSettle += deposited;
+            // 存入也是余额变动，交易历史要留痕；正数表示钱进了账户。
+            account.RecordTrade(new FxTradeRecord
+            {
+                isFee = true,
+                feeLabel = "RimForex_FeeDeposit".Translate(),
+                currencyName = "RimForex_FeeDeposit".Translate(),
+                pairLabel = "RimForex_FeeDeposit".Translate(),
+                units = 0,
+                pnl = deposited,
+                closedTick = GenTicks.TicksGame
+            });
             Messages.Message("RimForex_MsgDeposited".Translate(deposited), MessageTypeDefOf.PositiveEvent, false);
         }
 
@@ -2656,6 +2669,16 @@ float hintH = 0f;
             float taken = spawned;
             account.balance -= taken;
             account.cashFlowSinceSettle -= taken;
+            account.RecordTrade(new FxTradeRecord
+            {
+                isFee = true,
+                feeLabel = "RimForex_FeeWithdraw".Translate(),
+                currencyName = "RimForex_FeeWithdraw".Translate(),
+                pairLabel = "RimForex_FeeWithdraw".Translate(),
+                units = 0,
+                pnl = -taken,
+                closedTick = GenTicks.TicksGame
+            });
             // 不钳到 0：余额本来就可能因为穿仓而为负，这里只是继续扣减。
             Messages.Message("RimForex_MsgWithdrew".Translate(spawned), MessageTypeDefOf.PositiveEvent, false);
         }

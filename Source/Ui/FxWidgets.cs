@@ -11,20 +11,75 @@ namespace RimForex
     /// </summary>
     public static class FxWidgets
     {
+        private static GUIStyle fieldStyle;
+
+        private static GUIStyle FieldStyle
+        {
+            get
+            {
+                if (fieldStyle == null)
+                {
+                    fieldStyle = new GUIStyle(GUI.skin.textField);
+                    fieldStyle.normal.background = null;
+                    fieldStyle.hover.background = null;
+                    fieldStyle.active.background = null;
+                    fieldStyle.focused.background = null;
+                    fieldStyle.border = new RectOffset(0, 0, 0, 0);
+                    fieldStyle.padding = new RectOffset(6, 6, 2, 2);
+                    fieldStyle.alignment = TextAnchor.MiddleLeft;
+                    fieldStyle.normal.textColor = FxTheme.TextColor;
+                    fieldStyle.hover.textColor = FxTheme.TextColor;
+                    fieldStyle.active.textColor = FxTheme.TextColor;
+                    fieldStyle.focused.textColor = FxTheme.TextColor;
+                }
+                return fieldStyle;
+            }
+        }
+
+        public static string TextField(Rect r, string text, int maxLength = 24,
+            string controlName = null)
+        {
+            if (!string.IsNullOrEmpty(controlName)) GUI.SetNextControlName(controlName);
+            FxTheme.Fill(r, new Color32(12, 15, 20, 255));
+            FxTheme.Border(r, FxTheme.LineHi);
+            GameFont oldFont = Text.Font;
+            Color oldColor = GUI.color;
+            Text.Font = GameFont.Small;
+            GUI.color = FxTheme.TextColor;
+            string result = GUI.TextField(new Rect(r.x + 1f, r.y + 1f,
+                r.width - 2f, r.height - 2f), text ?? "", maxLength, FieldStyle);
+            Text.Font = oldFont;
+            GUI.color = oldColor;
+            return result;
+        }
+
         public static bool Button(Rect r, string label, bool enabled = true,
-            bool primary = false, GameFont font = GameFont.Small)
+            bool primary = false, bool danger = false, GameFont font = GameFont.Small)
         {
             bool hover = enabled && Mouse.IsOver(r);
-            Color bg = primary ? new Color32(28, 62, 50, 255) : FxTheme.PanelBg;
-            if (hover) bg = primary ? new Color32(36, 82, 66, 255) : FxTheme.PanelSel;
+
+            Color bg;
             if (!enabled) bg = new Color32(18, 22, 28, 255);
+            else if (danger) bg = hover ? new Color32(96, 38, 42, 255) : new Color32(58, 26, 28, 255);
+            else if (primary) bg = hover ? new Color32(36, 82, 66, 255) : new Color32(28, 62, 50, 255);
+            else bg = hover ? new Color32(40, 50, 64, 255) : new Color32(28, 36, 48, 255);
+
+            Color border;
+            if (!enabled) border = FxTheme.Line;
+            else if (danger) border = FxTheme.Danger;
+            else if (primary) border = FxTheme.Long;
+            else border = hover ? FxTheme.LineHi : new Color32(60, 74, 90, 255);
 
             FxTheme.Fill(r, bg);
-            FxTheme.Border(r, primary ? FxTheme.Long : FxTheme.Line);
+            FxTheme.Border(r, border);
 
-            Color text = enabled ? (primary ? FxTheme.Long : FxTheme.TextColor) : FxTheme.Muted;
+            Color text;
+            if (!enabled) text = FxTheme.Muted;
+            else if (danger) text = new Color32(246, 170, 170, 255);
+            else if (primary) text = FxTheme.Long;
+            else text = FxTheme.TextColor;
+
             FxTheme.Label(r, label, font, text, TextAnchor.MiddleCenter);
-
             return enabled && Widgets.ButtonInvisible(r);
         }
 
