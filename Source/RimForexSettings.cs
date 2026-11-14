@@ -123,6 +123,10 @@ namespace RimForex
         public bool showTestOptions = false;
         /// <summary>0.3.3 开发开关：使用新版终端界面。迁移完成后默认开启并删除旧界面。</summary>
         public bool useNewTerminalUi = false;
+        // 新终端三根分隔条的比例
+        public float uiLeftRatio = 0.24f;
+        public float uiRightRatio = 0.22f;
+        public float uiBottomRatio = 0.20f;
 
         // ── 世界事件频率与概率（作者 2026-10-26 要求做成滑块）──
         /// <summary>单货币事件冷却（游戏日），10~30。</summary>
@@ -179,6 +183,9 @@ namespace RimForex
             Scribe_Values.Look(ref enableWorldEvents, "enableWorldEvents", true);
             Scribe_Values.Look(ref showTestOptions, "showTestOptions", false);
             Scribe_Values.Look(ref useNewTerminalUi, "useNewTerminalUi", false);
+            Scribe_Values.Look(ref uiLeftRatio, "uiLeftRatio", 0.24f);
+            Scribe_Values.Look(ref uiRightRatio, "uiRightRatio", 0.22f);
+            Scribe_Values.Look(ref uiBottomRatio, "uiBottomRatio", 0.20f);
             Scribe_Values.Look(ref eventCooldownDays, "eventCooldownDays", 20);
             Scribe_Values.Look(ref e3RaidChance, "e3RaidChance", 0.35f);
             Scribe_Values.Look(ref e3CooldownDays, "e3CooldownDays", 15);
@@ -274,6 +281,9 @@ namespace RimForex
 
             showFloatingPnl = true;
             useNewTerminalUi = false;
+            uiLeftRatio = 0.24f;
+            uiRightRatio = 0.22f;
+            uiBottomRatio = 0.20f;
             floatPnlX = -1f;
             floatPnlY = -1f;
 

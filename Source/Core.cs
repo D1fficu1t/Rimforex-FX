@@ -6258,9 +6258,18 @@ namespace RimForex
                     // 立即跳空：ForceGap 是排队，遇到下一步的停牌判定会被吞掉
                     market.ForceGapNow(pc, pendingBankSigmas, pendingBankDownward);
                     Log.Message("[RimForex] bank: applied gap on " + pc.name);
-                    Messages.Message(
-                        "RimForex_MsgBankAnnounced".Translate(),
-                        MessageTypeDefOf.NeutralEvent, false);
+
+                    // 决策真正落地才发事件信：此时方向已经揭晓。
+                    Faction bankFaction = FactionByID(pc.factionLoadID);
+                    string bankName = bankFaction != null ? bankFaction.Name : pc.name;
+                    string instName = bankFaction != null ? BankNameFor(bankFaction) : "";
+                    string direction = pendingBankDownward
+                        ? "RimForex_Ev8Cut".Translate()
+                        : "RimForex_Ev8Hike".Translate();
+                    Find.LetterStack.ReceiveLetter(
+                        "RimForex_Ev8DecisionLabel".Translate(bankName),
+                        "RimForex_Ev8Decision".Translate(bankName, instName, direction),
+                        LetterDefOf.NeutralEvent);
                     pendingBankCcyId = -1;
                 }
             }
@@ -6332,11 +6341,10 @@ namespace RimForex
             // 2~6 小时后落地，给玩家留出"猜"的空间
             pendingBankDueTick = GenTicks.TicksGame + Rand.Range(2, 7) * TicksPerHour;
 
-            string inst = BankNameFor(f);
-            Find.LetterStack.ReceiveLetter(
-                "RimForex_Ev8LetterLabel".Translate(f.Name),
-                "RimForex_Ev8Letter".Translate(f.Name, inst),
-                LetterDefOf.NeutralEvent);
+            // 只是"预告要开会"，用角落消息；真正的决策在落地时发事件信。
+            Messages.Message(
+                "RimForex_MsgBankPreAnnounce".Translate(f.Name),
+                MessageTypeDefOf.NeutralEvent, false);
             return true;
         }
 

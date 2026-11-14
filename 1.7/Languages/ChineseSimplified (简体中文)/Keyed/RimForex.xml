@@ -464,8 +464,6 @@
   <RimForex_Set_EventCdSingle>单货币冷却：{0} 日</RimForex_Set_EventCdSingle>
   <RimForex_Set_E3RaidChance>外汇奇才招来袭击的概率：{0}%</RimForex_Set_E3RaidChance>
   <RimForex_Set_E1RaidChance>军备采购异常触发袭击的概率：{0}%</RimForex_Set_E1RaidChance>
-  <RimForex_Ev8LetterLabel>{0} 将发表利率声明</RimForex_Ev8LetterLabel>
-  <RimForex_Ev8Letter>{0} 的{1}将在数小时后宣布一项重要的利率决策。\n\n没人知道会加息还是降息，但市场普遍预期，这项决策会带来一次明显的跳空。\n\n押哪边，自己判断。</RimForex_Ev8Letter>
   <RimForex_Ev7OverdueLabel>清算部不再等了</RimForex_Ev7OverdueLabel>
   <RimForex_Ev7Overdue>三天过去了，你既没付钱，也没交人。收债人转身就走，一句话都没说。\n\n他回去交报告了。\n\n机械族已经在路上了。</RimForex_Ev7Overdue>
   <RimForex_Ev6Foot>你可以继续做空他们的货币，或者大发慈悲平仓，让这场金融危机停下来。\n\n如果不那样做，袭击会持续发生。</RimForex_Ev6Foot>
@@ -521,7 +519,6 @@
   <RimForex_TestRating>测试：信用评级下调</RimForex_TestRating>
   <RimForex_TestRatingTip>立刻对一个随机派系的货币挂 3 天负向漂移。</RimForex_TestRatingTip>
   <RimForex_MsgTestRating>已触发评级下调。</RimForex_MsgTestRating>
-  <RimForex_MsgBankAnnounced>利率决策已公布，市场立即作出反应。</RimForex_MsgBankAnnounced>
   <RimForex_Set_PegCd>汇率保卫战冷却：{0} 日</RimForex_Set_PegCd>
   <RimForex_Ev10HaltLabel>{0} 停牌</RimForex_Ev10HaltLabel>
   <RimForex_Ev10Halt>{0} 的货币在一天内变动了 {1}%。\n\n{0} 的{2}宣布暂停外汇交易。停牌期间不能开仓也不能平仓，隔夜利息照收。</RimForex_Ev10Halt>
@@ -690,4 +687,19 @@
   <RimForex_HistoryCashIn>账户入账</RimForex_HistoryCashIn>
   <RimForex_HistoryCashOut>账户出账</RimForex_HistoryCashOut>
   <RimForex_HColAmountPnl>金额 / 盈亏</RimForex_HColAmountPnl>
+  <RimForex_MsgBankPreAnnounce>{0} 央行将在数小时后公布利率决策，市场预期会出现一次跳空。</RimForex_MsgBankPreAnnounce>
+  <RimForex_Ev8DecisionLabel>{0} 公布利率决策</RimForex_Ev8DecisionLabel>
+  <RimForex_Ev8Decision>{0} 的{1}宣布{2}，汇率立即跳空。</RimForex_Ev8Decision>
+  <RimForex_Ev8Hike>加息</RimForex_Ev8Hike>
+  <RimForex_Ev8Cut>降息</RimForex_Ev8Cut>
+  <RimForex_UiChangeDay>日</RimForex_UiChangeDay>
+  <RimForex_UiChange5d>五日</RimForex_UiChange5d>
+  <RimForex_UiChangeSigma>σ</RimForex_UiChangeSigma>
+  <RimForex_UiChangeCycleTip>点击切换涨跌口径：日 / 五日 / σ</RimForex_UiChangeCycleTip>
+  <RimForex_UiToggleEntry>开仓</RimForex_UiToggleEntry>
+  <RimForex_UiToggleBe>回本</RimForex_UiToggleBe>
+  <RimForex_UiToggleStop>强平</RimForex_UiToggleStop>
+  <RimForex_UiBeLine>回本</RimForex_UiBeLine>
+  <RimForex_UiStopLine>强平</RimForex_UiStopLine>
+  <RimForex_UiLastSettle>上次结算</RimForex_UiLastSettle>
 </LanguageData>
