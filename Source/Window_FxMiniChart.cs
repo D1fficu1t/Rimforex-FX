@@ -6,10 +6,8 @@ using Verse;
 namespace RimForex
 {
     /// <summary>
-    /// 悬浮窗里点「K」打开的小 K 线窗口（0.3.1）。
-    ///
-    /// 只画图：标题 + 蜡烛 + 价格轴 + 最新价 + 该货币持仓的开仓线。
-    /// 完整功能（周期切换、持仓线、爆仓线、十字光标）仍在终端里。
+    /// 小 K 线窗口（0.3.1，D2 换新界面）。
+    /// 只画图：周期、三条参考线、最新价、十字光标与悬停详情。
     /// </summary>
     public class Window_FxMiniChart : Window
     {
@@ -19,7 +17,6 @@ namespace RimForex
         public int FactionId { get; private set; }
 
         private FxChartSpan span = FxChartSpan.Hour;
-        /// <summary>显示多少根蜡烛（滚轮缩放，10~120）。</summary>
         private int candleCount = 40;
         private bool showEntry = true;
         private bool showBreakeven = true;
@@ -31,66 +28,56 @@ namespace RimForex
             this.account = account;
             FactionId = factionId;
 
-            doCloseX = true;
-            doCloseButton = false;
             draggable = true;
             resizeable = true;
             absorbInputAroundWindow = false;
             forcePause = false;
-            // 不挡住镜头移动：玩家开着这个窗口也要能拖地图
-            // （作者 2026-10-31：窗口开着地图拖不动，违背"边看行情边干活"的设计初衷）
             preventCameraMotion = false;
+            FxWindowChrome.Prepare(this);
         }
 
         public override Vector2 InitialSize
         {
-            get { return new Vector2(460f, 300f); }
+            get { return new Vector2(540f, 360f); }
         }
 
         public override void DoWindowContents(Rect inRect)
         {
             if (fx == null || fx.market == null) { Close(); return; }
-
-            // 终端断电后这个窗口必须自己消失（作者 2026-10-31 实测：断电还能看）
             if (!AnyTerminalUsable()) { Close(); return; }
             FxCurrency cur = fx.market.Get(FactionId);
             if (cur == null) { Close(); return; }
 
-            float lhS = Text.LineHeightOf(GameFont.Small);
+            Rect r = FxWindowChrome.Draw(this, inRect, cur.PairLabel);
+            float lhS = FxTheme.LhS;
 
-            // ---- 标题 + 最新价 ----
-            Text.Font = GameFont.Small;
-            string title = cur.PairLabel;
-            Widgets.Label(new Rect(0f, 0f, inRect.width - 90f, lhS + 2f), title);
-            float tw = Text.CalcSize(title).x;
-            GUI.color = new Color(0.90f, 0.93f, 0.96f);
-            Widgets.Label(new Rect(tw + 10f, 0f, 110f, lhS + 2f), cur.rate.ToString("F2"));
-            GUI.color = Color.white;
-
-            // 重置视图：恢复 40 根
-            Rect resetBtn = new Rect(inRect.width - 76f, 0f, 74f, lhS + 2f);
-            if (Widgets.ButtonText(resetBtn, "RimForex_ChartReset".Translate()))
+            // 最新价与重置
+            FxTheme.Medium(new Rect(r.x, r.y, 150f, 24f),
+                cur.rate.ToString("F2"), FxTheme.TextColor);
+            Rect resetBtn = new Rect(r.xMax - 82f, r.y, 82f, 24f);
+            if (FxWidgets.Button(resetBtn, "RimForex_ChartReset".Translate()))
             {
                 candleCount = 40;
             }
             TooltipHandler.TipRegion(resetBtn, "RimForex_MiniResetTip".Translate());
 
-            // ---- 左侧竖排开关（与终端一致）----
-            float plotTop = lhS + 6f;
-            const float StripW = 52f;
-            Rect strip = new Rect(0f, plotTop, StripW, Mathf.Max(80f, inRect.height - plotTop));
+            float plotTop = lhS + 8f;
+            const float StripW = 56f;
+            Rect strip = new Rect(r.x, r.y + plotTop, StripW,
+                Mathf.Max(80f, r.height - plotTop));
             DrawSideButtons(strip);
 
-            // ---- 图 ----
-            Rect plot = new Rect(StripW + 6f, plotTop,
-                inRect.width - StripW - 6f, inRect.height - plotTop);
+            Rect plot = new Rect(r.x + StripW + 6f, r.y + plotTop,
+                r.width - StripW - 6f, r.height - plotTop);
             if (plot.height < 60f) return;
-            Widgets.DrawBoxSolid(plot, new Color(0.10f, 0.11f, 0.13f, 1f));
+            FxTheme.Fill(plot, FxTheme.WindowBg);
+            FxTheme.Border(plot, FxTheme.Line);
 
             List<FxCandle> candles = fx.market.GetCandles(FactionId, candleCount, span);
             if (candles == null || candles.Count == 0)
             {
-                Widgets.Label(plot.ContractedBy(6f), "RimForex_ChartNoData".Translate());
+                FxWidgets.Center(plot.ContractedBy(6f),
+                    "RimForex_ChartNoData".Translate(), FxTheme.Muted);
                 return;
             }
 
@@ -102,17 +89,17 @@ namespace RimForex
             }
             if (max - min < 0.0001f) { max += 0.5f; min -= 0.5f; }
 
-            Rect area = new Rect(plot.x + 4f, plot.y + 6f, plot.width - 52f, plot.height - 16f);
+            Rect area = new Rect(plot.x + 6f, plot.y + 8f,
+                plot.width - 58f, plot.height - 22f);
             if (area.width < 20f || area.height < 20f) return;
 
-            Color grid = new Color(1f, 1f, 1f, 0.07f);
+            Color grid = new Color32(27, 33, 41, 255);
             for (int g = 0; g <= 4; g++)
             {
                 float gy = area.y + area.height * g / 4f;
-                Widgets.DrawBoxSolid(new Rect(area.x, gy, area.width, 1f), grid);
+                FxTheme.HLine(area.x, area.xMax, gy, grid);
             }
 
-            // 滚轮缩放：只在绘图区内响应
             Event eScroll = Event.current;
             if (eScroll != null && eScroll.type == EventType.ScrollWheel
                 && plot.Contains(eScroll.mousePosition))
@@ -129,159 +116,190 @@ namespace RimForex
             int n = candles.Count;
             float slot = area.width / n;
             float bodyW = Mathf.Max(2f, slot * 0.62f);
-            Color up = new Color(0.42f, 0.82f, 0.48f, 1f);
-            Color down = new Color(0.90f, 0.38f, 0.34f, 1f);
-
             for (int i = 0; i < n; i++)
             {
                 FxCandle c = candles[i];
                 float cx = area.x + slot * i + slot * 0.5f;
-                Color col = c.close >= c.open ? up : down;
-
+                Color col = c.close >= c.open ? FxTheme.Long : FxTheme.Short;
                 float yHigh = PriceToY(c.high, min, max, area);
                 float yLow = PriceToY(c.low, min, max, area);
-                Widgets.DrawBoxSolid(new Rect(cx - 0.5f, yHigh, 1f, Mathf.Max(1f, yLow - yHigh)), col);
-
+                FxTheme.VLine(cx, yHigh, yLow, col);
                 float yOpen = PriceToY(c.open, min, max, area);
                 float yClose = PriceToY(c.close, min, max, area);
                 float top = Mathf.Min(yOpen, yClose);
-                Widgets.DrawBoxSolid(new Rect(cx - bodyW * 0.5f, top,
-                    bodyW, Mathf.Max(1f, Mathf.Abs(yClose - yOpen))), col);
+                FxTheme.Fill(new Rect(cx - bodyW * 0.5f, top, bodyW,
+                    Mathf.Max(1f, Mathf.Abs(yClose - yOpen))), col);
             }
 
-            // 当前价常驻线（与终端一致）
-            float lastRateY = float.NaN;
             float lastRate = cur.rate > 0.001f ? cur.rate : candles[n - 1].close;
             if (lastRate >= min && lastRate <= max)
             {
                 float curY = PriceToY(lastRate, min, max, area);
-                lastRateY = curY;
-                Widgets.DrawBoxSolid(new Rect(area.x, curY, area.width, 1f),
-                    new Color(0.95f, 0.90f, 0.55f, 0.95f));
-                Text.Font = GameFont.Tiny;
-                GUI.color = new Color(0.95f, 0.90f, 0.55f);
-                Widgets.Label(new Rect(area.xMax + 4f, curY - 8f, 46f, 16f),
-                    lastRate.ToString("F2"));
-                GUI.color = Color.white;
-                Text.Font = GameFont.Small;
+                FxTheme.HLine(area.x, area.xMax, curY, FxTheme.Warning);
+                FxTheme.Fill(new Rect(area.xMax + 4f, curY - 8f, 48f, 16f),
+                    FxTheme.Warning);
+                FxTheme.Tiny(new Rect(area.xMax + 4f, curY - 8f, 48f, 16f),
+                    lastRate.ToString("F2"), new Color32(20, 20, 20, 255),
+                    TextAnchor.MiddleCenter);
             }
 
-            // 三条参考线：开仓 / 盈亏平衡 / 爆仓（只取该货币最新一笔持仓）
-            //
-            // 全部照抄终端 Window_FxTerminal.DrawPositionLines / DrawBreakevenLine /
-            // DrawStopOutLine 的换算，保证两边画在同一个价位上：
-            //   蜡烛是**中间价**，而持仓的 entryRate 是**方向价**，
-            //   必须先按入场时的半价差换回中间价，否则线会整体偏半个点差。
             FxPosition pos = LatestPosition();
             if (pos != null)
             {
                 float units = Mathf.Abs((float)pos.units);
-                // 老存档的持仓可能没存 entrySpreadRate，退回当前品种的点差
                 float spreadRate = pos.entrySpreadRate > 0.0001f
-                    ? pos.entrySpreadRate
-                    : FxMarket.SpreadRateFor(cur);
+                    ? pos.entrySpreadRate : FxMarket.SpreadRateFor(cur);
                 float half = spreadRate * 0.5f;
                 float denom = pos.isLong ? (1f - half) : (1f + half);
                 if (denom > 0.0001f)
                 {
                     float mid0 = pos.entryMid > 0f ? pos.entryMid : pos.entryRate / denom;
-
                     if (showEntry)
                     {
-                        DrawLine(area, min, max, mid0, new Color(0.85f, 0.85f, 0.55f, 0.85f));
+                        DrawLine(area, min, max, mid0,
+                            new Color(FxTheme.Warning.r, FxTheme.Warning.g,
+                                FxTheme.Warning.b, 0.75f));
                     }
                     if (showBreakeven)
                     {
                         float beMid = mid0 * (pos.isLong ? (1f + half) : (1f - half)) / denom;
-                        // 回本线与开仓线只差半个点差，小窗口里常常压成 1px 看不出来；
-                        // 画成 2px 并先画，保证不被盖住
-                        DrawLine(area, min, max, beMid, new Color(0.55f, 0.72f, 0.98f, 0.95f), false, 2f);
+                        DrawLine(area, min, max, beMid,
+                            new Color(FxTheme.Accent.r, FxTheme.Accent.g,
+                                FxTheme.Accent.b, 0.9f), false, 2f);
                     }
                     if (showStopOut && units > 0.0001f)
                     {
                         float baseM = pos.BaseMargin;
                         if (baseM < 0.01f) baseM = pos.margin;
-                        float dist = ((1f - FxGameComponent.StopOutFraction) * baseM + pos.addedMargin) / units;
-                        float markStop = pos.isLong ? pos.entryRate - dist : pos.entryRate + dist;
+                        float dist = ((1f - FxGameComponent.StopOutFraction) * baseM
+                            + pos.addedMargin) / units;
+                        float markStop = pos.isLong
+                            ? pos.entryRate - dist : pos.entryRate + dist;
                         float soMid = markStop / denom;
-
-                        // 爆仓线经常落在可视区外（100x 时距现价只有 0.7%），
-                        // 贴边画一条，并在旁边标出"在框外 X%" —— 与终端一致
-                        DrawLine(area, min, max, soMid, new Color(1f, 0.45f, 0.40f, 0.9f), true);
+                        DrawLine(area, min, max, soMid,
+                            new Color(FxTheme.Short.r, FxTheme.Short.g,
+                                FxTheme.Short.b, 0.9f), true);
 
                         if (soMid < min || soMid > max)
                         {
                             bool above = soMid > max;
                             float edgeY = above ? area.y : area.yMax;
                             float offPct = (soMid / cur.rate - 1f) * 100f;
-                            Text.Font = GameFont.Tiny;
-                            GUI.color = new Color(1f, 0.55f, 0.50f);
                             string txt = "RimForex_ChartStopOutOff".Translate(
-                                soMid.ToString("F2"), offPct.ToString("+0.00;-0.00;0.00"));
-                            Widgets.Label(new Rect(area.x + 2f,
-                                above ? edgeY + 1f : edgeY - 15f, area.width - 4f, 14f), txt);
-                            GUI.color = Color.white;
-                            Text.Font = GameFont.Small;
+                                soMid.ToString("F2"),
+                                offPct.ToString("+0.00;-0.00;0.00"));
+                            FxTheme.Tiny(new Rect(area.x + 2f,
+                                above ? edgeY + 1f : edgeY - 15f,
+                                area.width - 4f, 14f), txt, FxTheme.Short);
                         }
                     }
                 }
             }
 
-            // 价格轴
-            Text.Font = GameFont.Tiny;
-            Text.Anchor = TextAnchor.MiddleLeft;
             for (int g = 0; g <= 4; g++)
             {
                 float gy = area.y + area.height * g / 4f;
-                // 和当前价标签挨太近的刻度不画，避免两个数字叠在一起
-                if (!float.IsNaN(lastRateY) && Mathf.Abs(gy - lastRateY) < 9f) continue;
                 float p = max - (max - min) * g / 4f;
-                Widgets.Label(new Rect(area.xMax + 4f, gy - 8f, 46f, 16f), p.ToString("F2"));
+                FxTheme.Tiny(new Rect(area.xMax + 4f, gy - 8f, 50f, 16f),
+                    p.ToString("F2"), FxTheme.Muted, TextAnchor.MiddleLeft);
             }
-            Text.Anchor = TextAnchor.UpperLeft;
-            Text.Font = GameFont.Small;
 
-            // ── 十字光标（与终端一致）──
             Event e = Event.current;
             if (e != null && area.Contains(e.mousePosition))
             {
                 Vector2 m = e.mousePosition;
-                int idx = Mathf.Clamp((int)((m.x - area.x) / Mathf.Max(0.01f, slot)), 0, n - 1);
+                int idx = Mathf.Clamp((int)((m.x - area.x) / Mathf.Max(0.01f, slot)),
+                    0, n - 1);
                 float cx = area.x + slot * idx + slot * 0.5f;
+                FxTheme.VLine(cx, area.y, area.yMax, new Color(1f, 1f, 1f, 0.3f));
+                FxTheme.HLine(area.x, area.xMax, m.y, new Color(1f, 1f, 1f, 0.18f));
 
-                Color cross = new Color(1f, 1f, 1f, 0.35f);
-                Widgets.DrawBoxSolid(new Rect(cx - 0.5f, area.y, 1f, area.height), cross);
-                Widgets.DrawBoxSolid(new Rect(area.x, m.y, area.width, 1f), cross);
+                float hoverPrice = Mathf.Lerp(max, min,
+                    Mathf.Clamp01((m.y - area.y) / Mathf.Max(1f, area.height)));
+                FxTheme.Fill(new Rect(area.xMax + 4f, m.y - 8f, 48f, 16f),
+                    new Color32(40, 48, 60, 255));
+                FxTheme.Tiny(new Rect(area.xMax + 4f, m.y - 8f, 48f, 16f),
+                    hoverPrice.ToString("F2"), FxTheme.TextColor,
+                    TextAnchor.MiddleCenter);
 
-                float t01 = Mathf.Clamp01((m.y - area.y) / Mathf.Max(1f, area.height));
-                Text.Font = GameFont.Tiny;
-                string priceStr = Mathf.Lerp(max, min, t01).ToString("F2");
-                Vector2 sz = Text.CalcSize(priceStr);
-                Rect tag = new Rect(area.xMax + 2f, m.y - sz.y * 0.5f - 1f, sz.x + 6f, sz.y + 2f);
-                if (tag.yMax > plot.yMax - 2f) tag.y = plot.yMax - tag.height - 2f;
-                if (tag.y < plot.y + 2f) tag.y = plot.y + 2f;
-                Widgets.DrawBoxSolid(tag, new Color(0.20f, 0.22f, 0.26f, 0.95f));
-                GUI.color = new Color(0.92f, 0.94f, 0.98f);
-                Widgets.Label(new Rect(tag.x + 3f, tag.y + 1f, tag.width, tag.height), priceStr);
-                GUI.color = Color.white;
-                Text.Font = GameFont.Small;
-
-                // 悬停详情：与终端同一套文案（开/高/低/收 + 振幅 + 涨跌幅）
                 FxCandle hc = candles[idx];
-                string body = "RimForex_HoverBody".Translate(
+                string date = hc.startTick > 0
+                    ? GenDate.DateFullStringAt(GenDate.TickGameToAbs(hc.startTick),
+                        Vector2.zero) : "";
+                string title = (hc.close >= hc.open
+                    ? "RimForex_HoverUp" : "RimForex_HoverDown").Translate();
+                if (date.Length > 0) title = date + "  " + title;
+                string detail = "RimForex_UiCandleDetail".Translate(
                     hc.open.ToString("F2"), hc.high.ToString("F2"),
                     hc.low.ToString("F2"), hc.close.ToString("F2"));
-                string hoverTitle = (hc.close >= hc.open ? "RimForex_HoverUp" : "RimForex_HoverDown").Translate();
+                float pct = hc.open > 0.0001f
+                    ? (hc.close / hc.open - 1f) * 100f : 0f;
                 string range = "RimForex_HoverRange".Translate(
                     (hc.high - hc.low).ToString("F2"),
-                    hc.open > 0.0001f
-                        ? ((hc.close / hc.open - 1f) * 100f).ToString("+0.00;-0.00;0.00") + "%"
-                        : "-");
-                TooltipHandler.TipRegion(area, new TipSignal(title + "\n\n" + body + "\n" + range));
+                    pct.ToString("+0.00;-0.00;0.00") + "%");
+
+                float boxW = 300f;
+                float bx = Mathf.Clamp(m.x + 14f, plot.x, plot.xMax - boxW - 4f);
+                float by = Mathf.Clamp(m.y + 14f, plot.y + 4f, plot.yMax - 64f);
+                Rect tip = new Rect(bx, by, boxW, 58f);
+                FxTheme.Fill(tip, new Color32(18, 23, 30, 248));
+                FxTheme.Border(tip, FxTheme.LineHi);
+                FxTheme.Tiny(new Rect(tip.x + 8f, tip.y + 5f, tip.width - 16f, 16f),
+                    title, FxTheme.TextColor);
+                FxTheme.Tiny(new Rect(tip.x + 8f, tip.y + 21f, tip.width - 16f, 16f),
+                    detail, FxTheme.Muted);
+                FxTheme.Tiny(new Rect(tip.x + 8f, tip.y + 37f, tip.width - 16f, 16f),
+                    range, pct >= 0f ? FxTheme.Long : FxTheme.Short);
             }
         }
 
-        /// <summary>任意地图上是否存在通电的终端。</summary>
+        private void DrawSideButtons(Rect strip)
+        {
+            float bh = 24f;
+            float y = strip.y;
+            if (FxWidgets.Button(new Rect(strip.x, y, strip.width, bh),
+                    "RimForex_SpanMinuteShort".Translate(),
+                    true, accent: span == FxChartSpan.Minute))
+            {
+                span = FxChartSpan.Minute;
+            }
+            y += bh + 4f;
+            if (FxWidgets.Button(new Rect(strip.x, y, strip.width, bh),
+                    "RimForex_SpanHour".Translate(),
+                    true, accent: span == FxChartSpan.Hour))
+            {
+                span = FxChartSpan.Hour;
+            }
+            y += bh + 4f;
+            if (FxWidgets.Button(new Rect(strip.x, y, strip.width, bh),
+                    "RimForex_SpanDay".Translate(),
+                    true, accent: span == FxChartSpan.Day))
+            {
+                span = FxChartSpan.Day;
+            }
+            y += bh + 8f;
+            if (FxWidgets.Button(new Rect(strip.x, y, strip.width, bh),
+                    (showEntry ? "RimForex_LineOnEntry" : "RimForex_LineOffEntry").Translate(),
+                    true, accent: showEntry))
+            {
+                showEntry = !showEntry;
+            }
+            y += bh + 4f;
+            if (FxWidgets.Button(new Rect(strip.x, y, strip.width, bh),
+                    (showBreakeven ? "RimForex_LineOnBe" : "RimForex_LineOffBe").Translate(),
+                    true, accent: showBreakeven))
+            {
+                showBreakeven = !showBreakeven;
+            }
+            y += bh + 4f;
+            if (FxWidgets.Button(new Rect(strip.x, y, strip.width, bh),
+                    (showStopOut ? "RimForex_LineOnSo" : "RimForex_LineOffSo").Translate(),
+                    true, accent: showStopOut))
+            {
+                showStopOut = !showStopOut;
+            }
+        }
+
         private static bool AnyTerminalUsable()
         {
             var maps = Find.Maps;
@@ -309,8 +327,8 @@ namespace RimForex
             return null;
         }
 
-        private static void DrawLine(Rect area, float min, float max, float price, Color col,
-            bool clampToEdge = false, float thickness = 1f)
+        private static void DrawLine(Rect area, float min, float max, float price,
+            Color col, bool clampToEdge = false, float thickness = 1f)
         {
             float y;
             if (price < min)
@@ -327,63 +345,8 @@ namespace RimForex
             {
                 y = PriceToY(price, min, max, area);
             }
-            Widgets.DrawBoxSolid(new Rect(area.x, y - (thickness - 1f) * 0.5f, area.width, thickness), col);
-        }
-
-        private void DrawSideButtons(Rect strip)
-        {
-            float bh = 24f;
-            float y = strip.y;
-
-            GUI.color = span == FxChartSpan.Minute ? new Color(0.70f, 0.80f, 0.95f) : Color.white;
-            if (Widgets.ButtonText(new Rect(strip.x, y, strip.width, bh), "RimForex_SpanMinuteShort".Translate()))
-            {
-                span = FxChartSpan.Minute;
-            }
-            GUI.color = Color.white;
-            y += bh + 4f;
-
-            GUI.color = span == FxChartSpan.Hour ? new Color(0.70f, 0.80f, 0.95f) : Color.white;
-            if (Widgets.ButtonText(new Rect(strip.x, y, strip.width, bh), "RimForex_SpanHour".Translate()))
-            {
-                span = FxChartSpan.Hour;
-            }
-            GUI.color = Color.white;
-            y += bh + 4f;
-
-            GUI.color = span == FxChartSpan.Day ? new Color(0.70f, 0.80f, 0.95f) : Color.white;
-            if (Widgets.ButtonText(new Rect(strip.x, y, strip.width, bh), "RimForex_SpanDay".Translate()))
-            {
-                span = FxChartSpan.Day;
-            }
-            GUI.color = Color.white;
-            y += bh + 8f;
-
-            GUI.color = showEntry ? Color.white : new Color(1f, 0.52f, 0.48f);
-            if (Widgets.ButtonText(new Rect(strip.x, y, strip.width, bh),
-                    showEntry ? "RimForex_LineOnEntry".Translate() : "RimForex_LineOffEntry".Translate()))
-            {
-                showEntry = !showEntry;
-            }
-            GUI.color = Color.white;
-            y += bh + 4f;
-
-            GUI.color = showBreakeven ? Color.white : new Color(1f, 0.52f, 0.48f);
-            if (Widgets.ButtonText(new Rect(strip.x, y, strip.width, bh),
-                    showBreakeven ? "RimForex_LineOnBe".Translate() : "RimForex_LineOffBe".Translate()))
-            {
-                showBreakeven = !showBreakeven;
-            }
-            GUI.color = Color.white;
-            y += bh + 4f;
-
-            GUI.color = showStopOut ? Color.white : new Color(1f, 0.52f, 0.48f);
-            if (Widgets.ButtonText(new Rect(strip.x, y, strip.width, bh),
-                    showStopOut ? "RimForex_LineOnSo".Translate() : "RimForex_LineOffSo".Translate()))
-            {
-                showStopOut = !showStopOut;
-            }
-            GUI.color = Color.white;
+            FxTheme.Fill(new Rect(area.x, y - (thickness - 1f) * 0.5f,
+                area.width, thickness), col);
         }
 
         private static float PriceToY(float price, float min, float max, Rect area)
