@@ -16,17 +16,17 @@ namespace RimForex
         private const float UiTitleH = 44f;
         private const float UiAccountH = 58f;
 
-        private float uiLeftRatio = 0.27f;
-        private float uiRightRatio = 0.25f;
-        private float uiBottomRatio = 0.22f;
+        private float uiLeftRatio = 0.24f;
+        private float uiRightRatio = 0.22f;
+        private float uiBottomRatio = 0.20f;
         /// <summary>正在拖的分隔条：0 无，1 左，2 右，3 底。</summary>
         private int uiDragSplit;
 
         private void ResetUiLayout()
         {
-            uiLeftRatio = 0.27f;
-            uiRightRatio = 0.25f;
-            uiBottomRatio = 0.22f;
+            uiLeftRatio = 0.24f;
+            uiRightRatio = 0.22f;
+            uiBottomRatio = 0.20f;
             uiDragSplit = 0;
         }
 
