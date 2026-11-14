@@ -2611,6 +2611,7 @@ float hintH = 0f;
             account.RecordTrade(new FxTradeRecord
             {
                 isFee = true,
+                isCashFlow = true,
                 feeLabel = "RimForex_FeeDeposit".Translate(),
                 currencyName = "RimForex_FeeDeposit".Translate(),
                 pairLabel = "RimForex_FeeDeposit".Translate(),
@@ -2678,6 +2679,7 @@ float hintH = 0f;
             account.RecordTrade(new FxTradeRecord
             {
                 isFee = true,
+                isCashFlow = true,
                 feeLabel = "RimForex_FeeWithdraw".Translate(),
                 currencyName = "RimForex_FeeWithdraw".Translate(),
                 pairLabel = "RimForex_FeeWithdraw".Translate(),

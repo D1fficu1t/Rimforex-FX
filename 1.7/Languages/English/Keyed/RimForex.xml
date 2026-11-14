@@ -87,7 +87,6 @@ Floating P/L {2} silver</RimForex_PosLineTip>
   <RimForex_HColMargin>Margin</RimForex_HColMargin>
   <RimForex_HColFee>Fee</RimForex_HColFee>
   <RimForex_HColSpread>Spread</RimForex_HColSpread>
-  <RimForex_HColPnl>P/L</RimForex_HColPnl>
 
   <RimForex_OrderFor>New order - {0}</RimForex_OrderFor>
   <RimForex_MarginInput>Margin</RimForex_MarginInput>
@@ -673,4 +672,7 @@ Let him reach the map edge, or put him down here. Either way, Collections will w
   <RimForex_UiDepositAll>Deposit all</RimForex_UiDepositAll>
   <RimForex_UiWithdrawAll>Withdraw all</RimForex_UiWithdrawAll>
   <RimForex_UiDetails>Trade details</RimForex_UiDetails>
+  <RimForex_HistoryCashIn>Account credit</RimForex_HistoryCashIn>
+  <RimForex_HistoryCashOut>Account debit</RimForex_HistoryCashOut>
+  <RimForex_HColAmountPnl>Amount / P&amp;L</RimForex_HColAmountPnl>
 </LanguageData>

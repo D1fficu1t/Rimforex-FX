@@ -101,7 +101,8 @@ namespace RimForex
             FxTheme.Tiny(new Rect(clearBtn.xMax + 8f, copyBtn.y + 4f,
                     Mathf.Max(40f, summary.xMax - clearBtn.xMax - 18f), 18f),
                 "RimForex_HistoryCopyHint".Translate(copyCount), FxTheme.Muted);
-            if (FxWidgets.Button(clearBtn, "RimForex_HistoryClear".Translate()))
+            if (FxWidgets.Button(clearBtn, "RimForex_HistoryClear".Translate(),
+                    true, false, true))
             {
                 confirmClear = true;
             }
@@ -146,8 +147,8 @@ namespace RimForex
                 "RimForex_HColFee".Translate(), FxTheme.Muted);
             FxTheme.Tiny(new Rect(hx + 554f, listZone.y + 8f, 78f, 18f),
                 "RimForex_HColSpread".Translate(), FxTheme.Muted);
-            FxTheme.Tiny(new Rect(hx + 636f, listZone.y + 8f, 90f, 18f),
-                "RimForex_HColPnl".Translate(), FxTheme.Muted);
+            FxTheme.Tiny(new Rect(hx + 636f, listZone.y + 8f, 100f, 18f),
+                "RimForex_HColAmountPnl".Translate(), FxTheme.Muted);
             FxTheme.HLine(listZone.x, listZone.xMax, listZone.y + 28f, FxTheme.Line);
 
             Rect rows = new Rect(listZone.x + 10f, listZone.y + 32f,
@@ -186,12 +187,30 @@ namespace RimForex
 
                 if (t.isFee)
                 {
+                    bool isDeposit = t.isCashFlow
+                        ? t.pnl >= 0f
+                        : t.feeLabel == "RimForex_FeeDeposit".Translate();
+                    bool isWithdraw = t.isCashFlow
+                        ? t.pnl < 0f
+                        : t.feeLabel == "RimForex_FeeWithdraw".Translate();
+                    bool isCash = isDeposit || isWithdraw;
+
+                    Color labelColor = isDeposit ? FxTheme.Long
+                        : isWithdraw ? FxTheme.Short : FxTheme.Warning;
                     FxTheme.Small(new Rect(2f, yy + 5f, 240f, 18f),
-                        t.feeLabel, FxTheme.Warning);
+                        t.feeLabel, labelColor);
                     FxTheme.Tiny(new Rect(136f, yy + 6f, 300f, 18f),
-                        "RimForex_HistoryFeeRow".Translate(), FxTheme.Muted);
+                        isCash
+                            ? (isDeposit ? "RimForex_HistoryCashIn"
+                                        : "RimForex_HistoryCashOut").Translate()
+                            : "RimForex_HistoryFeeRow".Translate(),
+                        FxTheme.Muted);
+
+                    string amountText = t.pnl == 0f && isCash
+                        ? "—"
+                        : t.pnl.ToString("+0;-0;0");
                     FxTheme.Small(new Rect(636f, yy + 5f, 100f, 18f),
-                        t.pnl.ToString("+0;-0;0"), FxTheme.PnlColor(t.pnl),
+                        amountText, FxTheme.PnlColor(t.pnl),
                         TextAnchor.MiddleRight);
                     FxTheme.HLine(0f, rows.width, yy + RowH - 1f, FxTheme.Line);
                     continue;

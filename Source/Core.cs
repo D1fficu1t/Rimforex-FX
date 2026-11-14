@@ -847,11 +847,17 @@ namespace RimForex
         public bool isFee;
         /// <summary>费用名（"托管费" / "隔夜利息" / "贷款利息"）。</summary>
         public string feeLabel = "";
+        /// <summary>
+        /// 这是一条现金流记录（存入/提取），不是费用或交易。
+        /// pnl 为带符号的余额变化：正数入账，负数出账。
+        /// </summary>
+        public bool isCashFlow;
 
         public void ExposeData()
         {
             Scribe_Values.Look(ref isFee, "isFee", false);
             Scribe_Values.Look(ref feeLabel, "feeLabel");
+            Scribe_Values.Look(ref isCashFlow, "isCashFlow", false);
             Scribe_Values.Look(ref currencyName, "currencyName");
             Scribe_Values.Look(ref pairLabel, "pairLabel");
             Scribe_Values.Look(ref isLong, "isLong", true);
@@ -1287,6 +1293,11 @@ namespace RimForex
                 {
                     FxTradeRecord t = history[i];
                     if (t == null) continue;
+
+                    // 费用/现金流记录的 pnl 是写入时明确记下的余额变化，
+                    // 它们的 units/entryRate 都是 0，绝不能用交易公式重算，
+                    // 否则每次读档都会把金额清成 0。
+                    if (t.isFee) continue;
 
                     // (1) 盈亏：从方向价重算（旧版记录里存的是错误公式的结果）
                     t.pnl = t.isLong

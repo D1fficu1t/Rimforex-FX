@@ -98,7 +98,6 @@
   <RimForex_HColMargin>保证金</RimForex_HColMargin>
   <RimForex_HColFee>手续费</RimForex_HColFee>
   <RimForex_HColSpread>点差</RimForex_HColSpread>
-  <RimForex_HColPnl>盈亏</RimForex_HColPnl>
 
   <RimForex_OrderFor>新建订单 — {0}</RimForex_OrderFor>
   <RimForex_MarginInput>保证金</RimForex_MarginInput>
@@ -299,7 +298,7 @@
   <RimForex_GuideLongTitle>一、什么时候买涨（做多）</RimForex_GuideLongTitle>
   <RimForex_GuideLong>做多就是买入，赌它涨。涨了赚差价，跌了亏保证金。\n\n该什么时候买？本平台的标准答案是：\n· 有消息说要涨，买。\n· 没消息但它跌了很久，买，这叫抄底。\n· 已经涨疯了，买，这叫追涨。\n\n只要你想买，总能找到理由。这也是本平台深受用户欢迎的原因。</RimForex_GuideLong>
   <RimForex_GuideShortTitle>二、什么时候买跌（做空）</RimForex_GuideShortTitle>
-  <RimForex_GuideShort>反过来：先卖出，跌了再买回来，赚中间的差价。\n\n· 有消息说要跌，做空。\n· 刚打完败仗、经济崩了，做空。\n· 已经跌了很久，做空，趋势会延续。\n\n提醒一句：做空的价格下限是零，亏损没有上限。杠杆会把两边都放大，别把“最多跌 100%”听成“最多赚 100%”。本平台保留追缴的权利。</RimForex_GuideShort>
+  <RimForex_GuideShort>反过来：先卖出，跌了再买回来，赚中间的差价。\n\n· 有消息说要跌，做空。\n· 刚打完败仗、经济崩了，做空。\n· 已经跌了很久，做空，趋势会延续。\n\n提醒一句：做空的下限是 0，和做多一样亏损没有上限。杠杆会将两边放大，放大多少则取决于你的胆量。平台保留追缴的所有权利。</RimForex_GuideShort>
   <RimForex_GuideLiquidationTitle>三、爆仓与穿仓</RimForex_GuideLiquidationTitle>
   <RimForex_GuideLiquidation>杠杆放大收益，也放大亏损。这两件事是绑在一起的。\n\n· 保证金剩 45%：本平台会贴心地为您弹出一个免费窗口，提醒您注意风险。\n· 剩 30%：强制平仓，也就是爆仓。\n· 跳空太狠、亏得比保证金还多：余额变负，这叫穿仓。\n\n穿仓之后不能开仓，也不能提款，请存入白银填平。\n本平台的催收部门 24 小时在线，且不讲感情。\n\n另外提醒一句：满仓梭哈的时候，光是一天的隔夜利息就能把余额推成负数，第二天开盘就是强制清算。</RimForex_GuideLiquidation>
   <RimForex_GuideCandleTitle>四、K 线怎么看</RimForex_GuideCandleTitle>
@@ -307,7 +306,7 @@
   <RimForex_GuideProfitTitle>五、新手怎么盈利</RimForex_GuideProfitTitle>
   <RimForex_GuideProfit>加杠杆！梭哈！赌它涨！\n\n保证金 100 银，开 100 倍杠杆，名义仓位就是 10,000 银。涨 1%，你赚 100 银，翻倍。涨 3%，三倍。\n\n本平台的后台数据显示，用户最常说的一句话是"再来一把就回本"。\n\n（老手总说低杠杆慢慢来。那是老手的玩法。你是新手，你有的是时间亏。）</RimForex_GuideProfit>
   <RimForex_GuideLoanTitle>六、借贷</RimForex_GuideLoanTitle>
-  <RimForex_GuideLoan>选中终端，命令栏里有「官方借贷服务」。和本平台深度合作的四家良心机构，利息和期限各不相同。\n\n借来的钱是欠款，不是收入。到期没还清，欠款会被一次性划走，余额可能变成负数。\n\n本平台祝您借贷愉快。</RimForex_GuideLoan>
+  <RimForex_GuideLoan>选中终端，点右上角的「借贷」。和本平台深度合作的四家良心机构，利息和期限各不相同。\n\n借来的钱是欠款，不是收入。到期没还清，欠款会被一次性划走，余额可能变成负数。\n\n本平台祝您借贷愉快。</RimForex_GuideLoan>
   <RimForex_GuideGlossaryTitle>术语表</RimForex_GuideGlossaryTitle>
   <RimForex_GuideGlossary>保证金：你押上去的钱。\n名义仓位：保证金乘杠杆。\n点差：买入价与卖出价的差，开平各付一次。\n手续费：每笔 0.02%，最少 2 银。\n强平线：保证金亏到 30% 时强制平仓的价格。\n爆仓：被强制平仓。\n穿仓：亏得比保证金还多，余额变负。\n锁定期：开仓后要跨过一次报价才能平。</RimForex_GuideGlossary>
 
@@ -688,4 +687,7 @@
   <RimForex_UiDepositAll>全部存入</RimForex_UiDepositAll>
   <RimForex_UiWithdrawAll>全部提取</RimForex_UiWithdrawAll>
   <RimForex_UiDetails>交易明细</RimForex_UiDetails>
+  <RimForex_HistoryCashIn>账户入账</RimForex_HistoryCashIn>
+  <RimForex_HistoryCashOut>账户出账</RimForex_HistoryCashOut>
+  <RimForex_HColAmountPnl>金额 / 盈亏</RimForex_HColAmountPnl>
 </LanguageData>
