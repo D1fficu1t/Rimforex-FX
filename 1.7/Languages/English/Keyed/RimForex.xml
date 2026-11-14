@@ -583,4 +583,46 @@ Let him reach the map edge, or put him down here. Either way, Collections will w
   <RimForex_Ev16Letter>The leaders of {0} and {1} held constructive talks and reached an early consensus on several agenda items.\n\nBoth currencies are expected to strengthen over the next few days.</RimForex_Ev16Letter>
   <RimForex_LiquidationLabel>Liquidation</RimForex_LiquidationLabel>
   <RimForex_LiquidationText>{0} position(s) hit the stop-out line and were forcibly closed.</RimForex_LiquidationText>
+  <RimForex_MsgDebtOfferArrived>{0} owes the exchange money and has been brought to the edge of the colony by FX Collections.</RimForex_MsgDebtOfferArrived>
+  <RimForex_DebtOfferGizmo>From FX Collections</RimForex_DebtOfferGizmo>
+  <RimForex_DebtOfferGizmoDesc>Collections has sent a debt transfer offer.</RimForex_DebtOfferGizmoDesc>
+  <RimForex_DebtOfferTitle>From FX Collections</RimForex_DebtOfferTitle>
+  <RimForex_DebtOfferText>{0} owes {1} silver.\n\nAs one means of settlement, your colony may take this person in and inherit the debt. In exchange, they will work for you for an indefinite period.\n\nIf you are interested, reply within 5 hours.\n\nRespectfully,\n\nFX Collections</RimForex_DebtOfferText>
+  <RimForex_DebtOfferAccept>Accept</RimForex_DebtOfferAccept>
+  <RimForex_DebtOfferReject>Decline</RimForex_DebtOfferReject>
+  <RimForex_DebtOfferLater>Let me think</RimForex_DebtOfferLater>
+  <RimForex_MsgDebtOfferRejected>You declined the debt transfer. Collections took {0} away.</RimForex_MsgDebtOfferRejected>
+  <RimForex_MsgDebtOfferExpired>FX Collections grew tired of waiting and left with the debtor.</RimForex_MsgDebtOfferExpired>
+  <RimForex_LetterDebtAcceptedLabel>{0} joins the colony</RimForex_LetterDebtAcceptedLabel>
+  <RimForex_LetterDebtAccepted>{0} has joined the colony with a debt of {1} silver.\n\nThe debt has been charged to your FX account.</RimForex_LetterDebtAccepted>
+  <RimForex_Set_EnableSurgeCrash>Enable: currency surge and crash</RimForex_Set_EnableSurgeCrash>
+  <RimForex_Set_EnableSurgeCrashTip>When off, one-day surges and crashes no longer bring caravans, raids or weakened settlements.</RimForex_Set_EnableSurgeCrashTip>
+  <RimForex_Set_EnableProdigy>Enable: FX prodigy</RimForex_Set_EnableProdigy>
+  <RimForex_Set_EnableProdigyTip>When off, a huge one-day win no longer shifts goodwill or invites raiders.</RimForex_Set_EnableProdigyTip>
+  <RimForex_Set_EnableWarNews>Enable: war news</RimForex_Set_EnableWarNews>
+  <RimForex_Set_EnableWarNewsTip>When off, hostile factions going to war no longer moves their currencies.</RimForex_Set_EnableWarNewsTip>
+  <RimForex_Set_EnableBank>Enable: central bank decision</RimForex_Set_EnableBank>
+  <RimForex_Set_EnableBankTip>When off, no rate announcement and no resulting gap.</RimForex_Set_EnableBankTip>
+  <RimForex_Set_EnableRating>Enable: ratings cut</RimForex_Set_EnableRating>
+  <RimForex_Set_EnableRatingTip>When off, ratings agencies stop downgrading factions.</RimForex_Set_EnableRatingTip>
+  <RimForex_Set_EnableHalt>Enable: trading halt</RimForex_Set_EnableHalt>
+  <RimForex_Set_EnableHaltTip>When off, violent one-day moves no longer halt trading. A broken peg still does.</RimForex_Set_EnableHaltTip>
+  <RimForex_Set_EnablePeg>Enable: peg defense</RimForex_Set_EnablePeg>
+  <RimForex_Set_EnablePegTip>When off, central banks no longer peg their currency.</RimForex_Set_EnablePegTip>
+  <RimForex_Set_EnableSettlement>Enable: settlement loss</RimForex_Set_EnableSettlement>
+  <RimForex_Set_EnableSettlementTip>When off, a destroyed settlement no longer pressures its faction's currency.</RimForex_Set_EnableSettlementTip>
+  <RimForex_Set_EnableRetaliation>Enable: short-squeeze retaliation</RimForex_Set_EnableRetaliation>
+  <RimForex_Set_EnableRetaliationTip>When off, heavy shorting no longer provokes retaliation raids.</RimForex_Set_EnableRetaliationTip>
+  <RimForex_Set_EnableDebtCollection>Enable: blow-up debt collection</RimForex_Set_EnableDebtCollection>
+  <RimForex_Set_EnableDebtCollectionTip>When off, a negative balance no longer sends a collector.</RimForex_Set_EnableDebtCollectionTip>
+  <RimForex_Set_EnableMerchant>Enable: mystery merchant</RimForex_Set_EnableMerchant>
+  <RimForex_Set_EnableMerchantTip>When off, the mystery merchant stops showing up.</RimForex_Set_EnableMerchantTip>
+  <RimForex_Set_EnableTariff>Enable: tariff agreement</RimForex_Set_EnableTariff>
+  <RimForex_Set_EnableTariffTip>When off, factions no longer sign tariff agreements.</RimForex_Set_EnableTariffTip>
+  <RimForex_Set_EnableDebtOffer>Enable: debt transfer</RimForex_Set_EnableDebtOffer>
+  <RimForex_Set_EnableDebtOfferTip>When off, Collections stops bringing debtors to your colony.</RimForex_Set_EnableDebtOfferTip>
+  <RimForex_Set_DebtOfferCd>Debt transfer cooldown: {0} days</RimForex_Set_DebtOfferCd>
+  <RimForex_TestDebtOffer>Test: debt transfer</RimForex_TestDebtOffer>
+  <RimForex_TestDebtOfferTip>Immediately have Collections bring a debtor for an offer, ignoring the cooldown.</RimForex_TestDebtOfferTip>
+  <RimForex_MsgTestDebtOffer>Debt transfer offer created.</RimForex_MsgTestDebtOffer>
 </LanguageData>

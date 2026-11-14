@@ -133,6 +133,24 @@ namespace RimForex
         public int pegCooldownDays = 25;
         /// <summary>神秘商人出现的冷却（游戏日），10~40。</summary>
         public int merchantCooldownDays = 20;
+        /// <summary>债务转让报价的冷却（游戏日），40~80。</summary>
+        public int debtOfferCooldownDays = 60;
+        /// <summary>是否允许债务转让报价。</summary>
+        public bool enableDebtOffer = true;
+
+        // ── 0.3.3 每个事件的独立开关（作者 2026-11-14 要求）──
+        public bool enableSurgeCrash = true;
+        public bool enableProdigy = true;
+        public bool enableWarNews = true;
+        public bool enableRetaliation = true;
+        public bool enableDebtCollection = true;
+        public bool enableBank = true;
+        public bool enableRating = true;
+        public bool enableHalt = true;
+        public bool enablePeg = true;
+        public bool enableSettlementLoss = true;
+        public bool enableMerchant = true;
+        public bool enableTariff = true;
         /// <summary>关税下调的冷却（游戏日），10~40。</summary>
         public int tariffCooldownDays = 20;
 
@@ -166,6 +184,20 @@ namespace RimForex
             Scribe_Values.Look(ref ratingCooldownDays, "ratingCooldownDays", 20);
             Scribe_Values.Look(ref pegCooldownDays, "pegCooldownDays", 25);
             Scribe_Values.Look(ref merchantCooldownDays, "merchantCooldownDays", 20);
+            Scribe_Values.Look(ref debtOfferCooldownDays, "debtOfferCooldownDays", 60);
+            Scribe_Values.Look(ref enableDebtOffer, "enableDebtOffer", true);
+            Scribe_Values.Look(ref enableSurgeCrash, "enableSurgeCrash", true);
+            Scribe_Values.Look(ref enableProdigy, "enableProdigy", true);
+            Scribe_Values.Look(ref enableWarNews, "enableWarNews", true);
+            Scribe_Values.Look(ref enableRetaliation, "enableRetaliation", true);
+            Scribe_Values.Look(ref enableDebtCollection, "enableDebtCollection", true);
+            Scribe_Values.Look(ref enableBank, "enableBank", true);
+            Scribe_Values.Look(ref enableRating, "enableRating", true);
+            Scribe_Values.Look(ref enableHalt, "enableHalt", true);
+            Scribe_Values.Look(ref enablePeg, "enablePeg", true);
+            Scribe_Values.Look(ref enableSettlementLoss, "enableSettlementLoss", true);
+            Scribe_Values.Look(ref enableMerchant, "enableMerchant", true);
+            Scribe_Values.Look(ref enableTariff, "enableTariff", true);
             Scribe_Values.Look(ref tariffCooldownDays, "tariffCooldownDays", 20);
             Scribe_Values.Look(ref e1RaidChance, "e1RaidChance", 0.60f);
 
@@ -250,6 +282,20 @@ namespace RimForex
             ratingCooldownDays = 20;
             pegCooldownDays = 25;
             merchantCooldownDays = 20;
+            debtOfferCooldownDays = 60;
+            enableDebtOffer = true;
+            enableSurgeCrash = true;
+            enableProdigy = true;
+            enableWarNews = true;
+            enableRetaliation = true;
+            enableDebtCollection = true;
+            enableBank = true;
+            enableRating = true;
+            enableHalt = true;
+            enablePeg = true;
+            enableSettlementLoss = true;
+            enableMerchant = true;
+            enableTariff = true;
             tariffCooldownDays = 20;
             e3RaidChance = 0.35f;
             e1RaidChance = 0.60f;
@@ -372,32 +418,67 @@ namespace RimForex
             l.CheckboxLabeled("RimForex_Set_EnableEvents".Translate(), ref Settings.enableWorldEvents,
                 "RimForex_Set_EnableEventsTip".Translate());
 
-            // 每个滑块：说明文字在上，滑块在下（作者 2026-11-07 要求）
+            // 每个事件：先开关，再冷却滑块（作者 2026-11-14 要求）
+            l.CheckboxLabeled("RimForex_Set_EnableSurgeCrash".Translate(),
+                ref Settings.enableSurgeCrash, "RimForex_Set_EnableSurgeCrashTip".Translate());
+
             Hint(l, "RimForex_Set_EventCdSingle".Translate(Settings.eventCooldownDays.ToString()));
             Settings.eventCooldownDays = Mathf.RoundToInt(
                 l.Slider(Settings.eventCooldownDays,
                     RimForexSettings.MinEventCooldownDays, RimForexSettings.MaxEventCooldownDays));
 
+            l.CheckboxLabeled("RimForex_Set_EnableProdigy".Translate(),
+                ref Settings.enableProdigy, "RimForex_Set_EnableProdigyTip".Translate());
             Hint(l, "RimForex_Set_E3Cd".Translate(Settings.e3CooldownDays.ToString()));
             Settings.e3CooldownDays = Mathf.RoundToInt(l.Slider(Settings.e3CooldownDays, 7f, 30f));
 
+            l.CheckboxLabeled("RimForex_Set_EnableWarNews".Translate(),
+                ref Settings.enableWarNews, "RimForex_Set_EnableWarNewsTip".Translate());
             Hint(l, "RimForex_Set_E4Cd".Translate(Settings.e4CooldownDays.ToString()));
             Settings.e4CooldownDays = Mathf.RoundToInt(l.Slider(Settings.e4CooldownDays, 5f, 20f));
 
+            l.CheckboxLabeled("RimForex_Set_EnableBank".Translate(),
+                ref Settings.enableBank, "RimForex_Set_EnableBankTip".Translate());
             Hint(l, "RimForex_Set_BankCd".Translate(Settings.bankCooldownDays.ToString()));
             Settings.bankCooldownDays = Mathf.RoundToInt(l.Slider(Settings.bankCooldownDays, 10f, 40f));
 
+            l.CheckboxLabeled("RimForex_Set_EnableRating".Translate(),
+                ref Settings.enableRating, "RimForex_Set_EnableRatingTip".Translate());
             Hint(l, "RimForex_Set_RatingCd".Translate(Settings.ratingCooldownDays.ToString()));
             Settings.ratingCooldownDays = Mathf.RoundToInt(l.Slider(Settings.ratingCooldownDays, 10f, 40f));
 
+            l.CheckboxLabeled("RimForex_Set_EnableHalt".Translate(),
+                ref Settings.enableHalt, "RimForex_Set_EnableHaltTip".Translate());
+
+            l.CheckboxLabeled("RimForex_Set_EnablePeg".Translate(),
+                ref Settings.enablePeg, "RimForex_Set_EnablePegTip".Translate());
             Hint(l, "RimForex_Set_PegCd".Translate(Settings.pegCooldownDays.ToString()));
             Settings.pegCooldownDays = Mathf.RoundToInt(l.Slider(Settings.pegCooldownDays, 10f, 40f));
 
+            l.CheckboxLabeled("RimForex_Set_EnableSettlement".Translate(),
+                ref Settings.enableSettlementLoss, "RimForex_Set_EnableSettlementTip".Translate());
+
+            l.CheckboxLabeled("RimForex_Set_EnableRetaliation".Translate(),
+                ref Settings.enableRetaliation, "RimForex_Set_EnableRetaliationTip".Translate());
+
+            l.CheckboxLabeled("RimForex_Set_EnableDebtCollection".Translate(),
+                ref Settings.enableDebtCollection, "RimForex_Set_EnableDebtCollectionTip".Translate());
+
+            l.CheckboxLabeled("RimForex_Set_EnableMerchant".Translate(),
+                ref Settings.enableMerchant, "RimForex_Set_EnableMerchantTip".Translate());
             Hint(l, "RimForex_Set_MerchantCd".Translate(Settings.merchantCooldownDays.ToString()));
             Settings.merchantCooldownDays = Mathf.RoundToInt(l.Slider(Settings.merchantCooldownDays, 10f, 40f));
 
+            l.CheckboxLabeled("RimForex_Set_EnableTariff".Translate(),
+                ref Settings.enableTariff, "RimForex_Set_EnableTariffTip".Translate());
             Hint(l, "RimForex_Set_TariffCd".Translate(Settings.tariffCooldownDays.ToString()));
             Settings.tariffCooldownDays = Mathf.RoundToInt(l.Slider(Settings.tariffCooldownDays, 10f, 40f));
+
+            l.CheckboxLabeled("RimForex_Set_EnableDebtOffer".Translate(),
+                ref Settings.enableDebtOffer, "RimForex_Set_EnableDebtOfferTip".Translate());
+            Hint(l, "RimForex_Set_DebtOfferCd".Translate(Settings.debtOfferCooldownDays.ToString()));
+            Settings.debtOfferCooldownDays = Mathf.RoundToInt(
+                l.Slider(Settings.debtOfferCooldownDays, 40f, 80f));
 
             Hint(l, "RimForex_Set_E3RaidChance".Translate(
                 (Settings.e3RaidChance * 100f).ToString("0")));
@@ -879,6 +960,21 @@ namespace RimForex
                 }
             }
             Hint(l, "RimForex_TestDebtTip".Translate());
+
+            l.Gap(6f);
+            if (l.ButtonText("RimForex_TestDebtOffer".Translate()))
+            {
+                FxGameComponent fx = Find.World != null
+                    ? Find.World.GetComponent<FxGameComponent>() : null;
+                if (fx != null)
+                {
+                    Messages.Message(fx.DebugForceDebtOffer()
+                            ? "RimForex_MsgTestDebtOffer".Translate()
+                            : "RimForex_MsgTestSurgeFail".Translate(),
+                        MessageTypeDefOf.TaskCompletion, false);
+                }
+            }
+            Hint(l, "RimForex_TestDebtOfferTip".Translate());
 
             // ── 诊断：世界事件的真实波动读数（用来校准 σ 阈值）──
             l.Gap(8f);

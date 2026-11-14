@@ -598,4 +598,46 @@
   <RimForex_Ev16Letter>{0} 与 {1} 的领导人进行了建设性的会谈，初步在某些议程上达成了共识。\n\n接下来几天，两国货币预计会一起走强。</RimForex_Ev16Letter>
   <RimForex_LiquidationLabel>爆仓清算</RimForex_LiquidationLabel>
   <RimForex_LiquidationText>有 {0} 个持仓触及强平线，被强制平仓。</RimForex_LiquidationText>
+  <RimForex_MsgDebtOfferArrived>{0} 欠下债务，被 FX 平台清算部带到了殖民地外侧。</RimForex_MsgDebtOfferArrived>
+  <RimForex_DebtOfferGizmo>来自FX平台清算部</RimForex_DebtOfferGizmo>
+  <RimForex_DebtOfferGizmoDesc>清算部送来了一份债务转让报价。</RimForex_DebtOfferGizmoDesc>
+  <RimForex_DebtOfferTitle>来自FX平台清算部</RimForex_DebtOfferTitle>
+  <RimForex_DebtOfferText>{0} 欠下债务 {1} 白银。\n\n作为清算手段之一，贵方可以接受此人并继承他/她的债务。作为交换，此人将在无限期的时间内为贵方工作。\n\n如有意向，请在 5 小时内回复。\n\n此致，敬礼。\n\nFX 清算部</RimForex_DebtOfferText>
+  <RimForex_DebtOfferAccept>接受</RimForex_DebtOfferAccept>
+  <RimForex_DebtOfferReject>拒绝</RimForex_DebtOfferReject>
+  <RimForex_DebtOfferLater>让我想想</RimForex_DebtOfferLater>
+  <RimForex_MsgDebtOfferRejected>你拒绝了这笔债务转让，清算部带走了 {0}。</RimForex_MsgDebtOfferRejected>
+  <RimForex_MsgDebtOfferExpired>FX清算部的人等烦了，带着欠债小人离开了殖民地的可视范围。</RimForex_MsgDebtOfferExpired>
+  <RimForex_LetterDebtAcceptedLabel>{0} 加入殖民地</RimForex_LetterDebtAcceptedLabel>
+  <RimForex_LetterDebtAccepted>{0} 带着 {1} 白银的债务加入了殖民地。\n\n这笔债务已经计入你的 FX 账户。</RimForex_LetterDebtAccepted>
+  <RimForex_Set_EnableSurgeCrash>启用：货币暴涨暴跌</RimForex_Set_EnableSurgeCrash>
+  <RimForex_Set_EnableSurgeCrashTip>关闭后，单日暴涨暴跌不再触发商队、袭击或据点削弱。</RimForex_Set_EnableSurgeCrashTip>
+  <RimForex_Set_EnableProdigy>启用：外汇奇才</RimForex_Set_EnableProdigy>
+  <RimForex_Set_EnableProdigyTip>关闭后，单日暴赚不再引发好感变化与额外袭击。</RimForex_Set_EnableProdigyTip>
+  <RimForex_Set_EnableWarNews>启用：战争新闻</RimForex_Set_EnableWarNews>
+  <RimForex_Set_EnableWarNewsTip>关闭后，两个敌对派系开战不再让双方货币走出缓坡。</RimForex_Set_EnableWarNewsTip>
+  <RimForex_Set_EnableBank>启用：央行利率决策</RimForex_Set_EnableBank>
+  <RimForex_Set_EnableBankTip>关闭后，央行不再发利率预告，也不会出现对应的跳空。</RimForex_Set_EnableBankTip>
+  <RimForex_Set_EnableRating>启用：评级下调</RimForex_Set_EnableRating>
+  <RimForex_Set_EnableRatingTip>关闭后，评级机构不再下调派系评级。</RimForex_Set_EnableRatingTip>
+  <RimForex_Set_EnableHalt>启用：停牌</RimForex_Set_EnableHalt>
+  <RimForex_Set_EnableHaltTip>关闭后，单日剧烈波动不再触发停牌；保卫战破位仍会触发。</RimForex_Set_EnableHaltTip>
+  <RimForex_Set_EnablePeg>启用：汇率保卫战</RimForex_Set_EnablePeg>
+  <RimForex_Set_EnablePegTip>关闭后，央行不再出手钉住汇率。</RimForex_Set_EnablePegTip>
+  <RimForex_Set_EnableSettlement>启用：据点损失</RimForex_Set_EnableSettlement>
+  <RimForex_Set_EnableSettlementTip>关闭后，据点被摧毁不再让该派系货币承压。</RimForex_Set_EnableSettlementTip>
+  <RimForex_Set_EnableRetaliation>启用：做空报复</RimForex_Set_EnableRetaliation>
+  <RimForex_Set_EnableRetaliationTip>关闭后，做空过狠不再招来报复袭击。</RimForex_Set_EnableRetaliationTip>
+  <RimForex_Set_EnableDebtCollection>启用：穿仓收债</RimForex_Set_EnableDebtCollection>
+  <RimForex_Set_EnableDebtCollectionTip>关闭后，负余额不再招来清算部的收债人。</RimForex_Set_EnableDebtCollectionTip>
+  <RimForex_Set_EnableMerchant>启用：神秘商人</RimForex_Set_EnableMerchant>
+  <RimForex_Set_EnableMerchantTip>关闭后，神秘商人不再出现。</RimForex_Set_EnableMerchantTip>
+  <RimForex_Set_EnableTariff>启用：关税协定</RimForex_Set_EnableTariff>
+  <RimForex_Set_EnableTariffTip>关闭后，派系之间不再签订关税协定。</RimForex_Set_EnableTariffTip>
+  <RimForex_Set_EnableDebtOffer>启用：债务转让</RimForex_Set_EnableDebtOffer>
+  <RimForex_Set_EnableDebtOfferTip>关闭后，清算部不再带欠债人上门报价。</RimForex_Set_EnableDebtOfferTip>
+  <RimForex_Set_DebtOfferCd>债务转让冷却：{0} 日</RimForex_Set_DebtOfferCd>
+  <RimForex_TestDebtOffer>测试：债务转让</RimForex_TestDebtOffer>
+  <RimForex_TestDebtOfferTip>立刻让清算部带一个欠债人上门报价，不看冷却。</RimForex_TestDebtOfferTip>
+  <RimForex_MsgTestDebtOffer>已生成债务转让报价。</RimForex_MsgTestDebtOffer>
 </LanguageData>

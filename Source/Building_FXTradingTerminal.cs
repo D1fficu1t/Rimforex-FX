@@ -89,6 +89,19 @@ namespace RimForex
                     };
                     yield return debt;
                 }
+
+                // ── 债务转让报价（0.3.3）──
+                if (debtFx != null && debtFx.debtOfferActive)
+                {
+                    var offer = new Command_Action
+                    {
+                        defaultLabel = "RimForex_DebtOfferGizmo".Translate(),
+                        defaultDesc = "RimForex_DebtOfferGizmoDesc".Translate(),
+                        icon = ThingDefOf.Silver.uiIcon,
+                        action = debtFx.OpenDebtOfferWindow
+                    };
+                    yield return offer;
+                }
             }
         }
 

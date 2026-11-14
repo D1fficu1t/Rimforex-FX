@@ -3405,6 +3405,20 @@ namespace RimForex
         /// <summary>收债人的武装随从（thingIDNumber）。</summary>
         public List<int> debtEscortIds = new List<int>();
 
+        // ── 0.3.3 债务转让报价 ──
+        /// <summary>是否有一份等待回复的报价。</summary>
+        public bool debtOfferActive;
+        /// <summary>被报价的欠债人。报价期间放在世界 pawn 池，不生成在地图上。</summary>
+        public Pawn debtOfferPawn;
+        /// <summary>接受后要继承的债务额。</summary>
+        public float debtOfferAmount;
+        /// <summary>报价截止 tick，默认 5 游戏小时。</summary>
+        public int debtOfferExpireTick;
+        /// <summary>报价所属地图的 map.Parent.ID，接受时用来找账户。</summary>
+        public int debtOfferMapId = -1;
+        /// <summary>下一次债务报价的 tick。</summary>
+        public int nextDebtOfferTick;
+
         // 全局冷却已删除（2026-11-08）。各事件只用自己的冷却：
         //   E1/E2 单货币冷却 10~30 日 · E3 15 日 · E4 12 日
 
@@ -3940,6 +3954,7 @@ namespace RimForex
             ProcessTariffCut();
             ProcessRetaliation();
             ProcessDebtCase();
+            ProcessDebtOffer();
             ProcessForcedLiquidation();
 
             if (now != lastSampleTick)
@@ -5089,6 +5104,7 @@ namespace RimForex
         {
             RimForexSettings cfg = RimForexMod.Settings;
             if (cfg != null && !cfg.enableWorldEvents) return;
+            if (cfg != null && !cfg.enableSurgeCrash) return;
 
             int now = GenTicks.TicksGame;
             FxCurrency best = null;
@@ -5522,7 +5538,8 @@ namespace RimForex
                 }
 
                 // ③ 停牌：单日极端波动
-                if (c.haltUntilTick == 0 && c.pegUntilTick == 0
+                if ((cfg == null || cfg.enableHalt)
+                    && c.haltUntilTick == 0 && c.pegUntilTick == 0
                     && now - c.lastHaltTick > HaltCooldownDays * TicksPerDay
                     && c.previousRate > 0.001f)
                 {
@@ -5544,6 +5561,7 @@ namespace RimForex
                 }
 
                 // ④ 保卫战：由持续贬值触发，按科技等级决定是否出手
+                if (cfg != null && !cfg.enablePeg) continue;
                 if (c.haltUntilTick > 0 || c.pegUntilTick > 0) continue;
                 if (now - c.lastPegTick < PegCooldownDefault * TicksPerDay) continue;
 
@@ -5661,6 +5679,9 @@ namespace RimForex
         private void ProcessSettlementLoss()
         {
             if (GenTicks.TicksGame % 250 != 0) return;
+
+            var cfg = RimForexMod.Settings;
+            if (cfg != null && !cfg.enableSettlementLoss) return;
             if (Find.WorldObjects == null) return;
             var live = Find.WorldObjects.Settlements;
             if (live == null) return;
@@ -5750,6 +5771,8 @@ namespace RimForex
         {
             int now = GenTicks.TicksGame;
             RimForexSettings cfg = RimForexMod.Settings;
+            if (cfg != null && !cfg.enableTariff) return;
+
             int cd = cfg != null ? Mathf.Clamp(cfg.tariffCooldownDays, 10, 40) : TariffCooldownDefault;
 
             if (nextTariffTick <= 0)
@@ -5861,6 +5884,8 @@ namespace RimForex
         {
             int now = GenTicks.TicksGame;
             RimForexSettings cfg = RimForexMod.Settings;
+            if (cfg != null && !cfg.enableMerchant) return;
+
             int cd = cfg != null ? Mathf.Clamp(cfg.merchantCooldownDays, 10, 40) : 20;
 
             if (nextMerchantTick <= 0)
@@ -6221,6 +6246,8 @@ namespace RimForex
             }
 
             RimForexSettings cfg = RimForexMod.Settings;
+            if (cfg != null && !cfg.enableBank) return;
+
             int cd = cfg != null ? Mathf.Clamp(cfg.bankCooldownDays, 10, 40) : BankCooldownDefault;
 
             // 首次/旧存档：没有排期就只排期，不立刻触发
@@ -6309,6 +6336,8 @@ namespace RimForex
         {
             int now = GenTicks.TicksGame;
             RimForexSettings cfg = RimForexMod.Settings;
+            if (cfg != null && !cfg.enableRating) return;
+
             int cd = cfg != null ? Mathf.Clamp(cfg.ratingCooldownDays, 10, 40) : RatingCooldownDefault;
 
             if (nextRatingTick <= 0)
@@ -6382,6 +6411,7 @@ namespace RimForex
         {
             RimForexSettings cfg = RimForexMod.Settings;
             if (cfg != null && !cfg.enableWorldEvents) return;
+            if (cfg != null && !cfg.enableWarNews) return;
             if (GenTicks.TicksGame < nextNewsTick) return;
 
             // 冷却只在"真的触发了"之后才推进（见下方两处失败分支）
@@ -6501,6 +6531,7 @@ namespace RimForex
         {
             RimForexSettings cfg = RimForexMod.Settings;
             if (cfg != null && !cfg.enableWorldEvents) return;
+            if (cfg != null && !cfg.enableProdigy) return;
             int e3Cd = (RimForexMod.Settings != null ? RimForexMod.Settings.e3CooldownDays : 15)
                        * TicksPerDay;
             int sinceLast = GenTicks.TicksGame - lastWealthEventTick;
@@ -6945,6 +6976,9 @@ namespace RimForex
 
         private void StartRetaliation(FxCurrency c, float notional)
         {
+            var cfg = RimForexMod.Settings;
+            if (cfg != null && !cfg.enableRetaliation) return;
+
             var f = FactionByID(c.factionLoadID);
             if (f == null || f.IsPlayer || f.temporary || f.defeated) return;
 
@@ -7226,9 +7260,275 @@ namespace RimForex
         //  0.3.0 E7：穿仓收债
         // ══════════════════════════════════════════════════════════════
 
+        // ══════════════════════════════════════════════════════════════
+        //  0.3.3 债务转让：清算部带欠债人上门报价
+        // ══════════════════════════════════════════════════════════════
+
+        /// <summary>
+        /// 报价的推进：先处理超时，再按冷却安排下一次。
+        ///
+        /// 关闭开关时不再安排新的报价，但已经存在的报价仍然会正常超时。
+        /// </summary>
+        private void ProcessDebtOffer()
+        {
+            int now = GenTicks.TicksGame;
+
+            if (debtOfferActive && now >= debtOfferExpireTick)
+            {
+                ExpireDebtOffer();
+                return;
+            }
+
+            RimForexSettings cfg = RimForexMod.Settings;
+            if (cfg != null && !cfg.enableDebtOffer) return;
+
+            int cd = cfg != null ? Mathf.Clamp(cfg.debtOfferCooldownDays, 40, 80) : 60;
+            if (nextDebtOfferTick <= 0)
+            {
+                nextDebtOfferTick = now + Mathf.RoundToInt(cd * Rand.Range(0.85f, 1.15f)) * TicksPerDay;
+                return;
+            }
+            if (now < nextDebtOfferTick) return;
+
+            nextDebtOfferTick = now + Mathf.RoundToInt(cd * Rand.Range(0.85f, 1.15f)) * TicksPerDay;
+            TryCreateDebtOffer();
+        }
+
+        /// <summary>测试按钮：跳过冷却立刻生成报价。</summary>
+        public bool DebugForceDebtOffer()
+        {
+            return TryCreateDebtOffer();
+        }
+
+        /// <summary>立刻生成一次报价。测试按钮也走这里。</summary>
+        public bool TryCreateDebtOffer()
+        {
+            if (debtOfferActive) return false;
+
+            Map map = Find.AnyPlayerHomeMap;
+            if (map == null) return false;
+
+            FxAccount acc = ColonyAccount(map);
+            if (acc == null) return false;
+            if (!HasTradingTerminal(map)) return false;
+
+            Pawn pawn = GenerateDebtor(map);
+            if (pawn == null) return false;
+
+            float debt = DebtAmountFor(pawn);
+
+            debtOfferActive = true;
+            debtOfferPawn = pawn;
+            debtOfferAmount = debt;
+            debtOfferExpireTick = GenTicks.TicksGame + 5 * TicksPerHour;
+            debtOfferMapId = map.Parent != null ? map.Parent.ID : -1;
+
+            // 不生成在地图上，只放进世界 pawn 池，等玩家接受
+            Find.WorldPawns.PassToWorld(pawn, PawnDiscardDecideMode.KeepForever);
+
+            Messages.Message(
+                "RimForex_MsgDebtOfferArrived".Translate(pawn.LabelShortCap),
+                MessageTypeDefOf.NeutralEvent, false);
+            Log.Message("[RimForex] offer: created " + pawn.LabelShortCap
+                + " debt " + debt.ToString("F0"));
+            return true;
+        }
+
+        private static bool HasTradingTerminal(Map map)
+        {
+            if (map == null || map.listerBuildings == null) return false;
+            var list = map.listerBuildings.allBuildingsColonist;
+            for (int i = 0; i < list.Count; i++)
+            {
+                if (list[i] is Building_FXTradingTerminal) return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// 生成 3 个候选，按"技能 × 经验倍率"挑最好的一个。
+        /// 平台挑值钱的，和债务转让的商业逻辑一致。
+        /// </summary>
+        private static Pawn GenerateDebtor(Map map)
+        {
+            Pawn best = null;
+            float bestScore = float.MinValue;
+            var candidates = new List<Pawn>();
+
+            for (int i = 0; i < 3; i++)
+            {
+                var req = new PawnGenerationRequest(
+                    PawnKindDefOf.Villager, null,
+                    PawnGenerationContext.NonPlayer, map.Tile);
+                Pawn p = PawnGenerator.GeneratePawn(req);
+                if (p == null) continue;
+                candidates.Add(p);
+                float score = DebtorScore(p);
+                if (score > bestScore)
+                {
+                    bestScore = score;
+                    best = p;
+                }
+            }
+
+            for (int i = 0; i < candidates.Count; i++)
+            {
+                if (candidates[i] != best && !candidates[i].Destroyed)
+                {
+                    candidates[i].Destroy(DestroyMode.Vanish);
+                }
+            }
+            return best;
+        }
+
+        /// <summary>技能分：等级 × (0.5 + 原版学习倍率)。</summary>
+        private static float DebtorScore(Pawn pawn)
+        {
+            if (pawn == null || pawn.skills == null) return 0f;
+            float score = 0f;
+            var skills = pawn.skills.skills;
+            for (int i = 0; i < skills.Count; i++)
+            {
+                var sk = skills[i];
+                if (sk == null || sk.TotallyDisabled) continue;
+                float learn;
+                if (sk.passion == Passion.None) learn = 0.35f;
+                else if (sk.passion == Passion.Minor) learn = 1f;
+                else learn = 1.5f;
+                score += sk.Level * (0.5f + learn);
+            }
+            return score;
+        }
+
+        /// <summary>债务 = 400 + 技能分 × 15，取整到 50，夹在 600~3000。</summary>
+        public static float DebtAmountFor(Pawn pawn)
+        {
+            float raw = 400f + DebtorScore(pawn) * 15f;
+            int rounded = Mathf.RoundToInt(raw / 50f) * 50;
+            return Mathf.Clamp(rounded, 600, 3000);
+        }
+
+        /// <summary>打开报价窗口。终端 gizmo 调这里。</summary>
+        public void OpenDebtOfferWindow()
+        {
+            if (!debtOfferActive || debtOfferPawn == null) return;
+            if (Find.WindowStack == null) return;
+            if (Find.WindowStack.IsOpen(typeof(Window_FxDebtOffer))) return;
+            Find.WindowStack.Add(new Window_FxDebtOffer(this));
+        }
+
+        /// <summary>接受：债务进账户，pawn 按原版加入逻辑从边缘进场。</summary>
+        public void AcceptDebtOffer()
+        {
+            if (!debtOfferActive) return;
+            if (GenTicks.TicksGame > debtOfferExpireTick)
+            {
+                ExpireDebtOffer();
+                return;
+            }
+
+            Map map = DebtOfferMap();
+            FxAccount acc = map != null ? ColonyAccount(map) : null;
+            Pawn pawn = debtOfferPawn;
+            if (map == null || acc == null || pawn == null || pawn.Destroyed)
+            {
+                ClearDebtOffer();
+                return;
+            }
+
+            float debt = debtOfferAmount;
+            acc.balance -= debt;
+
+            pawn.SetFaction(Faction.OfPlayer);
+            IntVec3 cell;
+            if (!CellFinder.TryFindRandomEdgeCellWith(
+                    c => c.Standable(map) && !map.roofGrid.Roofed(c),
+                    map, CellFinder.EdgeRoadChance_Ignore, out cell))
+            {
+                cell = CellFinder.RandomEdgeCell(map);
+            }
+            GenSpawn.Spawn(pawn, cell, map);
+
+            Find.LetterStack.ReceiveLetter(
+                "RimForex_LetterDebtAcceptedLabel".Translate(pawn.LabelShortCap),
+                "RimForex_LetterDebtAccepted".Translate(
+                    pawn.LabelShortCap, debt.ToString("F0")),
+                LetterDefOf.PositiveEvent, new LookTargets(pawn));
+
+            Log.Message("[RimForex] offer: accepted " + pawn.LabelShortCap
+                + " debt " + debt.ToString("F0"));
+            ClearDebtOffer();
+        }
+
+        /// <summary>拒绝：人带走，无事发生。</summary>
+        public void RejectDebtOffer()
+        {
+            if (!debtOfferActive) return;
+            string name = debtOfferPawn != null ? debtOfferPawn.LabelShortCap : "";
+            DestroyOfferPawn();
+            ClearDebtOffer();
+            Messages.Message(
+                "RimForex_MsgDebtOfferRejected".Translate(name),
+                MessageTypeDefOf.NeutralEvent, false);
+            Log.Message("[RimForex] offer: rejected " + name);
+        }
+
+        /// <summary>超时：清算部带人离开。</summary>
+        private void ExpireDebtOffer()
+        {
+            string name = debtOfferPawn != null ? debtOfferPawn.LabelShortCap : "";
+            DestroyOfferPawn();
+            ClearDebtOffer();
+            Messages.Message(
+                "RimForex_MsgDebtOfferExpired".Translate(),
+                MessageTypeDefOf.NeutralEvent, false);
+            Log.Message("[RimForex] offer: expired " + name);
+        }
+
+        private void DestroyOfferPawn()
+        {
+            if (debtOfferPawn == null) return;
+            if (!debtOfferPawn.Destroyed)
+            {
+                Find.WorldPawns.RemovePawn(debtOfferPawn);
+                debtOfferPawn.Destroy(DestroyMode.Vanish);
+            }
+            debtOfferPawn = null;
+        }
+
+        private void ClearDebtOffer()
+        {
+            debtOfferActive = false;
+            debtOfferPawn = null;
+            debtOfferAmount = 0f;
+            debtOfferExpireTick = 0;
+            debtOfferMapId = -1;
+        }
+
+        private Map DebtOfferMap()
+        {
+            if (debtOfferMapId < 0) return Find.AnyPlayerHomeMap;
+            var maps = Find.Maps;
+            if (maps != null)
+            {
+                for (int i = 0; i < maps.Count; i++)
+                {
+                    if (maps[i] != null && maps[i].Parent != null
+                        && maps[i].Parent.ID == debtOfferMapId)
+                    {
+                        return maps[i];
+                    }
+                }
+            }
+            return Find.AnyPlayerHomeMap;
+        }
+
         /// <summary>每日结算时检查：负余额连续两天就开始收债。</summary>
         private void MaybeStartDebtCollection()
         {
+            var cfg = RimForexMod.Settings;
+            if (cfg != null && !cfg.enableDebtCollection) return;
+
             if (debtActive) return;
             int now = GenTicks.TicksGame;
 
@@ -8511,6 +8811,12 @@ namespace RimForex
             Scribe_Values.Look(ref debtCollectorId, "debtCollectorId", -1);
             Scribe_Values.Look(ref debtHostile, "debtHostile", false);
             Scribe_Collections.Look(ref debtEscortIds, "debtEscortIds", LookMode.Value);
+            Scribe_Values.Look(ref debtOfferActive, "debtOfferActive", false);
+            Scribe_References.Look(ref debtOfferPawn, "debtOfferPawn", true);
+            Scribe_Values.Look(ref debtOfferAmount, "debtOfferAmount", 0f);
+            Scribe_Values.Look(ref debtOfferExpireTick, "debtOfferExpireTick", 0);
+            Scribe_Values.Look(ref debtOfferMapId, "debtOfferMapId", -1);
+            Scribe_Values.Look(ref nextDebtOfferTick, "nextDebtOfferTick", 0);
             if (debtEscortIds == null) debtEscortIds = new List<int>();
             if (retaliations == null) retaliations = new List<FxRetaliation>();
             if (pendingEvents == null) pendingEvents = new List<FxPendingEvent>();
