@@ -12,7 +12,7 @@ namespace RimForex
     /// 布局：账户区 / 左列行情表 / 右列K线 / 下单区 / 底部时间控制条，每块严格裁剪到自己的 Rect。
     /// 时间控制用原版 TimeControls.DoTimeControlsGUI 内嵌，因此在本窗口内可直接改游戏速度。
     /// </summary>
-    public class Window_FxTerminal : Window
+    public partial class Window_FxTerminal : Window
     {
         private readonly Building_FXTradingTerminal terminal;
         private readonly FxAccount account;
@@ -132,8 +132,25 @@ namespace RimForex
         /// <summary>底部留白，避免与主按钮栏 / 原版时间控制重叠。</summary>
         private const float BottomOffset = 78f;
 
-        public override Vector2 InitialSize =>
-            new Vector2(980f, Mathf.Min(838f, UI.screenHeight - BottomOffset - 16f));
+        private static bool UseNewUi
+        {
+            get
+            {
+                return RimForexMod.Settings != null && RimForexMod.Settings.useNewTerminalUi;
+            }
+        }
+
+        public override Vector2 InitialSize
+        {
+            get
+            {
+                if (UseNewUi)
+                {
+                    return new Vector2(1180f, Mathf.Min(820f, UI.screenHeight - 40f));
+                }
+                return new Vector2(980f, Mathf.Min(838f, UI.screenHeight - BottomOffset - 16f));
+            }
+        }
 
         public Window_FxTerminal(Building_FXTradingTerminal terminal, FxAccount account)
         {
@@ -141,8 +158,9 @@ namespace RimForex
 
             this.terminal = terminal;
             this.account = account;
-            doCloseX = true;
+            doCloseX = !UseNewUi;
             doCloseButton = false;
+            doWindowBackground = !UseNewUi;
             draggable = true;
             resizeable = true;
             absorbInputAroundWindow = false;
@@ -185,6 +203,12 @@ namespace RimForex
             if (selectedFactionId < 0 && currencies.Count > 0)
             {
                 selectedFactionId = currencies[0].factionLoadID;
+            }
+
+            if (UseNewUi)
+            {
+                DrawNewUiContents(inRect, fx, currencies);
+                return;
             }
 
             Rect content = new Rect(inRect.x, inRect.y + TitleH, inRect.width, inRect.height - TitleH);

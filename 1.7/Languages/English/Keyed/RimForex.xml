@@ -628,4 +628,26 @@ Let him reach the map edge, or put him down here. Either way, Collections will w
   <RimForex_FeeLoanDefault>Loan default ({0})</RimForex_FeeLoanDefault>
   <RimForex_DebtCollectorTalk>Talk</RimForex_DebtCollectorTalk>
   <RimForex_Ev7Think>Let me think</RimForex_Ev7Think>
+  <RimForex_Set_UseNewUi>Use the new terminal UI (work in progress)</RimForex_Set_UseNewUi>
+  <RimForex_Set_UseNewUiTip>The 0.3.3 rebuild, still being ported. Turn off to use the old interface.</RimForex_Set_UseNewUiTip>
+  <RimForex_UiSettings>Settings</RimForex_UiSettings>
+  <RimForex_UiResetLayout>Reset layout</RimForex_UiResetLayout>
+  <RimForex_UiGuide>Guide</RimForex_UiGuide>
+  <RimForex_UiLoans>Loans</RimForex_UiLoans>
+  <RimForex_UiMarket>Market</RimForex_UiMarket>
+  <RimForex_UiChart>Chart</RimForex_UiChart>
+  <RimForex_UiOrder>Order</RimForex_UiOrder>
+  <RimForex_UiPositions>Positions</RimForex_UiPositions>
+  <RimForex_UiHistory>History</RimForex_UiHistory>
+  <RimForex_UiLog>Event log</RimForex_UiLog>
+  <RimForex_UiPositionsCount>Positions</RimForex_UiPositionsCount>
+  <RimForex_UiColPair>Pair / faction</RimForex_UiColPair>
+  <RimForex_UiColRate>Rate</RimForex_UiColRate>
+  <RimForex_UiColChange>Change</RimForex_UiColChange>
+  <RimForex_UiColVol>Vol</RimForex_UiColVol>
+  <RimForex_UiSelectCurrency>Select a currency</RimForex_UiSelectCurrency>
+  <RimForex_UiNoData>No data</RimForex_UiNoData>
+  <RimForex_UiOrderWip>Order panel in progress</RimForex_UiOrderWip>
+  <RimForex_UiOrderWipTip>Phase C brings in buy, sell, margin, leverage, TP/SL and the fee breakdown.</RimForex_UiOrderWipTip>
+  <RimForex_UiBottomHint>{0} open position(s)　·　bottom tabs in progress</RimForex_UiBottomHint>
 </LanguageData>

@@ -643,4 +643,26 @@
   <RimForex_FeeLoanDefault>贷款违约（{0}）</RimForex_FeeLoanDefault>
   <RimForex_DebtCollectorTalk>谈谈</RimForex_DebtCollectorTalk>
   <RimForex_Ev7Think>让我想想</RimForex_Ev7Think>
+  <RimForex_Set_UseNewUi>使用新版终端界面（开发中）</RimForex_Set_UseNewUi>
+  <RimForex_Set_UseNewUiTip>0.3.3 重构中的界面，功能仍在迁移。关闭后回到旧界面。</RimForex_Set_UseNewUiTip>
+  <RimForex_UiSettings>设置</RimForex_UiSettings>
+  <RimForex_UiResetLayout>重置布局</RimForex_UiResetLayout>
+  <RimForex_UiGuide>教程</RimForex_UiGuide>
+  <RimForex_UiLoans>借贷</RimForex_UiLoans>
+  <RimForex_UiMarket>行情</RimForex_UiMarket>
+  <RimForex_UiChart>图表</RimForex_UiChart>
+  <RimForex_UiOrder>下单</RimForex_UiOrder>
+  <RimForex_UiPositions>持仓</RimForex_UiPositions>
+  <RimForex_UiHistory>交易历史</RimForex_UiHistory>
+  <RimForex_UiLog>事件日志</RimForex_UiLog>
+  <RimForex_UiPositionsCount>持仓数</RimForex_UiPositionsCount>
+  <RimForex_UiColPair>货币对 / 派系</RimForex_UiColPair>
+  <RimForex_UiColRate>汇率</RimForex_UiColRate>
+  <RimForex_UiColChange>涨跌</RimForex_UiColChange>
+  <RimForex_UiColVol>波动</RimForex_UiColVol>
+  <RimForex_UiSelectCurrency>选择一种货币</RimForex_UiSelectCurrency>
+  <RimForex_UiNoData>暂无行情</RimForex_UiNoData>
+  <RimForex_UiOrderWip>下单区迁移中</RimForex_UiOrderWip>
+  <RimForex_UiOrderWipTip>阶段 C 会把做多、做空、保证金、杠杆、止盈止损与费用明细全部接进来。</RimForex_UiOrderWipTip>
+  <RimForex_UiBottomHint>持仓 {0} 笔　·　底部页签迁移中</RimForex_UiBottomHint>
 </LanguageData>

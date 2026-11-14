@@ -121,6 +121,8 @@ namespace RimForex
 
         /// <summary>设置页是否显示测试按钮（默认关，作者 2026-10-26 要求折叠）。</summary>
         public bool showTestOptions = false;
+        /// <summary>0.3.3 开发开关：使用新版终端界面。迁移完成后默认开启并删除旧界面。</summary>
+        public bool useNewTerminalUi = false;
 
         // ── 世界事件频率与概率（作者 2026-10-26 要求做成滑块）──
         /// <summary>单货币事件冷却（游戏日），10~30。</summary>
@@ -176,6 +178,7 @@ namespace RimForex
             Scribe_Values.Look(ref showTimeSpeedHint, "showTimeSpeedHint", true);
             Scribe_Values.Look(ref enableWorldEvents, "enableWorldEvents", true);
             Scribe_Values.Look(ref showTestOptions, "showTestOptions", false);
+            Scribe_Values.Look(ref useNewTerminalUi, "useNewTerminalUi", false);
             Scribe_Values.Look(ref eventCooldownDays, "eventCooldownDays", 20);
             Scribe_Values.Look(ref e3RaidChance, "e3RaidChance", 0.35f);
             Scribe_Values.Look(ref e3CooldownDays, "e3CooldownDays", 15);
@@ -270,6 +273,7 @@ namespace RimForex
             showTimeSpeedHint = true;
 
             showFloatingPnl = true;
+            useNewTerminalUi = false;
             floatPnlX = -1f;
             floatPnlY = -1f;
 
@@ -576,6 +580,8 @@ namespace RimForex
             if (Settings.showTestOptions)
             {
             l.Gap(12f);
+            l.CheckboxLabeled("RimForex_Set_UseNewUi".Translate(),
+                ref Settings.useNewTerminalUi, "RimForex_Set_UseNewUiTip".Translate());
             Text.Font = GameFont.Medium;
             l.Label("RimForex_SettingsNameTest".Translate());
             Text.Font = GameFont.Small;
