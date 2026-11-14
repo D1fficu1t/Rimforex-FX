@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using RimWorld;
+using UnityEngine;
 using Verse;
 
 namespace RimForex
@@ -59,32 +60,19 @@ namespace RimForex
                 }
                 yield return open;
 
-                // ── 官方借贷服务（0.3.0）──
-                // 独立窗口，不塞进终端页签：四家的图标与简介需要很大空间。
-                var loans = new Command_Action
-                {
-                    defaultLabel = "RimForex_LoanGizmo".Translate(),
-                    defaultDesc = "RimForex_LoanGizmoDesc".Translate(),
-                    icon = ThingDefOf.Silver.uiIcon,
-                    action = OpenLoans
-                };
-                if (!Powered)
-                {
-                    loans.Disable("RimForex_NoPower".Translate());
-                }
-                yield return loans;
-
                 var debtFx = Find.World != null
                     ? Find.World.GetComponent<FxGameComponent>() : null;
 
                 // ── 债务转让报价（0.3.3）──
                 if (debtFx != null && debtFx.debtOfferActive)
                 {
+                    Texture2D envelope = ContentFinder<Texture2D>.Get(
+                        "UI/DebtOfferEnvelope", false);
                     var offer = new Command_Action
                     {
                         defaultLabel = "RimForex_DebtOfferGizmo".Translate(),
                         defaultDesc = "RimForex_DebtOfferGizmoDesc".Translate(),
-                        icon = ThingDefOf.Silver.uiIcon,
+                        icon = envelope != null ? envelope : ThingDefOf.Silver.uiIcon,
                         action = debtFx.OpenDebtOfferWindow
                     };
                     yield return offer;
@@ -114,15 +102,6 @@ namespace RimForex
         }
 
         /// <summary>打开「官方借贷服务」窗口。</summary>
-        private void OpenLoans()
-        {
-            var fx = Find.World.GetComponent<FxGameComponent>();
-            if (fx == null) return;
-            var acc = fx.ColonyAccount(Map);
-            if (acc == null) return;
-            Find.WindowStack.Add(new Window_FxLoans(fx, acc, this));
-        }
-
         public override string GetInspectString()
         {
             string s = base.GetInspectString();

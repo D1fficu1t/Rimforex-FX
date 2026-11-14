@@ -37,7 +37,7 @@ namespace RimForex
 
         public override Vector2 InitialSize
         {
-            get { return new Vector2(960f, 680f); }
+            get { return new Vector2(960f, 600f); }
         }
 
         public override void DoWindowContents(Rect inRect)
@@ -142,9 +142,17 @@ namespace RimForex
                 : "RimForex_LoanOwed".Translate(owed.ToString("F0")),
                 FxTheme.Muted);
 
-            float descY = r.y + Icon + 6f;
-            FxTheme.Tiny(new Rect(r.x, descY, r.width, 64f),
-                FxGameComponent.LenderDescKeys[idx].Translate(), FxTheme.Muted);
+            float descY = r.y + Icon + 26f;
+            string desc = FxGameComponent.LenderDescKeys[idx].Translate();
+            GameFont oldFont = Text.Font;
+            bool oldWrap = Text.WordWrap;
+            Text.Font = GameFont.Tiny;
+            Text.WordWrap = true;
+            float descH = Mathf.Max(42f, Text.CalcHeight(desc, r.width));
+            Text.Font = oldFont;
+            Text.WordWrap = oldWrap;
+            FxTheme.Label(new Rect(r.x, descY, r.width, descH), desc,
+                GameFont.Tiny, FxTheme.Muted, TextAnchor.UpperLeft, true);
 
             float by = r.yMax - 28f;
             const float InputW = 92f;

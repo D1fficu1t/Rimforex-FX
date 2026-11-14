@@ -196,7 +196,35 @@ namespace RimForex
             right -= 50f;
 
             Rect loans = new Rect(right - 44f, by, 44f, bh);
-            if (FxWidgets.Button(loans, "RimForex_UiLoans".Translate()))
+            DrawLoanButton(loans, fx);
+        }
+
+        /// <summary>
+        /// 借贷按钮：金闪闪的脉冲边框 + 高光，专门吸引散户点进来。
+        /// 入口已经整合进终端，终端命令栏的旧 gizmo 已删除。
+        /// </summary>
+        private void DrawLoanButton(Rect r, FxGameComponent fx)
+        {
+            float pulse = 0.5f + 0.5f * Mathf.Sin(Time.realtimeSinceStartup * 3.2f);
+            Color gold = Color.Lerp(new Color32(170, 124, 46, 255),
+                new Color32(255, 222, 132, 255), pulse);
+
+            FxTheme.Fill(r, new Color32(42, 31, 12, 255));
+            FxTheme.Fill(new Rect(r.x, r.y, r.width, r.height * 0.48f),
+                new Color32(74, 54, 20, 255));
+            FxTheme.Border(new Rect(r.x - 1f, r.y - 1f, r.width + 2f, r.height + 2f),
+                new Color(gold.r, gold.g, gold.b, 0.25f + 0.35f * pulse));
+            FxTheme.Border(r, gold);
+
+            // 两颗小亮点
+            FxTheme.Fill(new Rect(r.x + 4f, r.y + 4f, 2f, 2f), gold);
+            FxTheme.Fill(new Rect(r.xMax - 6f, r.y + 5f, 2f, 2f),
+                new Color(gold.r, gold.g, gold.b, 0.7f));
+
+            FxTheme.Label(r, "RimForex_UiLoans".Translate(), GameFont.Small,
+                gold, TextAnchor.MiddleCenter);
+
+            if (Widgets.ButtonInvisible(r))
             {
                 if (Find.WindowStack.IsOpen(typeof(Window_FxLoans)))
                 {
@@ -211,6 +239,7 @@ namespace RimForex
                     }
                 }
             }
+            TooltipHandler.TipRegion(r, "RimForex_LoanGizmoDesc".Translate());
         }
 
         private FxAccount ColonyAccountForUi()

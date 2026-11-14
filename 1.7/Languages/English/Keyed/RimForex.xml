@@ -242,7 +242,6 @@ This is a blow-up: the debt must be covered. Deposit silver at the terminal to b
   <RimForex_HistoryCopyTip>Exports the {0} trades currently shown as plain text to the system clipboard, ready to paste anywhere.</RimForex_HistoryCopyTip>
   <RimForex_HistoryCopyHint>plain text, tab separated, exporting {0} trades</RimForex_HistoryCopyHint>
   <!-- ================= 0.3.0 loans ================= -->
-  <RimForex_LoanGizmo>Official lending service</RimForex_LoanGizmo>
   <RimForex_LoanGizmoDesc>Four institutions offer margin loans. Interest accrues daily as simple interest; each lender sets its own repayment term and handles overdue accounts in its own way.</RimForex_LoanGizmoDesc>
   <RimForex_LoanTitle>Official lending service</RimForex_LoanTitle>
   <RimForex_LoanSummary>Balance {0} silver   ·   Total debt {1} silver   ·   Net worth {2} silver</RimForex_LoanSummary>

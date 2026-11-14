@@ -253,7 +253,6 @@
   <RimForex_HistoryCopyTip>把当前显示的 {0} 笔交易导出为纯文本并复制到系统剪贴板，可粘贴到任意外部程序。</RimForex_HistoryCopyTip>
   <RimForex_HistoryCopyHint>纯文本 · 制表符分隔 · 本次导出 {0} 笔</RimForex_HistoryCopyHint>
   <!-- ================= 0.3.0 借贷体系 ================= -->
-  <RimForex_LoanGizmo>官方借贷服务</RimForex_LoanGizmo>
   <RimForex_LoanGizmoDesc>四家机构提供保证金贷款。利息按日以单利累计，各家还款期限不同，逾期后果由各家自行处理。</RimForex_LoanGizmoDesc>
   <RimForex_LoanTitle>官方借贷服务</RimForex_LoanTitle>
   <RimForex_LoanSummary>账户余额 {0} 银　·　总负债 {1} 银　·　净资产 {2} 银</RimForex_LoanSummary>
