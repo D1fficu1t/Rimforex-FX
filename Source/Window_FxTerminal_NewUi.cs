@@ -252,7 +252,7 @@ namespace RimForex
                 OpenCashTransfer(true);
             }
             if (FxWidgets.Button(new Rect(bx - btnW - btnGap, r.y + 14f, btnW, 28f),
-                    "RimForex_UiWithdraw".Translate()))
+                    "RimForex_UiWithdraw".Translate(), true, accent: true))
             {
                 OpenCashTransfer(false);
             }
@@ -382,7 +382,7 @@ namespace RimForex
             if (Mouse.IsOver(plot) && wheel.type == EventType.ScrollWheel)
             {
                 chartCandles = Mathf.Clamp(chartCandles
-                    - Mathf.RoundToInt(Mathf.Sign(wheel.delta.y)) * ChartZoomStep,
+                    + Mathf.RoundToInt(Mathf.Sign(wheel.delta.y)) * ChartZoomStep,
                     ChartZoomMin, ChartZoomMax);
                 wheel.Use();
             }
@@ -462,26 +462,63 @@ namespace RimForex
             FxTheme.Tiny(tag, last.ToString("F2"), new Color32(20, 20, 20, 255),
                 TextAnchor.MiddleCenter);
 
-            // 悬停：竖线 + 该根的开高低收
+            // 悬停：十字线 + 完整 OHLC + 日期
             if (Mouse.IsOver(plot) && view.Count > 0)
             {
-                float mx = Event.current.mousePosition.x;
+                Event he = Event.current;
+                float mx = he.mousePosition.x;
+                float my = he.mousePosition.y;
                 int hi = Mathf.Clamp((int)((mx - plot.x) / slot), 0, view.Count - 1);
                 float hx = plot.x + slot * (hi + 0.5f);
-                FxTheme.VLine(hx, plot.y, plot.yMax, FxTheme.Muted);
+
+                FxTheme.VLine(hx, plot.y, plot.yMax, new Color(1f, 1f, 1f, 0.25f));
+                FxTheme.HLine(plot.x, plot.xMax, my, new Color(1f, 1f, 1f, 0.18f));
+
+                float hoverPrice = Mathf.Lerp(max, min,
+                    Mathf.Clamp01((my - plot.y) / Mathf.Max(1f, plot.height)));
+                FxTheme.Fill(new Rect(plot.xMax + 4f, my - 8f, 58f, 16f),
+                    new Color32(40, 48, 60, 255));
+                FxTheme.Tiny(new Rect(plot.xMax + 4f, my - 8f, 58f, 16f),
+                    hoverPrice.ToString("F2"), FxTheme.TextColor, TextAnchor.MiddleCenter);
 
                 FxCandle hc = view[hi];
-                string detail = "O " + hc.open.ToString("F2")
-                    + "  H " + hc.high.ToString("F2")
-                    + "  L " + hc.low.ToString("F2")
-                    + "  C " + hc.close.ToString("F2");
-                float tw = Text.CalcSize(detail).x + 16f;
-                float txx = Mathf.Clamp(mx + 12f, plot.x, plot.xMax - tw);
-                Rect tip = new Rect(txx, plot.y + 6f, tw, 24f);
-                FxTheme.Fill(tip, new Color32(20, 26, 34, 245));
+                bool up = hc.close >= hc.open;
+                string date = hc.startTick > 0
+                    ? GenDate.DateFullStringAt(GenDate.TickGameToAbs(hc.startTick), Vector2.zero)
+                    : "";
+                string title = (up ? "RimForex_HoverUp" : "RimForex_HoverDown").Translate();
+                if (date.Length > 0) title = date + "  " + title;
+
+                string ohlc = "RimForex_UiCandleDetail".Translate(
+                    hc.open.ToString("F2"), hc.high.ToString("F2"),
+                    hc.low.ToString("F2"), hc.close.ToString("F2"));
+                float pct = hc.open > 0.0001f ? (hc.close / hc.open - 1f) * 100f : 0f;
+                string range = "RimForex_HoverRange".Translate(
+                    (hc.high - hc.low).ToString("F2"),
+                    pct.ToString("+0.00;-0.00;0.00") + "%");
+                bool forming = hi == view.Count - 1;
+                string formingText = forming
+                    ? "RimForex_HoverForming".Translate(SpanPeriodText()) : "";
+
+                float boxW = 320f;
+                float boxH = forming ? 86f : 70f;
+                float bx = Mathf.Clamp(mx + 14f, plot.x, plot.xMax - boxW - 4f);
+                float by = Mathf.Clamp(my + 14f, plot.y + 4f, plot.yMax - boxH - 4f);
+                Rect tip = new Rect(bx, by, boxW, boxH);
+                FxTheme.Fill(tip, new Color32(18, 23, 30, 248));
                 FxTheme.Border(tip, FxTheme.LineHi);
-                FxTheme.Tiny(new Rect(tip.x + 6f, tip.y + 4f, tip.width - 12f, 16f),
-                    detail, FxTheme.TextColor);
+
+                FxTheme.Tiny(new Rect(tip.x + 10f, tip.y + 6f, tip.width - 20f, 16f),
+                    title, FxTheme.TextColor);
+                FxTheme.Tiny(new Rect(tip.x + 10f, tip.y + 24f, tip.width - 20f, 16f),
+                    ohlc, FxTheme.Muted);
+                FxTheme.Tiny(new Rect(tip.x + 10f, tip.y + 42f, tip.width - 20f, 16f),
+                    range, up ? FxTheme.Long : FxTheme.Short);
+                if (forming)
+                {
+                    FxTheme.Tiny(new Rect(tip.x + 10f, tip.y + 60f, tip.width - 20f, 18f),
+                        formingText, FxTheme.Warning);
+                }
             }
 
             int dateAbs = GenDate.TickGameToAbs(GenTicks.TicksGame);
@@ -543,22 +580,45 @@ namespace RimForex
             }
 
             // ── 保证金 ──
+            float minMargin = MinMarginFor(ask, orderLeverage);
+            int minMarginCeil = Mathf.CeilToInt(minMargin);
             FxTheme.Tiny(new Rect(x, y, w, 16f), "RimForex_MarginInput".Translate(),
                 FxTheme.Muted);
-            y += 18f;
-            Rect marginRect = new Rect(x, y, w, 28f);
-            marginBuffer = FxWidgets.TextField(marginRect, marginBuffer, 14, "fx-order-margin");
+
             int parsed;
             if (!int.TryParse(marginBuffer, out parsed)) parsed = 0;
-            orderMargin = Mathf.Max(0, parsed);
-
-            float minMargin = MinMarginFor(ask, orderLeverage);
+            parsed = Mathf.Max(0, parsed);
             bool focused = GUI.GetNameOfFocusedControl() == "fx-order-margin";
-            if (!focused && orderMargin < minMargin)
+            bool belowMin = parsed > 0 && parsed < minMarginCeil;
+            if (!focused && parsed < minMarginCeil)
             {
-                orderMargin = Mathf.CeilToInt(minMargin);
-                marginBuffer = orderMargin.ToString();
+                parsed = minMarginCeil;
+                marginBuffer = parsed.ToString();
+                belowMin = false;
             }
+            if (belowMin)
+            {
+                FxTheme.Tiny(new Rect(x, y, w, 16f),
+                    "RimForex_UiBelowMin".Translate(minMarginCeil.ToString()),
+                    FxTheme.Short, TextAnchor.MiddleRight);
+            }
+            y += 18f;
+
+            Rect marginRect = new Rect(x, y, w - 60f, 28f);
+            marginBuffer = FxWidgets.TextField(marginRect, marginBuffer, 14, "fx-order-margin");
+            if (FxWidgets.Button(new Rect(x + w - 56f, y, 26f, 28f), "−"))
+            {
+                orderMargin = Mathf.Max(minMarginCeil, parsed - 1);
+                marginBuffer = orderMargin.ToString();
+                marginAtMinimum = orderMargin <= minMarginCeil;
+            }
+            if (FxWidgets.Button(new Rect(x + w - 26f, y, 26f, 28f), "+"))
+            {
+                orderMargin = Mathf.Max(minMarginCeil, parsed + 1);
+                marginBuffer = orderMargin.ToString();
+                marginAtMinimum = false;
+            }
+            orderMargin = Mathf.Max(minMarginCeil, parsed);
             y += 34f;
 
             float half = (w - 6f) / 2f;
@@ -568,7 +628,8 @@ namespace RimForex
                 marginBuffer = orderMargin.ToString();
                 marginAtMinimum = true;
             }
-            if (FxWidgets.Button(new Rect(x + half + 6f, y, half, 24f), "RimForex_AllIn".Translate()))
+            if (FxWidgets.Button(new Rect(x + half + 6f, y, half, 24f),
+                    "RimForex_AllIn".Translate(), true, false, false, true))
             {
                 int maxUnits = FxGameComponent.MaxAffordableUnits(account.balance, ask, orderLeverage);
                 float m;
@@ -609,18 +670,11 @@ namespace RimForex
             y += 26f;
 
             // ── 止盈止损 ──
-            FxTheme.Tiny(new Rect(x, y, half, 16f), "RimForex_TpShort".Translate(),
-                FxTheme.Muted);
-            FxTheme.Tiny(new Rect(x + half + 6f, y, half, 16f), "RimForex_SlShort".Translate(),
-                FxTheme.Muted);
-            y += 18f;
-            orderTpBuf = FxWidgets.TextField(new Rect(x, y, half, 26f), orderTpBuf, 10,
-                "fx-order-tp");
-            orderSlBuf = FxWidgets.TextField(new Rect(x + half + 6f, y, half, 26f),
-                orderSlBuf, 10, "fx-order-sl");
-            orderTp = ParsePrice(orderTpBuf);
-            orderSl = ParsePrice(orderSlBuf);
-            y += 34f;
+            DrawTpSlGroup(new Rect(x, y, half, 42f), "RimForex_TpShort",
+                ref orderTpBuf, ref orderTp, true, sel);
+            DrawTpSlGroup(new Rect(x + half + 6f, y, half, 42f), "RimForex_SlShort",
+                ref orderSlBuf, ref orderSl, false, sel);
+            y += 50f;
 
             // ── 费用 ──
             int wantUnits = EstimateUnits(orderMargin, ask, orderLeverage);
@@ -682,6 +736,47 @@ namespace RimForex
                     "RimForex_GoShort".Translate(), canOpen, false, true))
             {
                 TryOpenFromUi(sel, false, units);
+            }
+        }
+
+        /// <summary>止盈或止损：标签 + 减号 + 输入 + 加号 + 相对现价的百分比。</summary>
+        private void DrawTpSlGroup(Rect r, string labelKey, ref string buf,
+            ref float value, bool isTp, FxCurrency sel)
+        {
+            FxTheme.Tiny(new Rect(r.x, r.y, r.width, 16f), labelKey.Translate(),
+                FxTheme.Muted);
+
+            const float btnW = 18f;
+            const float pctW = 38f;
+            const float gap = 4f;
+            float fieldW = r.width - btnW * 2f - pctW - gap * 3f;
+            float rowY = r.y + 16f;
+
+            if (FxWidgets.Button(new Rect(r.x, rowY, btnW, 26f), "−"))
+            {
+                float baseValue = value > 0f ? value : (sel != null ? sel.rate : 0f);
+                value = Mathf.Max(0f, baseValue - 0.01f);
+                buf = value.ToString("F2");
+            }
+
+            buf = FxWidgets.TextField(new Rect(r.x + btnW + gap, rowY, fieldW, 26f),
+                buf, 10, isTp ? "fx-order-tp" : "fx-order-sl");
+            value = ParsePrice(buf);
+
+            if (FxWidgets.Button(new Rect(r.x + btnW + gap + fieldW + gap, rowY,
+                    btnW, 26f), "+"))
+            {
+                float baseValue = value > 0f ? value : (sel != null ? sel.rate : 0f);
+                value = Mathf.Max(0f, baseValue + 0.01f);
+                buf = value.ToString("F2");
+            }
+
+            float pct = PctVs(sel, value, isTp);
+            if (Mathf.Abs(pct) >= 0.005f)
+            {
+                FxTheme.Tiny(new Rect(r.x + r.width - pctW, rowY + 5f, pctW, 16f),
+                    pct.ToString("+0.0;-0.0;0.0") + "%",
+                    pct >= 0f ? FxTheme.Long : FxTheme.Short, TextAnchor.MiddleRight);
             }
         }
 
@@ -804,15 +899,25 @@ namespace RimForex
                     TextAnchor.MiddleRight);
 
                 Rect edit = new Rect(8f, yy, list.width - 80f, rowH);
+                TooltipHandler.TipRegion(edit, "RimForex_UiPositionEditTip".Translate());
                 if (Widgets.ButtonInvisible(edit))
                 {
                     Find.WindowStack.Add(new Window_FxTpSl(Fx, account, p));
                 }
 
+                bool canClose = Fx != null && Fx.CanClose(p);
+                string closeLabel = canClose
+                    ? "RimForex_Close".Translate()
+                    : ((p.closableAtTick - GenTicks.TicksGame) / 60f).ToString("0.0") + "s";
                 if (FxWidgets.Button(new Rect(list.width - 68f, yy + 3f, 60f, 24f),
-                        "RimForex_Close".Translate()))
+                        closeLabel, canClose))
                 {
                     ClosePosition(p);
+                }
+                if (!canClose)
+                {
+                    TooltipHandler.TipRegion(new Rect(list.width - 68f, yy + 3f, 60f, 24f),
+                        "RimForex_UiLockedTip".Translate());
                 }
                 FxTheme.HLine(0f, list.width, yy + rowH - 1f, FxTheme.Line);
             }
@@ -871,7 +976,7 @@ namespace RimForex
             Event e = Event.current;
             if (Mouse.IsOver(content) && e.type == EventType.ScrollWheel)
             {
-                scroll -= e.delta.y * 24f;
+                scroll += e.delta.y * 24f;
                 e.Use();
             }
             scroll = Mathf.Clamp(scroll, 0f, Mathf.Max(0f, viewH - content.height));

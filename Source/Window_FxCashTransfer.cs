@@ -57,6 +57,12 @@ namespace RimForex
 
             FxTheme.Tiny(new Rect(inRect.x + 16f, inRect.y + 72f, 60f, 16f),
                 "RimForex_UiAmount".Translate(), FxTheme.Muted);
+            if (FxWidgets.Button(new Rect(inRect.xMax - 116f, inRect.y + 66f, 100f, 22f),
+                    (deposit ? "RimForex_UiDepositAll" : "RimForex_UiWithdrawAll")
+                        .Translate(), available > 0))
+            {
+                buffer = available.ToString();
+            }
             buffer = FxWidgets.TextField(new Rect(inRect.x + 16f, inRect.y + 90f,
                 inRect.width - 32f, 30f), buffer, 12, "fx-cash-amount");
 

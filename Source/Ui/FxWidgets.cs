@@ -54,19 +54,24 @@ namespace RimForex
         }
 
         public static bool Button(Rect r, string label, bool enabled = true,
-            bool primary = false, bool danger = false, GameFont font = GameFont.Small)
+            bool primary = false, bool danger = false, bool warning = false,
+            bool accent = false, GameFont font = GameFont.Small)
         {
             bool hover = enabled && Mouse.IsOver(r);
 
             Color bg;
             if (!enabled) bg = new Color32(18, 22, 28, 255);
             else if (danger) bg = hover ? new Color32(96, 38, 42, 255) : new Color32(58, 26, 28, 255);
+            else if (warning) bg = hover ? new Color32(104, 70, 28, 255) : new Color32(62, 42, 18, 255);
+            else if (accent) bg = hover ? new Color32(36, 76, 120, 255) : new Color32(24, 50, 82, 255);
             else if (primary) bg = hover ? new Color32(36, 82, 66, 255) : new Color32(28, 62, 50, 255);
             else bg = hover ? new Color32(40, 50, 64, 255) : new Color32(28, 36, 48, 255);
 
             Color border;
             if (!enabled) border = FxTheme.Line;
             else if (danger) border = FxTheme.Danger;
+            else if (warning) border = FxTheme.Warning;
+            else if (accent) border = FxTheme.Accent;
             else if (primary) border = FxTheme.Long;
             else border = hover ? FxTheme.LineHi : new Color32(60, 74, 90, 255);
 
@@ -76,6 +81,8 @@ namespace RimForex
             Color text;
             if (!enabled) text = FxTheme.Muted;
             else if (danger) text = new Color32(246, 170, 170, 255);
+            else if (warning) text = new Color32(246, 206, 130, 255);
+            else if (accent) text = new Color32(150, 196, 255, 255);
             else if (primary) text = FxTheme.Long;
             else text = FxTheme.TextColor;
 

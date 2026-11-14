@@ -496,7 +496,7 @@
   <RimForex_SpanDay>日K</RimForex_SpanDay>
   <RimForex_SplitterTip>拖动这里可以调整货币表和 K 线的宽度。</RimForex_SplitterTip>
   <RimForex_HSplitterTip>拖动这里可以压缩/放大下单区，K 线与货币表同步变高变矮。</RimForex_HSplitterTip>
-  <RimForex_MsgTpSlReversed>止盈 / 止损填反了方向：做多的止盈要高于现价、止损要低于现价，做空反过来。这次下单会忽略填反的那一项。</RimForex_MsgTpSlReversed>
+  <RimForex_MsgTpSlReversed>止盈 / 止损填反了方向：做多的止盈要高于现价、止损要低于现价，做空反过来。请调整后再下单。</RimForex_MsgTpSlReversed>
   <RimForex_CarryToday>持仓利息 {0} 白银/日</RimForex_CarryToday>
   <RimForex_MarginTo>补到</RimForex_MarginTo>
   <RimForex_MarginPreset>{0}% ({1})</RimForex_MarginPreset>
@@ -682,4 +682,10 @@
   <RimForex_FeeWithdraw>提取白银</RimForex_FeeWithdraw>
   <RimForex_UiQuoteLine>买 {0}　卖 {1}　点差 {2}%</RimForex_UiQuoteLine>
   <RimForex_UiCompactLine>{0} 单位　·　总花费 {1} / 可用 {2}</RimForex_UiCompactLine>
+  <RimForex_UiBelowMin>低于最小值，将按 {0} 计算</RimForex_UiBelowMin>
+  <RimForex_UiCandleDetail>开盘 {0}　最高 {1}　最低 {2}　收盘 {3}</RimForex_UiCandleDetail>
+  <RimForex_UiPositionEditTip>点击持仓以修改止盈/止损数字</RimForex_UiPositionEditTip>
+  <RimForex_UiLockedTip>锁定期未过，下一次报价后才能平仓</RimForex_UiLockedTip>
+  <RimForex_UiDepositAll>全部存入</RimForex_UiDepositAll>
+  <RimForex_UiWithdrawAll>全部提取</RimForex_UiWithdrawAll>
 </LanguageData>

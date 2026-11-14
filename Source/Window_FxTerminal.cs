@@ -2182,7 +2182,10 @@ float hintH = 0f;
                     Messages.Message("RimForex_MsgTpSlReversed".Translate(),
                         MessageTypeDefOf.RejectInput, false);
                 }
-                OpenPosition(sel, true, units, orderLeverage, orderTp, orderSl);
+                else
+                {
+                    OpenPosition(sel, true, units, orderLeverage, orderTp, orderSl);
+                }
             }
             GUI.color = canOpen ? new Color(1f, 0.52f, 0.48f) : Color.gray;
             if (Widgets.ButtonText(shortR, "RimForex_GoShort".Translate()) && canOpen)
@@ -2192,7 +2195,10 @@ float hintH = 0f;
                     Messages.Message("RimForex_MsgTpSlReversed".Translate(),
                         MessageTypeDefOf.RejectInput, false);
                 }
-                OpenPosition(sel, false, units, orderLeverage, orderTp, orderSl);
+                else
+                {
+                    OpenPosition(sel, false, units, orderLeverage, orderTp, orderSl);
+                }
             }
             GUI.color = Color.white;
 

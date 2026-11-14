@@ -481,7 +481,7 @@ Let him reach the map edge, or put him down here. Either way, Collections will w
   <RimForex_SpanDay>D</RimForex_SpanDay>
   <RimForex_SplitterTip>Drag to resize the market table and the chart.</RimForex_SplitterTip>
   <RimForex_HSplitterTip>Drag to resize the order panel; the table and chart resize with it.</RimForex_HSplitterTip>
-  <RimForex_MsgTpSlReversed>Take-profit / stop-loss are on the wrong side: for a long, TP must be above the current price and SL below; for a short, the reverse. The reversed value is ignored for this order.</RimForex_MsgTpSlReversed>
+  <RimForex_MsgTpSlReversed>Take-profit / stop-loss are on the wrong side: for a long, TP must be above the current price and SL below; for a short, the reverse. Please adjust before placing the order.</RimForex_MsgTpSlReversed>
   <RimForex_CarryToday>Carry {0} silver/day</RimForex_CarryToday>
   <RimForex_MarginTo>Top up to</RimForex_MarginTo>
   <RimForex_MarginPreset>{0}% ({1})</RimForex_MarginPreset>
@@ -667,4 +667,10 @@ Let him reach the map edge, or put him down here. Either way, Collections will w
   <RimForex_FeeWithdraw>Silver withdrawal</RimForex_FeeWithdraw>
   <RimForex_UiQuoteLine>Bid {0}　Ask {1}　Spread {2}%</RimForex_UiQuoteLine>
   <RimForex_UiCompactLine>{0} units　·　Total {1} / Available {2}</RimForex_UiCompactLine>
+  <RimForex_UiBelowMin>Below minimum, using {0}</RimForex_UiBelowMin>
+  <RimForex_UiCandleDetail>Open {0}　High {1}　Low {2}　Close {3}</RimForex_UiCandleDetail>
+  <RimForex_UiPositionEditTip>Click the position to edit take-profit / stop-loss</RimForex_UiPositionEditTip>
+  <RimForex_UiLockedTip>Still locked; can close after the next quote</RimForex_UiLockedTip>
+  <RimForex_UiDepositAll>Deposit all</RimForex_UiDepositAll>
+  <RimForex_UiWithdrawAll>Withdraw all</RimForex_UiWithdrawAll>
 </LanguageData>
