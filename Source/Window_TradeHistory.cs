@@ -206,7 +206,7 @@ namespace RimForex
                             : "RimForex_HistoryFeeRow".Translate(),
                         FxTheme.Muted);
 
-                    string amountText = t.pnl == 0f && isCash
+                    string amountText = t.pnl == 0f
                         ? "—"
                         : t.pnl.ToString("+0;-0;0");
                     FxTheme.Small(new Rect(636f, yy + 5f, 100f, 18f),
