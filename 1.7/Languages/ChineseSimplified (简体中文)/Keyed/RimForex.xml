@@ -661,7 +661,6 @@
   <RimForex_UiAsk>卖价</RimForex_UiAsk>
   <RimForex_UiSpread>点差</RimForex_UiSpread>
   <RimForex_UiFeeLine>保证金 {0}　·　手续费 {1}</RimForex_UiFeeLine>
-  <RimForex_UiLogWip>事件日志尚未接入</RimForex_UiLogWip>
   <RimForex_UiNoHistory>还没有交易记录。</RimForex_UiNoHistory>
   <RimForex_UiDeposit>存入</RimForex_UiDeposit>
   <RimForex_UiWithdraw>提取</RimForex_UiWithdraw>
@@ -702,4 +701,20 @@
   <RimForex_UiBeLine>回本</RimForex_UiBeLine>
   <RimForex_UiStopLine>强平</RimForex_UiStopLine>
   <RimForex_UiLastSettle>上次结算</RimForex_UiLastSettle>
+  <RimForex_LogBankAnnounce>{0} 央行发布利率决策预告</RimForex_LogBankAnnounce>
+  <RimForex_LogBankDecision>{0} 央行宣布{1}</RimForex_LogBankDecision>
+  <RimForex_LogHalt>{0} 停牌</RimForex_LogHalt>
+  <RimForex_LogPegBreak>{0} 汇率保卫战失败</RimForex_LogPegBreak>
+  <RimForex_LogPegHold>{0} 汇率保卫战守住</RimForex_LogPegHold>
+  <RimForex_LogPeg>{0} 启动汇率保卫战</RimForex_LogPeg>
+  <RimForex_LogRating>{0} 评级下调</RimForex_LogRating>
+  <RimForex_LogWar>{0} 与 {1} 开战</RimForex_LogWar>
+  <RimForex_LogSettlement>{0} 据点失守</RimForex_LogSettlement>
+  <RimForex_LogTariff>{0} 签订关税协定</RimForex_LogTariff>
+  <RimForex_LogMerchant>神秘商人抵达殖民地</RimForex_LogMerchant>
+  <RimForex_LogDebtOffer>{0} 的债务转让报价</RimForex_LogDebtOffer>
+  <RimForex_LogCollector>收债人抵达殖民地</RimForex_LogCollector>
+  <RimForex_LogSurge>{0} 暴涨</RimForex_LogSurge>
+  <RimForex_LogCrash>{0} 暴跌</RimForex_LogCrash>
+  <RimForex_UiNoEvents>还没有事件记录。</RimForex_UiNoEvents>
 </LanguageData>

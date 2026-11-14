@@ -875,6 +875,21 @@ namespace RimForex
         }
     }
 
+    /// <summary>一条世界事件日志，供终端底栏查看。</summary>
+    public class FxEventLogEntry : IExposable
+    {
+        public string label = "";
+        public string detail = "";
+        public int tick;
+
+        public void ExposeData()
+        {
+            Scribe_Values.Look(ref label, "label");
+            Scribe_Values.Look(ref detail, "detail");
+            Scribe_Values.Look(ref tick, "tick");
+        }
+    }
+
     /// <summary>殖民地的 FX 保证金账户。</summary>
     /// <summary>延迟事件的类型（0.3.0 调度器）。</summary>
     public enum FxPendingKind
@@ -3312,6 +3327,9 @@ namespace RimForex
 
         public FxMarket market = new FxMarket();
         public Dictionary<int, FxAccount> accounts = new Dictionary<int, FxAccount>();
+        /// <summary>最近的世界事件，最新在末尾。</summary>
+        public List<FxEventLogEntry> eventLog = new List<FxEventLogEntry>();
+        public const int MaxEventLog = 60;
         public int nextSettlementTick = TicksPerDay;
         public bool initialized;
 
@@ -3652,6 +3670,20 @@ namespace RimForex
         /// <c>AccountFor(某张图)</c> —— 后者在任务图 / 伏击图 / 营地上会返回 null，
         /// 而且早先会为那些图**建出幽灵账户**（见 <see cref="AccountFor"/>）。
         /// </summary>
+        /// <summary>记一条事件日志；只保留最近 MaxEventLog 条。</summary>
+        public void RecordEvent(string label, string detail = null)
+        {
+            if (string.IsNullOrEmpty(label)) return;
+            if (eventLog == null) eventLog = new List<FxEventLogEntry>();
+            eventLog.Add(new FxEventLogEntry
+            {
+                label = label,
+                detail = detail ?? "",
+                tick = GenTicks.TicksGame
+            });
+            while (eventLog.Count > MaxEventLog) eventLog.RemoveAt(0);
+        }
+
         public FxAccount ColonyAccount(Map preferred = null)
         {
             FxAccount acc = AccountFor(preferred);
@@ -5199,6 +5231,7 @@ namespace RimForex
         /// <summary>E2：货币大跌 → 商队来清库存，或削弱敌方据点（按派系是否敌对分叉）。</summary>
         private void QueueE2(FxCurrency c, Faction faction, float pct)
         {
+            RecordEvent("RimForex_LogCrash".Translate(c.name));
             bool hostile = faction.HostileTo(Faction.OfPlayer);
 
             if (hostile)
@@ -5545,6 +5578,7 @@ namespace RimForex
                             "RimForex_Ev11Break".Translate(c.factionName,
                                 breakFaction != null ? BankNameFor(breakFaction) : ""),
                             LetterDefOf.ThreatSmall);
+                        RecordEvent("RimForex_LogPegBreak".Translate(c.factionName));
                     }
                     else
                     {
@@ -5552,6 +5586,7 @@ namespace RimForex
                             "RimForex_Ev11HoldLabel".Translate(c.factionName),
                             "RimForex_Ev11Hold".Translate(c.factionName),
                             LetterDefOf.NeutralEvent);
+                        RecordEvent("RimForex_LogPegHold".Translate(c.factionName));
                     }
                     continue;
                 }
@@ -5576,6 +5611,7 @@ namespace RimForex
                                 (dayRet * 100f).ToString("+0.0;-0.0"),
                                 haltFaction != null ? BankNameFor(haltFaction) : ""),
                             LetterDefOf.ThreatSmall);
+                        RecordEvent("RimForex_LogHalt".Translate(c.factionName));
                     }
                 }
 
@@ -5607,6 +5643,7 @@ namespace RimForex
                     (surge ? "RimForex_Ev11PegUp" : "RimForex_Ev11Peg").Translate(
                         tf.Name, BankNameFor(tf), (ret5 * 100f).ToString("+0.0;-0.0")),
                     LetterDefOf.NeutralEvent);
+                RecordEvent("RimForex_LogPeg".Translate(tf.Name));
             }
         }
 
@@ -5761,6 +5798,7 @@ namespace RimForex
                     "RimForex_Ev12LetterLabel".Translate(f.Name),
                     "RimForex_Ev12Letter".Translate(f.Name),
                     LetterDefOf.NeutralEvent);
+                RecordEvent("RimForex_LogSettlement".Translate(f.Name));
             }
         }
 
@@ -5885,6 +5923,7 @@ namespace RimForex
             if (c == null) return;
             c.newsDriftLog += Rand.Range(0.5f, 0.9f) * SigmaDayOf(c) * TariffDriftDays;
             c.newsDriftUntilTick = GenTicks.TicksGame + TariffDriftDays * TicksPerDay;
+            RecordEvent("RimForex_LogTariff".Translate(f.Name));
         }
 
         /// <summary>测试按钮：立刻触发一次关税下调。</summary>
@@ -5996,6 +6035,7 @@ namespace RimForex
                 "RimForex_Ev13Letter".Translate(),
                 LetterDefOf.NeutralEvent,
                 new LookTargets(pawn));
+            RecordEvent("RimForex_LogMerchant".Translate());
             return true;
         }
 
@@ -6270,6 +6310,7 @@ namespace RimForex
                         "RimForex_Ev8DecisionLabel".Translate(bankName),
                         "RimForex_Ev8Decision".Translate(bankName, instName, direction),
                         LetterDefOf.NeutralEvent);
+                    RecordEvent("RimForex_LogBankDecision".Translate(bankName, direction));
                     pendingBankCcyId = -1;
                 }
             }
@@ -6345,6 +6386,7 @@ namespace RimForex
             Messages.Message(
                 "RimForex_MsgBankPreAnnounce".Translate(f.Name),
                 MessageTypeDefOf.NeutralEvent, false);
+            RecordEvent("RimForex_LogBankAnnounce".Translate(f.Name));
             return true;
         }
 
@@ -6426,6 +6468,7 @@ namespace RimForex
                 "RimForex_Ev9LetterLabel".Translate(f.Name),
                 "RimForex_Ev9Letter".Translate(f.Name, RatingDriftDays.ToString()),
                 LetterDefOf.NeutralEvent);
+            RecordEvent("RimForex_LogRating".Translate(f.Name));
             return true;
         }
 
@@ -6501,11 +6544,13 @@ namespace RimForex
                 "RimForex_Ev4Letter".Translate(
                     winner.Name, loser.Name, (NewsDriftChance * 100f).ToString("0")),
                 LetterDefOf.NeutralEvent);
+            RecordEvent("RimForex_LogWar".Translate(winner.Name, loser.Name));
         }
 
         /// <summary>E1：货币大涨 → 商队或袭击（按派系是否敌对分叉）。</summary>
         private void QueueE1(FxCurrency c, Faction faction, float pct)
         {
+            RecordEvent("RimForex_LogSurge".Translate(c.name));
             bool hostile = faction.HostileTo(Faction.OfPlayer);
 
             if (hostile)
@@ -7358,6 +7403,7 @@ namespace RimForex
                 "RimForex_EvDebtOfferLabel".Translate(),
                 "RimForex_EvDebtOffer".Translate(pawn.LabelShortCap),
                 LetterDefOf.NeutralEvent);
+            RecordEvent("RimForex_LogDebtOffer".Translate(pawn.LabelShortCap));
             Log.Message("[RimForex] offer: created " + pawn.LabelShortCap
                 + " debt " + debt.ToString("F0"));
             return true;
@@ -7630,6 +7676,7 @@ namespace RimForex
                     (-acc.balance).ToString("F0"), E7GraceDays.ToString()),
                 LetterDefOf.ThreatBig,
                 collector != null ? new LookTargets(collector) : null);
+            RecordEvent("RimForex_LogCollector".Translate());
 
             EnsureDebtCollectorQuestionMark();
         }
@@ -8956,6 +9003,8 @@ namespace RimForex
         {
             base.ExposeData();
             Scribe_Deep.Look(ref market, "market");
+            Scribe_Collections.Look(ref eventLog, "eventLog", LookMode.Deep);
+            if (eventLog == null) eventLog = new List<FxEventLogEntry>();
             Scribe_Collections.Look(ref pendingEvents, "pendingEvents", LookMode.Deep);
             Scribe_Values.Look(ref lastWorldEventTick, "lastWorldEventTick", -999999);
             Scribe_Values.Look(ref platformFactionLoadID, "platformFactionLoadID", 0);

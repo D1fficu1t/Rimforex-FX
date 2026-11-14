@@ -110,7 +110,7 @@ namespace RimForex
                 addAmount = Mathf.Max(0, Mathf.FloorToInt(acc.balance));
                 addBuffer = addAmount.ToString();
             }
-            TooltipHandler.TipRegion(new Rect(r.x, y, 266f, 28f),
+            FxTooltip.Tip(new Rect(r.x, y, 266f, 28f),
                 "RimForex_MarginAddTip".Translate(acc.balance.ToString("F0")));
             y += 36f;
 
@@ -161,6 +161,7 @@ namespace RimForex
             {
                 Dismiss();
             }
+            FxTooltip.Draw();
         }
 
         private void DoAddMargin(MarginWarning warn, int amount)

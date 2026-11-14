@@ -75,6 +75,7 @@ namespace RimForex
             float maxScroll = Mathf.Max(0f, contentH - r.height);
             FxWidgets.ScrollBar(new Rect(r.xMax + 2f, r.y, 5f, r.height),
                 maxScroll > 0.01f ? scroll / maxScroll : 0f, frac);
+            FxTooltip.Draw();
         }
 
         private float Section(float y, float width, string titleKey, string bodyKey)

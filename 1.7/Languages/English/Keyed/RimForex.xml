@@ -646,7 +646,6 @@ Let him reach the map edge, or put him down here. Either way, Collections will w
   <RimForex_UiAsk>Ask</RimForex_UiAsk>
   <RimForex_UiSpread>Spread</RimForex_UiSpread>
   <RimForex_UiFeeLine>Margin {0}　·　Fee {1}</RimForex_UiFeeLine>
-  <RimForex_UiLogWip>Event log not wired up yet</RimForex_UiLogWip>
   <RimForex_UiNoHistory>No trade history yet.</RimForex_UiNoHistory>
   <RimForex_UiDeposit>Deposit</RimForex_UiDeposit>
   <RimForex_UiWithdraw>Withdraw</RimForex_UiWithdraw>
@@ -687,4 +686,20 @@ Let him reach the map edge, or put him down here. Either way, Collections will w
   <RimForex_UiBeLine>B/E</RimForex_UiBeLine>
   <RimForex_UiStopLine>Stop</RimForex_UiStopLine>
   <RimForex_UiLastSettle>Last settle</RimForex_UiLastSettle>
+  <RimForex_LogBankAnnounce>{0}'s central bank pre-announces a rate decision</RimForex_LogBankAnnounce>
+  <RimForex_LogBankDecision>{0}'s central bank announces {1}</RimForex_LogBankDecision>
+  <RimForex_LogHalt>{0} halted</RimForex_LogHalt>
+  <RimForex_LogPegBreak>{0}'s peg defense failed</RimForex_LogPegBreak>
+  <RimForex_LogPegHold>{0}'s peg defense held</RimForex_LogPegHold>
+  <RimForex_LogPeg>{0} starts a peg defense</RimForex_LogPeg>
+  <RimForex_LogRating>{0} downgraded</RimForex_LogRating>
+  <RimForex_LogWar>{0} and {1} go to war</RimForex_LogWar>
+  <RimForex_LogSettlement>{0} lost a settlement</RimForex_LogSettlement>
+  <RimForex_LogTariff>{0} signs a tariff agreement</RimForex_LogTariff>
+  <RimForex_LogMerchant>Mystery merchant reached the colony</RimForex_LogMerchant>
+  <RimForex_LogDebtOffer>Debt transfer offer for {0}</RimForex_LogDebtOffer>
+  <RimForex_LogCollector>Debt collector reached the colony</RimForex_LogCollector>
+  <RimForex_LogSurge>{0} surged</RimForex_LogSurge>
+  <RimForex_LogCrash>{0} crashed</RimForex_LogCrash>
+  <RimForex_UiNoEvents>No events logged yet.</RimForex_UiNoEvents>
 </LanguageData>

@@ -59,7 +59,7 @@ namespace RimForex
             {
                 candleCount = 40;
             }
-            TooltipHandler.TipRegion(resetBtn, "RimForex_MiniResetTip".Translate());
+            FxTooltip.Tip(resetBtn, "RimForex_MiniResetTip".Translate());
 
             float plotTop = lhS + 8f;
             const float StripW = 56f;
@@ -251,6 +251,7 @@ namespace RimForex
                 FxTheme.Tiny(new Rect(tip.x + 8f, tip.y + 37f, tip.width - 16f, 16f),
                     range, pct >= 0f ? FxTheme.Long : FxTheme.Short);
             }
+            FxTooltip.Draw();
         }
 
         private void DrawSideButtons(Rect strip)

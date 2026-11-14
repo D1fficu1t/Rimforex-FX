@@ -149,7 +149,7 @@ namespace RimForex
                     float w = Mathf.Clamp(UI.screenWidth * 0.88f, 1100f, 1800f);
                     float h = Mathf.Clamp(UI.screenHeight * 0.86f, 680f, 1000f);
                     w = Mathf.Min(w, UI.screenWidth - 24f);
-                    h = Mathf.Min(h, UI.screenHeight - 80f);
+                    h = Mathf.Min(h, UI.screenHeight - 24f);
                     return new Vector2(w, h);
                 }
                 return new Vector2(980f, Mathf.Min(838f, UI.screenHeight - BottomOffset - 16f));

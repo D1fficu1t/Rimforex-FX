@@ -152,7 +152,7 @@ namespace RimForex
                 if (!OpenTerminal(map)) Messages.Message("RimForex_MsgNoTerminal".Translate(),
                     MessageTypeDefOf.RejectInput, false);
             }
-            TooltipHandler.TipRegion(openBtn, "RimForex_OpenTerminal".Translate());
+            FxTooltip.Tip(openBtn, "RimForex_OpenTerminal".Translate());
 
             // ---- 持仓明细 ----
             if (expanded)
@@ -196,7 +196,7 @@ namespace RimForex
                     {
                         ToggleMiniChart(fx, acc, p);
                     }
-                    TooltipHandler.TipRegion(kBtn, "RimForex_HudKLineTip".Translate());
+                    FxTooltip.Tip(kBtn, "RimForex_HudKLineTip".Translate());
 
                     // 平仓：需要 ①通电的终端 ②跨过一次报价 ③组件在
                     Rect closeBtn = new Rect(box.xMax - CloseBtnW - 4f, rowY + 1f, CloseBtnW, RowH - 4f);
@@ -211,14 +211,14 @@ namespace RimForex
                     }
                     GUI.color = Color.white;
 
-                    TooltipHandler.TipRegion(closeBtn, !hasPower
+                    FxTooltip.Tip(closeBtn, !hasPower
                         ? "RimForex_HudCloseNoPower".Translate()
                         : (closable ? "RimForex_HudCloseTip".Translate()
                                     : "RimForex_HudCloseLocked".Translate()));
 
                     // 悬停整行：与终端持仓行同一份详情（作者 2026-10-31 要求）
                     Rect rowTipRect = new Rect(box.x, rowY, box.width - CloseBtnW - 6f, RowH);
-                    TooltipHandler.TipRegion(rowTipRect,
+                    FxTooltip.Tip(rowTipRect,
                         "RimForex_PosRowTip".Translate(
                             p.units,
                             p.entryRate.ToString("F2"),
@@ -232,12 +232,13 @@ namespace RimForex
             else
             {
                 // 收起状态下整块头部都能点开
-                TooltipHandler.TipRegion(box, "RimForex_HudExpandTip".Translate());
+                FxTooltip.Tip(box, "RimForex_HudExpandTip".Translate());
             }
 
             Text.Font = GameFont.Small;
 
             HandleInput(box, cfg, w, h, headerH);
+            FxTooltip.Draw();
         }
 
         /// <summary>一行里显示的文字：货币名 + 多/空。</summary>

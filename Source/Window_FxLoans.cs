@@ -204,8 +204,9 @@ namespace RimForex
                     MessageTypeDefOf.NeutralEvent, false);
             }
 
-            TooltipHandler.TipRegion(borrowRect, "RimForex_LoanBorrowTip".Translate());
-            TooltipHandler.TipRegion(repayRect, "RimForex_LoanRepayTip".Translate());
+            FxTooltip.Tip(borrowRect, "RimForex_LoanBorrowTip".Translate());
+            FxTooltip.Tip(repayRect, "RimForex_LoanRepayTip".Translate());
+            FxTooltip.Draw();
         }
     }
 }

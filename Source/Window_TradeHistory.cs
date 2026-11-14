@@ -86,7 +86,7 @@ namespace RimForex
                 string tip = n == 0
                     ? "RimForex_HistoryTipAll".Translate(all.Count).ToString()
                     : "RimForex_HistoryTipN".Translate(n).ToString();
-                TooltipHandler.TipRegion(br, tip);
+                FxTooltip.Tip(br, tip);
                 bx += btnW + 4f;
             }
 
@@ -96,7 +96,7 @@ namespace RimForex
             {
                 CopyReport(all, copyCount);
             }
-            TooltipHandler.TipRegion(copyBtn, "RimForex_HistoryCopyTip".Translate(copyCount));
+            FxTooltip.Tip(copyBtn, "RimForex_HistoryCopyTip".Translate(copyCount));
             Rect clearBtn = new Rect(copyBtn.xMax + 8f, copyBtn.y, 130f, 24f);
             FxTheme.Tiny(new Rect(clearBtn.xMax + 8f, copyBtn.y + 4f,
                     Mathf.Max(40f, summary.xMax - clearBtn.xMax - 18f), 18f),
@@ -106,7 +106,7 @@ namespace RimForex
             {
                 confirmClear = true;
             }
-            TooltipHandler.TipRegion(clearBtn,
+            FxTooltip.Tip(clearBtn,
                 "RimForex_HistoryClearTip".Translate(all.Count));
 
             if (confirmClear)
@@ -246,6 +246,7 @@ namespace RimForex
             float maxScroll = Mathf.Max(0f, viewH - rows.height);
             FxWidgets.ScrollBar(new Rect(rows.xMax + 6f, rows.y, 6f, rows.height),
                 maxScroll > 0.01f ? scroll / maxScroll : 0f, frac);
+            FxTooltip.Draw();
         }
 
         private void CopyReport(List<FxTradeRecord> all, int count)
