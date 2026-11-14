@@ -62,14 +62,14 @@ namespace RimForex
             FxWidgets.Panel(summary);
 
             FxTheme.Tiny(new Rect(summary.x + 10f, summary.y + 8f,
-                    summary.width - 270f, 18f),
+                    summary.width - 380f, 18f),
                 "RimForex_HistorySummary".Translate(
                     all.Count.ToString(), wins.ToString(), losses.ToString(),
                     totalPnl.ToString("F0"), totalFee.ToString("F2"),
                     totalSpread.ToString("F1")),
                 totalPnl >= 0f ? FxTheme.Long : FxTheme.Short);
 
-            float btnW = 56f;
+            float btnW = 84f;
             float bx = summary.xMax - (btnW + 4f) * 4f + 4f;
             int[] counts = { 5, 10, 20, 0 };
             for (int i = 0; i < counts.Length; i++)
@@ -224,8 +224,9 @@ namespace RimForex
             GUI.EndGroup();
 
             float frac = rows.height / Mathf.Max(rows.height, viewH);
+            float maxScroll = Mathf.Max(0f, viewH - rows.height);
             FxWidgets.ScrollBar(new Rect(rows.xMax + 6f, rows.y, 6f, rows.height),
-                scroll, frac);
+                maxScroll > 0.01f ? scroll / maxScroll : 0f, frac);
         }
 
         private void CopyReport(List<FxTradeRecord> all, int count)

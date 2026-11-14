@@ -195,6 +195,20 @@ namespace RimForex
             }
             right -= 50f;
 
+            Rect history = new Rect(right - 68f, by, 68f, bh);
+            if (FxWidgets.Button(history, "RimForex_UiHistory".Translate()))
+            {
+                if (Find.WindowStack.IsOpen(typeof(Window_TradeHistory)))
+                {
+                    Find.WindowStack.TryRemove(typeof(Window_TradeHistory), true);
+                }
+                else if (account != null)
+                {
+                    Find.WindowStack.Add(new Window_TradeHistory(account));
+                }
+            }
+            right -= 74f;
+
             Rect loans = new Rect(right - 44f, by, 44f, bh);
             DrawLoanButton(loans, fx);
         }
@@ -874,7 +888,7 @@ namespace RimForex
             string[] tabs =
             {
                 "RimForex_UiPositions".Translate(),
-                "RimForex_UiHistory".Translate(),
+                "RimForex_UiDetails".Translate(),
                 "RimForex_UiLog".Translate(),
             };
             for (int i = 0; i < tabs.Length; i++)
@@ -958,8 +972,9 @@ namespace RimForex
             GUI.EndGroup();
 
             float frac = content.height / Mathf.Max(content.height, viewH);
+            float maxScroll = Mathf.Max(0f, viewH - content.height);
             FxWidgets.ScrollBar(new Rect(content.xMax - 8f, content.y, 6f, content.height),
-                uiBottomScroll, frac);
+                maxScroll > 0.01f ? uiBottomScroll / maxScroll : 0f, frac);
         }
 
         private void DrawHistoryTab(Rect content)
@@ -1001,8 +1016,9 @@ namespace RimForex
             GUI.EndGroup();
 
             float frac = content.height / Mathf.Max(content.height, viewH);
+            float maxScroll = Mathf.Max(0f, viewH - content.height);
             FxWidgets.ScrollBar(new Rect(content.xMax - 8f, content.y, 6f, content.height),
-                uiBottomScroll, frac);
+                maxScroll > 0.01f ? uiBottomScroll / maxScroll : 0f, frac);
         }
 
         private static void HandleUiScroll(Rect content, ref float scroll, float viewH)

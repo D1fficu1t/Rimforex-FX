@@ -72,7 +72,9 @@ namespace RimForex
             GUI.EndGroup();
 
             float frac = r.height / Mathf.Max(r.height, contentH);
-            FxWidgets.ScrollBar(new Rect(r.xMax + 2f, r.y, 5f, r.height), scroll, frac);
+            float maxScroll = Mathf.Max(0f, contentH - r.height);
+            FxWidgets.ScrollBar(new Rect(r.xMax + 2f, r.y, 5f, r.height),
+                maxScroll > 0.01f ? scroll / maxScroll : 0f, frac);
         }
 
         private float Section(float y, float width, string titleKey, string bodyKey)
@@ -100,21 +102,43 @@ namespace RimForex
 
         private void DrawCandleDiagram(ref float y, float width)
         {
-            const float H = 120f;
-            Rect box = new Rect(0f, y, Mathf.Min(width, 360f), H);
+            const float H = 160f;
+            Rect box = new Rect(0f, y, Mathf.Min(width, 460f), H);
             FxTheme.Fill(box, FxTheme.PanelBg);
             FxTheme.Border(box, FxTheme.Line);
 
+            Rect area = new Rect(box.x + 14f, box.y + 14f,
+                box.width - 28f, box.height - 28f);
+
+            // 网格，和终端图表同一套密度
+            Color grid = new Color32(31, 38, 47, 255);
+            for (int i = 0; i <= 4; i++)
+            {
+                float gy = area.y + area.height * i / 4f;
+                FxTheme.HLine(area.x, area.xMax, gy, grid);
+            }
+            for (int i = 0; i <= 6; i++)
+            {
+                float gx = area.x + area.width * i / 6f;
+                FxTheme.VLine(gx, area.y, area.yMax, grid);
+            }
+
+            // (开盘, 收盘, 最高, 最低)，0~1 相对高度
             float[][] candles =
             {
-                new[] { 0.55f, 0.70f, 0.78f, 0.50f },
-                new[] { 0.70f, 0.62f, 0.74f, 0.58f },
-                new[] { 0.62f, 0.80f, 0.88f, 0.60f },
-                new[] { 0.80f, 0.72f, 0.84f, 0.66f },
+                new[] { 0.34f, 0.42f, 0.47f, 0.29f },
+                new[] { 0.42f, 0.38f, 0.46f, 0.33f },
+                new[] { 0.38f, 0.50f, 0.54f, 0.36f },
+                new[] { 0.50f, 0.46f, 0.56f, 0.43f },
+                new[] { 0.46f, 0.58f, 0.62f, 0.44f },
+                new[] { 0.58f, 0.54f, 0.64f, 0.51f },
+                new[] { 0.54f, 0.68f, 0.72f, 0.52f },
+                new[] { 0.68f, 0.62f, 0.74f, 0.59f },
+                new[] { 0.62f, 0.76f, 0.80f, 0.60f },
             };
 
-            const float BodyW = 22f;
-            float step = (box.width - 40f) / candles.Length;
+            float slot = area.width / candles.Length;
+            float bodyW = Mathf.Max(7f, Mathf.Min(16f, slot * 0.52f));
             for (int i = 0; i < candles.Length; i++)
             {
                 float open = candles[i][0];
@@ -123,16 +147,24 @@ namespace RimForex
                 float low = candles[i][3];
                 Color c = close >= open ? FxTheme.Long : FxTheme.Short;
 
-                float cx = box.x + 20f + i * step + step * 0.5f;
-                float top = box.yMax - 12f - high * (H - 24f);
-                float bottom = box.yMax - 12f - low * (H - 24f);
-                float bodyTop = box.yMax - 12f - Mathf.Max(open, close) * (H - 24f);
-                float bodyBottom = box.yMax - 12f - Mathf.Min(open, close) * (H - 24f);
+                float cx = area.x + slot * (i + 0.5f);
+                float top = area.yMax - high * area.height;
+                float bottom = area.yMax - low * area.height;
+                float bodyTop = area.yMax - Mathf.Max(open, close) * area.height;
+                float bodyBottom = area.yMax - Mathf.Min(open, close) * area.height;
 
                 FxTheme.VLine(cx, top, bottom, c);
-                FxTheme.Fill(new Rect(cx - BodyW * 0.5f, bodyTop, BodyW,
+                FxTheme.Fill(new Rect(cx - bodyW * 0.5f, bodyTop, bodyW,
                     Mathf.Max(2f, bodyBottom - bodyTop)), c);
             }
+
+            // 最新价示意线
+            float lastY = area.yMax - candles[candles.Length - 1][1] * area.height;
+            FxTheme.HLine(area.x, area.xMax, lastY, FxTheme.Warning);
+            FxTheme.Fill(new Rect(area.xMax - 46f, lastY - 8f, 42f, 16f),
+                FxTheme.Warning);
+            FxTheme.Tiny(new Rect(area.xMax - 46f, lastY - 8f, 42f, 16f),
+                "↑", new Color32(20, 20, 20, 255), TextAnchor.MiddleCenter);
 
             y = box.yMax + GapAfterSection;
         }
@@ -144,7 +176,7 @@ namespace RimForex
             h += Measure(width, "RimForex_GuideShortTitle", "RimForex_GuideShort");
             h += Measure(width, "RimForex_GuideLiquidationTitle", "RimForex_GuideLiquidation");
             h += Measure(width, "RimForex_GuideCandleTitle", "RimForex_GuideCandle");
-            h += 120f + GapAfterSection;
+            h += 160f + GapAfterSection;
             h += Measure(width, "RimForex_GuideProfitTitle", "RimForex_GuideProfit");
             h += 32f;
             if (showHonest)

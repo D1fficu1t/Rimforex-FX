@@ -288,7 +288,7 @@ This is a blow-up: the debt must be covered. Deposit silver at the terminal to b
   <RimForex_GuideLongTitle>1. When to buy (going long)</RimForex_GuideLongTitle>
   <RimForex_GuideLong>Going long means buying. Bet it rises and you keep the difference; bet wrong and you lose your margin.\n\nWhen should you buy? Our official answers:\n· There is news it will rise. Buy.\n· No news, but it has fallen for a long time. Buy. That is called bottom-fishing.\n· It is already surging. Buy. That is called momentum.\n\nIf you want to buy, you will always find a reason. That is why our users love us.</RimForex_GuideLong>
   <RimForex_GuideShortTitle>2. When to sell (going short)</RimForex_GuideShortTitle>
-  <RimForex_GuideShort>The other way round: sell first, buy back after it falls, keep the difference.\n\n· News says it will fall. Sell.\n· They just lost a war or their economy collapsed. Sell.\n· It has fallen for a long time. Sell, the trend continues.\n\nOne note: a short caps at 100% profit, but losses have no ceiling. We reserve the right to collect.</RimForex_GuideShort>
+  <RimForex_GuideShort>The other way round: sell first, buy back after it falls, keep the difference.\n\n· News says it will fall. Sell.\n· They just lost a war or their economy collapsed. Sell.\n· It has fallen for a long time. Sell, the trend continues.\n\nOne note: a short's price floor is zero, but losses have no ceiling. Leverage magnifies both sides; do not hear “it can only fall 100%” as “you can only make 100%”. We reserve the right to collect.</RimForex_GuideShort>
   <RimForex_GuideLiquidationTitle>3. Margin calls and blow-ups</RimForex_GuideLiquidationTitle>
   <RimForex_GuideLiquidation>Leverage magnifies gains and losses. They come as a package.\n\n· At 45% margin left, we thoughtfully pop up a free window to warn you.\n· At 30%, we close the position for you. That is a margin call.\n· If a gap is brutal enough that losses exceed your margin, the balance goes negative. That is a blow-up.\n\nAfter a blow-up you cannot open positions or withdraw. Deposit silver to clear it.\nOur collections department is available 24 hours and has no feelings.\n\nOne more thing: go all-in and a single day of overnight interest can push your balance negative - and the next open is a forced liquidation.</RimForex_GuideLiquidation>
   <RimForex_GuideCandleTitle>4. Reading candles</RimForex_GuideCandleTitle>
@@ -672,4 +672,5 @@ Let him reach the map edge, or put him down here. Either way, Collections will w
   <RimForex_UiLockedTip>Still locked; can close after the next quote</RimForex_UiLockedTip>
   <RimForex_UiDepositAll>Deposit all</RimForex_UiDepositAll>
   <RimForex_UiWithdrawAll>Withdraw all</RimForex_UiWithdrawAll>
+  <RimForex_UiDetails>Trade details</RimForex_UiDetails>
 </LanguageData>

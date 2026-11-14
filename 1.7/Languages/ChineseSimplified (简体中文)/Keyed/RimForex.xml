@@ -299,7 +299,7 @@
   <RimForex_GuideLongTitle>一、什么时候买涨（做多）</RimForex_GuideLongTitle>
   <RimForex_GuideLong>做多就是买入，赌它涨。涨了赚差价，跌了亏保证金。\n\n该什么时候买？本平台的标准答案是：\n· 有消息说要涨，买。\n· 没消息但它跌了很久，买，这叫抄底。\n· 已经涨疯了，买，这叫追涨。\n\n只要你想买，总能找到理由。这也是本平台深受用户欢迎的原因。</RimForex_GuideLong>
   <RimForex_GuideShortTitle>二、什么时候买跌（做空）</RimForex_GuideShortTitle>
-  <RimForex_GuideShort>反过来：先卖出，跌了再买回来，赚中间的差价。\n\n· 有消息说要跌，做空。\n· 刚打完败仗、经济崩了，做空。\n· 已经跌了很久，做空，趋势会延续。\n\n提醒一句：做空最多赚 100%，亏损没有上限。本平台保留追缴的权利。</RimForex_GuideShort>
+  <RimForex_GuideShort>反过来：先卖出，跌了再买回来，赚中间的差价。\n\n· 有消息说要跌，做空。\n· 刚打完败仗、经济崩了，做空。\n· 已经跌了很久，做空，趋势会延续。\n\n提醒一句：做空的价格下限是零，亏损没有上限。杠杆会把两边都放大，别把“最多跌 100%”听成“最多赚 100%”。本平台保留追缴的权利。</RimForex_GuideShort>
   <RimForex_GuideLiquidationTitle>三、爆仓与穿仓</RimForex_GuideLiquidationTitle>
   <RimForex_GuideLiquidation>杠杆放大收益，也放大亏损。这两件事是绑在一起的。\n\n· 保证金剩 45%：本平台会贴心地为您弹出一个免费窗口，提醒您注意风险。\n· 剩 30%：强制平仓，也就是爆仓。\n· 跳空太狠、亏得比保证金还多：余额变负，这叫穿仓。\n\n穿仓之后不能开仓，也不能提款，请存入白银填平。\n本平台的催收部门 24 小时在线，且不讲感情。\n\n另外提醒一句：满仓梭哈的时候，光是一天的隔夜利息就能把余额推成负数，第二天开盘就是强制清算。</RimForex_GuideLiquidation>
   <RimForex_GuideCandleTitle>四、K 线怎么看</RimForex_GuideCandleTitle>
@@ -687,4 +687,5 @@
   <RimForex_UiLockedTip>锁定期未过，下一次报价后才能平仓</RimForex_UiLockedTip>
   <RimForex_UiDepositAll>全部存入</RimForex_UiDepositAll>
   <RimForex_UiWithdrawAll>全部提取</RimForex_UiWithdrawAll>
+  <RimForex_UiDetails>交易明细</RimForex_UiDetails>
 </LanguageData>

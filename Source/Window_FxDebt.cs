@@ -164,8 +164,9 @@ namespace RimForex
             GUI.EndGroup();
 
             float frac = listZone.height / Mathf.Max(listZone.height, viewH);
+            float maxScroll = Mathf.Max(0f, viewH - listZone.height);
             FxWidgets.ScrollBar(new Rect(listZone.xMax - 8f, listZone.y, 6f, listZone.height),
-                scroll.y, frac);
+                maxScroll > 0.01f ? scroll.y / maxScroll : 0f, frac);
 
             float by = body.yMax - 34f;
             if (FxWidgets.Button(new Rect(body.x, by, 170f, 34f),
