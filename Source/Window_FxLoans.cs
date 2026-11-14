@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using RimWorld;
 using UnityEngine;
 using Verse;
@@ -6,16 +5,8 @@ using Verse;
 namespace RimForex
 {
     /// <summary>
-    /// 「官方借贷服务」窗口（0.3.0）。
-    ///
-    /// 四家借贷方固定在这里，数值与文案见 <c>FxGameComponent.LenderCap / LenderRate / LenderTerm</c>
-    /// 以及 Keyed 里的 <c>RimForex_Loan{0..3}Name / Desc</c>。
-    ///
-    /// 设计要点（作者已拍板）：
-    /// · **单利**：每季按本金收固定比例，利息不滚进本金（见 FxLoan）
-    /// · **期限**：越便宜越短（1 季 / 2 季 / 3 季 / 无期限）
-    /// · **上限随净值缩放**：min(固定 × 3, 固定 + 净值 × 0.25)
-    /// · 界面必须显示「本季应付利息」，不让玩家自己算
+    /// 「官方借贷服务」窗口（0.3.0，D2 换新界面）。
+    /// 四家固定借贷方，2×2 卡片；单利、期限、上限规则不变。
     /// </summary>
     public class Window_FxLoans : Window
     {
@@ -23,89 +14,74 @@ namespace RimForex
         private readonly FxAccount account;
         private readonly Building_FXTradingTerminal terminal;
 
-        /// <summary>四家的借款输入。用缓冲字符串是因为 TextFieldNumeric 需要它。</summary>
         private readonly int[] amount = new int[FxGameComponent.LenderCount];
         private readonly string[] amountBuf = new string[FxGameComponent.LenderCount];
 
-        private const float Gap = 8f;
+        private const float Gap = 10f;
 
-        public Window_FxLoans(FxGameComponent fx, FxAccount account, Building_FXTradingTerminal terminal)
+        public Window_FxLoans(FxGameComponent fx, FxAccount account,
+            Building_FXTradingTerminal terminal)
         {
             this.fx = fx;
             this.account = account;
             this.terminal = terminal;
 
-            doCloseX = true;
-            doCloseButton = false;
             draggable = true;
             resizeable = true;
             absorbInputAroundWindow = false;
             forcePause = false;
+            FxWindowChrome.Prepare(this);
 
             for (int i = 0; i < amount.Length; i++) amountBuf[i] = "0";
         }
 
         public override Vector2 InitialSize
         {
-            get { return new Vector2(940f, 660f); }
+            get { return new Vector2(960f, 680f); }
         }
 
         public override void DoWindowContents(Rect inRect)
         {
-            // 与交易终端一致：断电 / 拆除后自动关窗（作者 2026-10-25 反馈）
             if (terminal == null || !terminal.Usable)
             {
                 Close();
                 return;
             }
-
             if (fx == null || account == null)
             {
-                Widgets.Label(inRect, "RimForex_NoMarket".Translate());
+                FxWidgets.Center(inRect, "RimForex_NoMarket".Translate(), FxTheme.Muted);
                 return;
             }
 
-            // ---- 标题 ----
-            Text.Font = GameFont.Medium;
-            Widgets.Label(new Rect(inRect.x, inRect.y, inRect.width, 32f),
+            Rect r = FxWindowChrome.Draw(this, inRect,
                 "RimForex_LoanTitle".Translate());
-            Text.Font = GameFont.Small;
 
-            // ---- 账户摘要 ----
             float owed = fx.TotalOwed(account);
-            string summary = "RimForex_LoanSummary".Translate(
-                account.balance.ToString("F0"),
-                owed.ToString("F0"),
-                (account.Equity - owed).ToString("F0"));
-            Text.Font = GameFont.Tiny;
-            GUI.color = new Color(0.75f, 0.78f, 0.82f);
-            Widgets.Label(new Rect(inRect.x, inRect.y + 34f, inRect.width, 18f), summary);
-            GUI.color = Color.white;
-            Text.Font = GameFont.Small;
+            FxTheme.Tiny(new Rect(r.x, r.y, r.width, 18f),
+                "RimForex_LoanSummary".Translate(
+                    account.balance.ToString("F0"),
+                    owed.ToString("F0"),
+                    (account.Equity - owed).ToString("F0")),
+                FxTheme.Muted);
 
-            // ---- 2×2 四格 ----
-            float top = inRect.y + 58f;
-            float h = (inRect.height - 58f - Gap - 24f) * 0.5f;
-            float w = (inRect.width - Gap) * 0.5f;
-
+            float top = r.y + 28f;
+            float h = (r.yMax - top - Gap) * 0.5f;
+            float w = (r.width - Gap) * 0.5f;
             for (int i = 0; i < FxGameComponent.LenderCount; i++)
             {
                 int col = i % 2;
                 int row = i / 2;
-                Rect cell = new Rect(inRect.x + col * (w + Gap), top + row * (h + Gap), w, h);
+                Rect cell = new Rect(r.x + col * (w + Gap), top + row * (h + Gap), w, h);
                 DrawLender(cell, i);
             }
-
-            // 页脚的规则说明已按作者要求删除（2026-10-31）
         }
 
         private void DrawLender(Rect cell, int idx)
         {
-            Widgets.DrawMenuSection(cell);
-            Rect r = cell.ContractedBy(8f);
+            FxWidgets.Panel(cell);
+            Rect r = cell.ContractedBy(12f);
 
-            // ── 第一行：图标（左）+ 名称与三条数值（右）──
-            const float Icon = 78f;
+            const float Icon = 64f;
             Rect iconRect = new Rect(r.x, r.y, Icon, Icon);
             Texture2D tex = ContentFinder<Texture2D>.Get("UI/Loans/Lender" + idx, false);
             if (tex != null)
@@ -114,21 +90,16 @@ namespace RimForex
             }
             else
             {
-                // 作者还没做图时画占位块 —— 绝不能因为缺贴图就崩窗口
-                Widgets.DrawBoxSolid(iconRect, new Color(0.20f, 0.22f, 0.26f));
-                Widgets.DrawBox(iconRect, 1);
-                Text.Font = GameFont.Medium;
-                Text.Anchor = TextAnchor.MiddleCenter;
-                Widgets.Label(iconRect, (idx + 1).ToString());
-                Text.Anchor = TextAnchor.UpperLeft;
-                Text.Font = GameFont.Small;
+                FxTheme.Fill(iconRect, new Color32(24, 30, 38, 255));
+                FxTheme.Border(iconRect, FxTheme.LineHi);
+                FxWidgets.Center(iconRect, (idx + 1).ToString(), FxTheme.Muted,
+                    GameFont.Medium);
             }
 
-            float tx = iconRect.xMax + 8f;
+            float tx = iconRect.xMax + 10f;
             float tw = r.xMax - tx;
-            Text.Font = GameFont.Medium;
-            Widgets.Label(new Rect(tx, r.y - 2f, tw, 26f), FxGameComponent.LenderNameKeys[idx].Translate());
-            Text.Font = GameFont.Tiny;
+            FxTheme.Small(new Rect(tx, r.y, tw, 22f),
+                FxGameComponent.LenderNameKeys[idx].Translate(), FxTheme.TextColor);
 
             float cap = fx.LenderLimit(idx, account);
             float borrowed = fx.LenderBorrowed(idx, account);
@@ -151,51 +122,47 @@ namespace RimForex
                 }
             }
 
-            Widgets.Label(new Rect(tx, r.y + 22f, tw, 16f), "RimForex_LoanLimit".Translate(
-                cap.ToString("F0"), borrowed.ToString("F0"), available.ToString("F0")));
+            FxTheme.Tiny(new Rect(tx, r.y + 24f, tw, 16f),
+                "RimForex_LoanLimit".Translate(cap.ToString("F0"),
+                    borrowed.ToString("F0"), available.ToString("F0")), FxTheme.Muted);
 
             string term = FxGameComponent.LenderTermDays[idx] > 0
                 ? "RimForex_LoanTerm".Translate(FxGameComponent.LenderTermDays[idx].ToString())
                 : "RimForex_LoanTermNone".Translate();
-            Widgets.Label(new Rect(tx, r.y + 38f, tw, 16f), "RimForex_LoanRate".Translate(
-                (FxGameComponent.LenderDailyRate(idx) * 100f).ToString("0.00"), term));
+            FxTheme.Tiny(new Rect(tx, r.y + 40f, tw, 16f),
+                "RimForex_LoanRate".Translate(
+                    (FxGameComponent.LenderDailyRate(idx) * 100f).ToString("0.00"), term),
+                FxTheme.Muted);
+            FxTheme.Tiny(new Rect(tx, r.y + 56f, tw, 16f),
+                "RimForex_LoanDailyDue".Translate(dailyInterest.ToString("F0")),
+                dailyInterest >= 0.5f ? FxTheme.Warning : FxTheme.TextColor);
+            FxTheme.Tiny(new Rect(tx, r.y + 72f, tw, 16f), remainDays >= 0
+                ? "RimForex_LoanOwedRemain".Translate(owed.ToString("F0"),
+                    remainDays.ToString())
+                : "RimForex_LoanOwed".Translate(owed.ToString("F0")),
+                FxTheme.Muted);
 
-            GUI.color = dailyInterest >= 0.5f ? new Color(1f, 0.78f, 0.55f) : Color.white;
-            Widgets.Label(new Rect(tx, r.y + 54f, tw, 16f),
-                "RimForex_LoanDailyDue".Translate(dailyInterest.ToString("F0")));
-            GUI.color = Color.white;
-
-            Widgets.Label(new Rect(tx, r.y + 70f, tw, 16f), remainDays >= 0
-                ? "RimForex_LoanOwedRemain".Translate(owed.ToString("F0"), remainDays.ToString())
-                : "RimForex_LoanOwed".Translate(owed.ToString("F0")));
-            Text.Font = GameFont.Small;
-
-            // ── 第二行：简介（整行宽度，约 4 行小字）──
             float descY = r.y + Icon + 6f;
-            Text.Font = GameFont.Tiny;
-            GUI.color = new Color(0.80f, 0.82f, 0.86f);
-            Widgets.Label(new Rect(r.x, descY, r.width, 74f),
-                FxGameComponent.LenderDescKeys[idx].Translate());
-            GUI.color = Color.white;
-            Text.Font = GameFont.Small;
+            FxTheme.Tiny(new Rect(r.x, descY, r.width, 64f),
+                FxGameComponent.LenderDescKeys[idx].Translate(), FxTheme.Muted);
 
-            // ── 第三行：输入 + 借款 / 还款 ──
-            float by = r.yMax - 26f;
-            const float InputW = 90f;
+            float by = r.yMax - 28f;
+            const float InputW = 92f;
             float btnW = (r.width - InputW - Gap * 2f) * 0.5f;
+            Rect inputRect = new Rect(r.x, by, InputW, 26f);
+            amountBuf[idx] = FxWidgets.TextField(inputRect, amountBuf[idx], 10,
+                "fx-loan-" + idx);
+            int parsed;
+            if (!int.TryParse(amountBuf[idx], out parsed)) parsed = 0;
+            amount[idx] = Mathf.Clamp(parsed, 0, 1000000);
 
-            Rect inputRect = new Rect(r.x, by, InputW, 24f);
-            Widgets.TextFieldNumeric(inputRect, ref amount[idx], ref amountBuf[idx], 0f, 1000000f);
+            Rect borrowRect = new Rect(inputRect.xMax + Gap, by, btnW, 26f);
+            Rect repayRect = new Rect(borrowRect.xMax + Gap, by, btnW, 26f);
 
-            Rect borrowRect = new Rect(inputRect.xMax + Gap, by, btnW, 24f);
-            Rect repayRect = new Rect(borrowRect.xMax + Gap, by, btnW, 24f);
-
-            // 冻结满 30 天时负余额也能借（与 TryBorrow 同一判据）
             bool canBorrow = available >= 1f
-                             && (account.balance >= 0f
-                                 || FxGameComponent.LoansOpenWhileFrozen(account));
-            if (!canBorrow) GUI.color = new Color(0.55f, 0.55f, 0.55f);
-            if (Widgets.ButtonText(borrowRect, "RimForex_LoanBorrow".Translate()) && canBorrow)
+                && (account.balance >= 0f || FxGameComponent.LoansOpenWhileFrozen(account));
+            if (FxWidgets.Button(borrowRect, "RimForex_LoanBorrow".Translate(),
+                    canBorrow, true))
             {
                 string err;
                 int want = amount[idx] > 0 ? amount[idx] : Mathf.FloorToInt(available);
@@ -211,11 +178,10 @@ namespace RimForex
                     Messages.Message(err.Translate(), MessageTypeDefOf.RejectInput, false);
                 }
             }
-            GUI.color = Color.white;
 
             bool canRepay = owed >= 0.5f && account.balance >= 0.5f;
-            if (!canRepay) GUI.color = new Color(0.55f, 0.55f, 0.55f);
-            if (Widgets.ButtonText(repayRect, "RimForex_LoanRepay".Translate()) && canRepay)
+            if (FxWidgets.Button(repayRect, "RimForex_LoanRepay".Translate(),
+                    canRepay))
             {
                 float pay = Mathf.Min(account.balance, owed);
                 for (int i = account.loans.Count - 1; i >= 0 && pay > 0.01f; i--)
@@ -226,9 +192,9 @@ namespace RimForex
                     fx.RepayLoan(account, l, take);
                     pay -= take;
                 }
-                Messages.Message("RimForex_LoanRepaid".Translate(), MessageTypeDefOf.NeutralEvent, false);
+                Messages.Message("RimForex_LoanRepaid".Translate(),
+                    MessageTypeDefOf.NeutralEvent, false);
             }
-            GUI.color = Color.white;
 
             TooltipHandler.TipRegion(borrowRect, "RimForex_LoanBorrowTip".Translate());
             TooltipHandler.TipRegion(repayRect, "RimForex_LoanRepayTip".Translate());

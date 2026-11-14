@@ -5,12 +5,8 @@ using Verse;
 namespace RimForex
 {
     /// <summary>
-    /// 债务转让报价（0.3.3）。
-    ///
-    /// 清算部把一个欠债人带到殖民地外侧，报价窗口里三选一：
-    /// 接受（继承债务、人加入）、拒绝、让我想想（关窗，倒计时继续）。
-    ///
-    /// 与神秘商人一样 forcePause：读报价时游戏暂停，关窗后时间继续走。
+    /// 债务转让报价（0.3.3，D2 换新界面）。
+    /// 三选一：接受 / 拒绝 / 让我想想；窗口暂停，关窗后倒计时继续。
     /// </summary>
     public class Window_FxDebtOffer : Window
     {
@@ -20,18 +16,17 @@ namespace RimForex
         {
             this.fx = fx;
 
-            doCloseX = true;
-            doCloseButton = false;
             draggable = true;
             resizeable = false;
             absorbInputAroundWindow = false;
             forcePause = true;
             preventCameraMotion = false;
+            FxWindowChrome.Prepare(this);
         }
 
         public override Vector2 InitialSize
         {
-            get { return new Vector2(560f, 380f); }
+            get { return new Vector2(600f, 400f); }
         }
 
         public override void DoWindowContents(Rect inRect)
@@ -42,51 +37,50 @@ namespace RimForex
                 return;
             }
 
-            float y = 0f;
-
-            Text.Font = GameFont.Medium;
-            Widgets.Label(new Rect(0f, y, inRect.width, Text.LineHeightOf(GameFont.Medium) + 2f),
+            Rect r = FxWindowChrome.Draw(this, inRect,
                 "RimForex_DebtOfferTitle".Translate());
-            Text.Font = GameFont.Small;
-            y += Text.LineHeightOf(GameFont.Medium) + 12f;
 
             string body = "RimForex_DebtOfferText".Translate(
                 fx.debtOfferPawn.LabelShortCap,
                 fx.debtOfferAmount.ToString("F0"));
-            float h = Text.CalcHeight(body, inRect.width);
-            Widgets.Label(new Rect(0f, y, inRect.width, h), body);
-            y += h + 8f;
+            GameFont oldFont = Text.Font;
+            bool oldWrap = Text.WordWrap;
+            Text.Font = GameFont.Small;
+            Text.WordWrap = true;
+            float h = Text.CalcHeight(body, r.width);
+            Text.Font = oldFont;
+            Text.WordWrap = oldWrap;
 
+            FxTheme.Label(new Rect(r.x, r.y, r.width, h), body,
+                GameFont.Small, FxTheme.TextColor, TextAnchor.UpperLeft, true);
+
+            float y = r.y + h + 10f;
             SkillRecord top = FxGameComponent.TopSkillOf(fx.debtOfferPawn);
             if (top != null)
             {
-                GUI.color = new Color(0.86f, 0.78f, 0.55f);
-                Widgets.Label(new Rect(0f, y, inRect.width, Text.LineHeight + 2f),
-                    "RimForex_DebtOfferTopSkill".Translate(top.def.LabelCap));
-                GUI.color = Color.white;
+                FxTheme.Tiny(new Rect(r.x, y, r.width, 20f),
+                    "RimForex_DebtOfferTopSkill".Translate(top.def.LabelCap),
+                    FxTheme.Warning);
             }
 
-            float by = inRect.yMax - 34f;
-            if (Widgets.ButtonText(new Rect(0f, by, 150f, 32f),
-                    "RimForex_DebtOfferAccept".Translate()))
+            float by = r.yMax - 34f;
+            if (FxWidgets.Button(new Rect(r.x, by, 150f, 34f),
+                    "RimForex_DebtOfferAccept".Translate(), true, true))
             {
                 fx.AcceptDebtOffer();
                 Close();
                 return;
             }
-
-            if (Widgets.ButtonText(new Rect(160f, by, 150f, 32f),
-                    "RimForex_DebtOfferReject".Translate()))
+            if (FxWidgets.Button(new Rect(r.x + 160f, by, 150f, 34f),
+                    "RimForex_DebtOfferReject".Translate(), true, false, true))
             {
                 fx.RejectDebtOffer();
                 Close();
                 return;
             }
-
-            if (Widgets.ButtonText(new Rect(320f, by, 150f, 32f),
+            if (FxWidgets.Button(new Rect(r.x + 320f, by, 150f, 34f),
                     "RimForex_DebtOfferLater".Translate()))
             {
-                // 只关窗，报价与倒计时都留着
                 Close();
             }
         }

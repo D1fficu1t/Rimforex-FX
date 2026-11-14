@@ -122,6 +122,18 @@ namespace RimForex
             return Widgets.ButtonInvisible(r);
         }
 
+        public static bool Toggle(Rect r, bool on)
+        {
+            FxTheme.Fill(r, new Color32(12, 15, 20, 255));
+            FxTheme.Border(r, on ? FxTheme.Accent : FxTheme.LineHi);
+            if (on)
+            {
+                FxTheme.Fill(new Rect(r.x + 4f, r.y + 4f, r.width - 8f, r.height - 8f),
+                    FxTheme.Accent);
+            }
+            return Widgets.ButtonInvisible(r);
+        }
+
         public static void Panel(Rect r)
         {
             FxTheme.Fill(r, FxTheme.PanelBg);
