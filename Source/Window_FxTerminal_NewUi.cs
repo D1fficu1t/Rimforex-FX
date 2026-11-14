@@ -146,10 +146,13 @@ namespace RimForex
             FxTheme.Tiny(new Rect(bar.x + 190f, bar.y + 16f, 160f, 18f),
                 "RIMFOREX  0.3.3", FxTheme.Muted);
 
-            int dateAbs = GenDate.TickGameToAbs(GenTicks.TicksGame);
-            string date = GenDate.DateFullStringAt(dateAbs, Vector2.zero);
-            FxTheme.Tiny(new Rect(bar.xMax - 760f, bar.y + 16f, 300f, 18f),
-                date, FxTheme.Muted, TextAnchor.MiddleRight);
+            if (bar.width > 1000f)
+            {
+                int dateAbs = GenDate.TickGameToAbs(GenTicks.TicksGame);
+                string date = GenDate.DateFullStringAt(dateAbs, Vector2.zero);
+                FxTheme.Tiny(new Rect(bar.xMax - 760f, bar.y + 16f, 300f, 18f),
+                    date, FxTheme.Muted, TextAnchor.MiddleRight);
+            }
 
             float right = bar.xMax - 12f;
             const float bh = 26f;

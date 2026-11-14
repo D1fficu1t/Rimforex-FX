@@ -146,7 +146,9 @@ namespace RimForex
             {
                 if (UseNewUi)
                 {
-                    return new Vector2(1180f, Mathf.Min(820f, UI.screenHeight - 40f));
+                    return new Vector2(
+                        Mathf.Min(1180f, UI.screenWidth - 40f),
+                        Mathf.Min(820f, UI.screenHeight - 40f));
                 }
                 return new Vector2(980f, Mathf.Min(838f, UI.screenHeight - BottomOffset - 16f));
             }
