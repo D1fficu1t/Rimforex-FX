@@ -3343,6 +3343,11 @@ namespace RimForex
 
         /// <summary>下次重新寻路的 tick（商人会走动，走到旧位置就白跑了）。</summary>
         public int pendingTalkRepathTick;
+
+        // ── 右键收债人：走过去再开窗 ──
+        public int pendingDebtTalkPawnId = -1;
+        public int pendingDebtTalkUntilTick;
+        public int pendingDebtTalkRepathTick;
         /// <summary>商人站位的格子（无派系，没有领主，需要自己维持位置）。</summary>
         public int merchantHomeX = -1;
         public int merchantHomeZ = -1;
@@ -3951,6 +3956,7 @@ namespace RimForex
             ProcessMysteryMerchant();
             ProcessMerchantTimeout();
             ProcessMerchantTalk();
+            ProcessDebtTalk();
             ProcessTariffCut();
             ProcessRetaliation();
             ProcessDebtCase();
@@ -8040,6 +8046,91 @@ namespace RimForex
                     (reason == "paid" ? "RimForex_Ev7Paid" : "RimForex_Ev7Hostage").Translate(),
                     LetterDefOf.PositiveEvent);
             }
+        }
+
+        /// <summary>这个 pawn 是不是当前正在收债的收债人。</summary>
+        public bool IsDebtCollector(Pawn pawn)
+        {
+            return pawn != null && debtActive && !debtHostile
+                && debtCollectorId >= 0
+                && pawn.thingIDNumber == debtCollectorId
+                && !pawn.Dead && !pawn.Downed && pawn.Spawned;
+        }
+
+        /// <summary>右键收债人后，让殖民者先走过去。</summary>
+        public void BeginDebtTalk(Pawn collector, Pawn talker)
+        {
+            if (collector == null || talker == null) return;
+            if (!IsDebtCollector(collector)) return;
+            if (!talker.Spawned || talker.Map != collector.Map) return;
+            if (!talker.CanReach(collector, PathEndMode.Touch, Danger.Deadly)) return;
+
+            pendingDebtTalkPawnId = talker.thingIDNumber;
+            pendingDebtTalkUntilTick = GenTicks.TicksGame + 2 * FxGameComponent.TicksPerHour;
+            pendingDebtTalkRepathTick = 0;
+
+            try
+            {
+                talker.jobs.StartJob(JobMaker.MakeJob(JobDefOf.Goto, collector.Position),
+                    JobCondition.InterruptForced);
+            }
+            catch { }
+        }
+
+        /// <summary>走到收债人身边后打开债务清算窗口。</summary>
+        private void ProcessDebtTalk()
+        {
+            if (pendingDebtTalkPawnId < 0) return;
+
+            Pawn collector = FindPawnById(debtCollectorId);
+            Pawn talker = FindPawnById(pendingDebtTalkPawnId);
+            if (collector == null || talker == null || !collector.Spawned || !talker.Spawned)
+            {
+                pendingDebtTalkPawnId = -1;
+                return;
+            }
+            if (GenTicks.TicksGame > pendingDebtTalkUntilTick)
+            {
+                pendingDebtTalkPawnId = -1;
+                return;
+            }
+            if (!IsDebtCollector(collector))
+            {
+                pendingDebtTalkPawnId = -1;
+                return;
+            }
+
+            float dist = (talker.Position - collector.Position).LengthHorizontal;
+            if (dist <= 2.5f)
+            {
+                pendingDebtTalkPawnId = -1;
+                OpenDebtWindowFromCollector(collector);
+                return;
+            }
+
+            // 收债人会走动，定期把目标改到当前位置
+            if (GenTicks.TicksGame >= pendingDebtTalkRepathTick)
+            {
+                pendingDebtTalkRepathTick = GenTicks.TicksGame + 60;
+                try
+                {
+                    talker.jobs.StartJob(JobMaker.MakeJob(JobDefOf.Goto, collector.Position),
+                        JobCondition.InterruptForced);
+                }
+                catch { }
+            }
+        }
+
+        /// <summary>从收债人打开债务窗口；终端按钮仍保留作兜底。</summary>
+        public void OpenDebtWindowFromCollector(Pawn collector)
+        {
+            if (!IsDebtCollector(collector)) return;
+            if (Find.WindowStack == null) return;
+            if (Find.WindowStack.IsOpen(typeof(Window_FxDebt))) return;
+
+            FxAccount acc = ColonyAccount(collector.Map);
+            if (acc == null) return;
+            Find.WindowStack.Add(new Window_FxDebt(this, acc));
         }
 
         private Pawn FindPawnById(int id)

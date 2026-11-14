@@ -629,4 +629,5 @@ Let him reach the map edge, or put him down here. Either way, Collections will w
   <RimForex_DebtOfferTopSkill>Standout skill: {0}</RimForex_DebtOfferTopSkill>
   <RimForex_FeeDebtInherited>Debt transfer accepted ({0})</RimForex_FeeDebtInherited>
   <RimForex_FeeLoanDefault>Loan default ({0})</RimForex_FeeLoanDefault>
+  <RimForex_DebtCollectorTalk>Talk</RimForex_DebtCollectorTalk>
 </LanguageData>

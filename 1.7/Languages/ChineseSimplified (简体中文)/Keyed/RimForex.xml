@@ -644,4 +644,5 @@
   <RimForex_DebtOfferTopSkill>最突出的技能：{0}</RimForex_DebtOfferTopSkill>
   <RimForex_FeeDebtInherited>接受债务转让（{0}）</RimForex_FeeDebtInherited>
   <RimForex_FeeLoanDefault>贷款违约（{0}）</RimForex_FeeLoanDefault>
+  <RimForex_DebtCollectorTalk>谈谈</RimForex_DebtCollectorTalk>
 </LanguageData>
