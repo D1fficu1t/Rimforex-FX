@@ -68,18 +68,26 @@ namespace RimForex
             float health = p.MarginHealth * 100f;
             string body = "RimForex_MarginCallBody".Translate(
                 p.currencyName, health.ToString("F0"), p.Pnl.ToString("F0"));
+            GameFont oldFont = Text.Font;
+            bool oldWrap = Text.WordWrap;
+            Text.Font = GameFont.Small;
+            Text.WordWrap = true;
             float bodyH = Mathf.Max(64f, Text.CalcHeight(body, r.width));
-            FxTheme.Small(new Rect(r.x, r.y, r.width, bodyH), body, FxTheme.TextColor);
+            Text.Font = oldFont;
+            Text.WordWrap = oldWrap;
+
+            FxTheme.Label(new Rect(r.x, r.y, r.width, bodyH), body,
+                GameFont.Small, FxTheme.TextColor, TextAnchor.UpperLeft, true);
             float y = r.y + bodyH + 8f;
 
-            FxTheme.Tiny(new Rect(r.x, y, r.width, 20f),
+            FxTheme.Label(new Rect(r.x, y, r.width, 34f),
                 "RimForex_MarginCallDetail".Translate(
                     p.margin.ToString("F0"),
                     acc.balance.ToString("F0"),
                     p.markRate.ToString("F2"),
                     p.leverage.ToString("F0")),
-                FxTheme.Muted);
-            y += 28f;
+                GameFont.Tiny, FxTheme.Muted, TextAnchor.UpperLeft, true);
+            y += 38f;
 
             if (bufferDirty)
             {

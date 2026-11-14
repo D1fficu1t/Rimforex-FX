@@ -63,23 +63,51 @@ namespace RimForex
                 FxTheme.Muted);
 
             float y = r.y + 30f;
-            float fieldW = 150f;
-            float rowH = 30f;
+            const float fieldW = 112f;
+            const float btnW = 22f;
+            const float rowH = 30f;
+            float mark = pos.markRate > 0f ? pos.markRate : pos.entryRate;
 
-            FxTheme.Tiny(new Rect(r.x, y, 80f, 18f), "RimForex_TpShort".Translate(),
+            FxTheme.Tiny(new Rect(r.x, y, 50f, 18f), "RimForex_TpShort".Translate(),
                 FxTheme.Muted);
-            tpBuf = FxWidgets.TextField(new Rect(r.x + 50f, y, fieldW, 26f), tpBuf, 12,
-                "fx-tpsl-tp");
+            if (FxWidgets.Button(new Rect(r.x + 50f, y, btnW, 26f), "−"))
+            {
+                float b = tp > 0f ? tp : mark;
+                tp = Mathf.Max(0f, b - 0.01f);
+                tpBuf = tp.ToString("F2");
+            }
+            tpBuf = FxWidgets.TextField(new Rect(r.x + 50f + btnW + 4f, y, fieldW, 26f),
+                tpBuf, 12, "fx-tpsl-tp");
             tp = Parse(tpBuf);
-            DrawPct(new Rect(r.x + 210f, y + 4f, r.width - 210f, 18f), tp);
+            if (FxWidgets.Button(new Rect(r.x + 50f + btnW + 4f + fieldW + 4f, y,
+                    btnW, 26f), "+"))
+            {
+                float b = tp > 0f ? tp : mark;
+                tp = Mathf.Max(0f, b + 0.01f);
+                tpBuf = tp.ToString("F2");
+            }
+            DrawPct(new Rect(r.x + 222f, y + 4f, r.width - 222f, 18f), tp);
             y += rowH;
 
-            FxTheme.Tiny(new Rect(r.x, y, 80f, 18f), "RimForex_SlShort".Translate(),
+            FxTheme.Tiny(new Rect(r.x, y, 50f, 18f), "RimForex_SlShort".Translate(),
                 FxTheme.Muted);
-            slBuf = FxWidgets.TextField(new Rect(r.x + 50f, y, fieldW, 26f), slBuf, 12,
-                "fx-tpsl-sl");
+            if (FxWidgets.Button(new Rect(r.x + 50f, y, btnW, 26f), "−"))
+            {
+                float b = sl > 0f ? sl : mark;
+                sl = Mathf.Max(0f, b - 0.01f);
+                slBuf = sl.ToString("F2");
+            }
+            slBuf = FxWidgets.TextField(new Rect(r.x + 50f + btnW + 4f, y, fieldW, 26f),
+                slBuf, 12, "fx-tpsl-sl");
             sl = Parse(slBuf);
-            DrawPct(new Rect(r.x + 210f, y + 4f, r.width - 210f, 18f), sl);
+            if (FxWidgets.Button(new Rect(r.x + 50f + btnW + 4f + fieldW + 4f, y,
+                    btnW, 26f), "+"))
+            {
+                float b = sl > 0f ? sl : mark;
+                sl = Mathf.Max(0f, b + 0.01f);
+                slBuf = sl.ToString("F2");
+            }
+            DrawPct(new Rect(r.x + 222f, y + 4f, r.width - 222f, 18f), sl);
             y += rowH + 4f;
 
             FxTheme.Tiny(new Rect(r.x, y, r.width, 34f), "RimForex_TpSlHint".Translate(),
@@ -89,8 +117,7 @@ namespace RimForex
             if (FxWidgets.Button(new Rect(r.x, by, 110f, 32f),
                     "RimForex_TpSlSave".Translate(), true, true))
             {
-                Apply();
-                Close();
+                if (Apply()) Close();
                 return;
             }
             if (FxWidgets.Button(new Rect(r.x + 118f, by, 100f, 32f),
@@ -108,22 +135,24 @@ namespace RimForex
             }
         }
 
-        private void Apply()
+        private bool Apply()
         {
-            if (pos == null) return;
+            if (pos == null) return false;
 
             float mark = pos.markRate > 0f ? pos.markRate : pos.entryRate;
-            bool okTp = tp > 0f && (pos.isLong ? tp > mark : tp < mark);
-            bool okSl = sl > 0f && (pos.isLong ? sl < mark : sl > mark);
+            bool badTp = tp > 0f && (pos.isLong ? tp <= mark : tp >= mark);
+            bool badSl = sl > 0f && (pos.isLong ? sl >= mark : sl <= mark);
 
-            pos.tpRate = okTp ? tp : 0f;
-            pos.slRate = okSl ? sl : 0f;
-
-            if ((tp > 0f && !okTp) || (sl > 0f && !okSl))
+            if (badTp || badSl)
             {
                 Messages.Message("RimForex_TpSlInvalid".Translate(),
                     MessageTypeDefOf.RejectInput, false);
+                return false;
             }
+
+            pos.tpRate = tp;
+            pos.slRate = sl;
+            return true;
         }
 
         private static float Parse(string buf)

@@ -133,7 +133,8 @@ namespace RimForex
             Rect box = CurrentRect(cfg, w, h);
 
             FxTheme.Fill(box, new Color32(14, 17, 22, 235));
-            FxTheme.Border(box, FxTheme.LineHi);
+            // 外圈用高对比灰蓝细线，和地图背景拉开
+            FxTheme.Border(box, new Color32(104, 120, 142, 255));
 
             Text.Font = GameFont.Small;
 
