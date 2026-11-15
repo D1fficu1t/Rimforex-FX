@@ -881,15 +881,12 @@ namespace RimForex
         public string label = "";
         public string detail = "";
         public int tick;
-        /// <summary>是否在事件日志里展开详情。</summary>
-        public bool expanded;
 
         public void ExposeData()
         {
             Scribe_Values.Look(ref label, "label");
             Scribe_Values.Look(ref detail, "detail");
             Scribe_Values.Look(ref tick, "tick");
-            Scribe_Values.Look(ref expanded, "expanded", false);
         }
     }
 
