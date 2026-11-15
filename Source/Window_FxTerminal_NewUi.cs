@@ -73,6 +73,17 @@ namespace RimForex
             SaveUiRatios();
         }
 
+        /// <summary>把被拖动过的窗口恢复到默认大小与居中位置。</summary>
+        private void ResetWindowToDefault()
+        {
+            Vector2 size = InitialSize;
+            windowRect = new Rect(
+                (UI.screenWidth - size.x) * 0.5f,
+                Mathf.Max(8f, (UI.screenHeight - size.y) * 0.5f
+                    - BottomOffset * 0.5f),
+                size.x, size.y);
+        }
+
         private void EnsureChartPosition()
         {
             if (account == null || account.positions == null
@@ -288,6 +299,7 @@ namespace RimForex
             if (FxWidgets.Button(reset, "RimForex_UiResetLayout".Translate()))
             {
                 ResetUiLayout();
+                ResetWindowToDefault();
             }
             right -= 74f;
 
