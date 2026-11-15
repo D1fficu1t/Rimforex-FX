@@ -702,8 +702,8 @@ namespace RimForex
 
             Rect plot = new Rect(r.x + 10f, r.y + 36f,
                 r.width - 76f, r.height - 68f);
-            FxTheme.Fill(plot, new Color32(10, 14, 19, 255));
-            FxTheme.Border(plot, FxTheme.LineHi);
+            FxTheme.Fill(plot, new Color32(18, 26, 36, 255));
+            FxTheme.Border(plot, new Color32(58, 74, 92, 255));
             if (plot.height < 80f) return;
             if (selectedFactionId < 0)
             {
