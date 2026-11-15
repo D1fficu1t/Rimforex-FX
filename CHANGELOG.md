@@ -1,5 +1,63 @@
 # 更新记录 / Changelog
 
+## 0.3.3
+
+### 中文
+
+**新增**
+
+- UI 大幅重构美化，优化了版面布局，终端和相关窗口统一为新风格。
+- 新增事件日志，汇总世界事件与消息。
+- 新增债务转让事件：清算部带欠债人上门报价，接受后继承债务且小人加入，拒绝或超时则带走。
+- 收债人改为右键交谈，头顶显示问号；收债窗口可以先让对方等待。
+- 设置中可以为每个世界事件单独开关。
+- 同一货币有多笔持仓时，可以在持仓区选定一笔，图表显示对应的开仓、回本、强平线。
+- 借贷入口移入终端，存款和取款改为弹出窗口。
+
+**修复**
+
+- 修复账户余额为负时神秘商人无法出现的问题。
+- 修复交易历史中费用与存取记录读档后金额丢失的问题，存取款现在显示正确的入账或扣款方向。
+- 修复止盈止损窗口点“清除”后窗口被关闭的问题。
+
+**平衡**
+
+- 提高了停牌与汇率保卫战的触发阈值，减少频繁停牌和钉住。
+- 缩小了钉住区间，配合点差和手续费，堵住了高杠杆在区间边缘来回套利的漏洞。
+- 提高了托管费，鼓励把白银提现，而不是长期存放在账户里。
+
+**其他**
+
+- 央行预告改为角落消息，实际利率决策改发事件信。
+
+### English
+
+**Added**
+
+- The UI has been substantially rebuilt and polished, with a cleaner layout and one shared style across the terminal and related windows.
+- Added an event log that collects world events and messages.
+- Added debt transfer offers: Collections brings a debtor to the colony. Accept to inherit the debt and gain the colonist; reject or time out and they leave.
+- Debt collectors can now be right-clicked and show a question mark. The settlement window also offers a wait option.
+- Each world event can now be disabled individually in the settings.
+- When several positions share a currency, select one in the positions list to show its entry, break-even and stop-out lines on the chart.
+- The loan entry moved into the terminal. Deposits and withdrawals now use pop-up windows.
+
+**Fixed**
+
+- Fixed merchants failing to appear when the account balance is negative.
+- Fixed trade history losing fee and cash-flow amounts after loading. Deposits and withdrawals now show the correct direction.
+- Fixed the take-profit / stop-loss window closing when Clear is pressed.
+
+**Balance**
+
+- Raised the halt and peg-defense thresholds to reduce constant interruptions.
+- Narrowed the peg band; spread and fees now prevent high-leverage edge scalping.
+- Raised custody fees to encourage withdrawing silver instead of leaving it in the account.
+
+**Other**
+
+- Central bank pre-announcements now arrive as corner messages; the actual rate decision is delivered as an event letter.
+
 ## 0.3.2
 
 > 相对 0.3.1：一个包同时兼容 1.6 与 1.7；世界事件补上因果，并新增停牌、
