@@ -1,0 +1,169 @@
+name: Build and Release
+
+# ── 触发方式：只在推 tag 时 ──
+# 为什么不做"每次 push 都构建"：本仓库把编译好的 DLL 纳入版本控制
+# （理由见 .gitignore）。若每次 push 都构建，DLL 反而会频繁变动，
+# 每次都要额外提交一次，很吵。
+#
+# 打 tag 才是"要发布一版"的信号，那时才需要重新构建、校验、打包。
+on:
+  push:
+    tags:
+      - "v*"
+  # 允许在网页上手动触发一次，用于验证流程本身
+  workflow_dispatch:
+
+permissions:
+  contents: write          # 创建 Release 需要
+
+jobs:
+  build:
+    # 用 windows-latest 而不是 ubuntu：本项目目标框架是 net48。
+    # ubuntu 也能编，但要额外装 mono；windows 上开箱可用，少一层不确定性。
+    runs-on: windows-latest
+
+    # ── 这一行是必须的，别删 ──
+    # Docs/ 下的五个脚本（audit / verify_spread / verify_texture / deadcode /
+    # pacing_analysis）**输出全是中文**。而 Windows 上 Python 的 stdout 默认编码
+    # 取自系统代码页，GitHub 的 windows-latest 是 cp1252（西欧），
+    # 编不出中文 —— 脚本会在打印第一行时就 UnicodeEncodeError 崩掉。
+    #
+    # 实测：audit.py 崩在 `print("翻译键: ...")` 这一行，整个工作流随之失败。
+    #
+    # 设成 utf-8 后五个脚本一次性全修好，不必去改脚本本身。
+    env:
+      PYTHONIOENCODING: utf-8
+
+    steps:
+      - name: 检出源码
+        uses: actions/checkout@v4
+        with:
+          # 取完整历史：ContinuousIntegrationBuild 会把源码提交哈希嵌进 DLL，
+          # 浅克隆会让那些元数据不正确。
+          fetch-depth: 0
+
+      - name: 安装 .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      # ── 先备份仓库里的 DLL（必须排在构建之前）──
+      # csproj 有 CopyToModFolder（AfterTargets="Build"），构建会把新 DLL 直接
+      # 拷进 1.7/Assemblies/ —— 所以**一旦构建过，仓库那份就没了**。
+      # 原来在构建之后才去比，比的是同一次构建的两个副本，永远相等，
+      # 这条检查等于不存在（V02）。现在先备份，构建后再与备份比。
+      - name: 备份仓库里的 DLL（构建会覆盖它）
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path "$env:RUNNER_TEMP/rimforex-orig" | Out-Null
+          Copy-Item "1.7/Assemblies/RimForex.dll" "$env:RUNNER_TEMP/rimforex-orig/RimForex.dll"
+          Write-Host "已备份：$((Get-Item "$env:RUNNER_TEMP/rimforex-orig/RimForex.dll").Length) B"
+
+      # ── 这里是最关键的一步 ──
+      # 本机开发时 csproj 直接引用游戏目录里的程序集；
+      # 但 CI 机器上没装 RimWorld，那个目录不存在。
+      # csproj 检测到这一点后会自动改用 Krafs.Rimworld.Ref 这个 NuGet 包
+      # （经 Ludeon 许可发布的引用程序集：剥掉方法体只留签名，
+      #  编译器需要的都在，但既不能运行游戏、也不涉及版权分发）。
+      #
+      # 所以这里不需要任何额外操作 —— 但下面的校验会确认它真的走了那条路。
+      - name: 构建
+        run: dotnet build Source/RimForex.csproj -c Release
+
+      - name: 确认确实用了 NuGet 引用（而不是误以为有游戏目录）
+        shell: pwsh
+        run: |
+          $log = dotnet build Source/RimForex.csproj -c Release -v normal 2>&1 | Out-String
+          if ($log -match "引用来源:\s*false") {
+            Write-Host "OK：使用 Krafs.Rimworld.Ref 引用程序集"
+          } else {
+            Write-Error "引用来源不是 NuGet —— CI 上不该出现这种情况"
+            exit 1
+          }
+
+      - name: 交付门禁（翻译键 / 常量 / 回归防线）
+        run: python Docs/audit.py
+
+      - name: 经济验收（点差 / churn / 杠杆 / 盈亏方向）
+        run: python Docs/verify_spread.py
+
+      - name: 纹理度验收
+        run: python Docs/verify_texture.py
+
+      # ── 二进制一致性 ──
+      # 本仓库的约定是「DLL 变了 ⇔ 代码真的变了」，所以有一个不变量：
+      # 本地用【游戏里的真程序集】编译，与 CI 用【NuGet 引用程序集】编译，
+      # 应当产出**同样**的 DLL。这一条不成立的话，"本地测过就放心发布"的前提就崩了。
+      #
+      # ⚠️ 但不能直接比文件哈希 —— DLL 里嵌着**构建时的提交哈希**
+      #    （AssemblyInformationalVersion 形如 `1.0.0+<40位十六进制>`）。
+      #    仓库里那份是在某个提交上构建的，CI 是在 tag 指向的提交上构建的，
+      #    两者只要不是同一个提交，哈希就必然不同 —— 那样比出来永远是"不一致"，
+      #    等于没比。
+      #
+      #    所以先把那 40 位十六进制统一替换成占位符，再比。
+      #    这样剩下的差异就只可能来自「引用程序集不同」这一件事。
+      #
+      # 失败不阻断发布：跨提交的差异是正常的，人工看一眼即可。
+      - name: 比对「仓库里的 DLL」与「CI 刚构建的 DLL」
+        shell: pwsh
+        run: |
+          # 与【构建前备份的仓库原件】比，而不是与构建后被覆盖的 1.7/Assemblies 比
+          $repoDll = "$env:RUNNER_TEMP/rimforex-orig/RimForex.dll"
+          if (-not (Test-Path $repoDll)) { Write-Error "找不到备份的仓库 DLL"; exit 1 }
+          $builtDll = Get-ChildItem -Recurse -Filter RimForex.dll -Path Source/bin |
+                      Select-Object -First 1
+          if (-not $builtDll) { Write-Error "CI 没有产出 DLL"; exit 1 }
+
+          function Get-Normalized([string]$path) {
+            $b = [System.IO.File]::ReadAllBytes($path)
+            $s = [System.Text.Encoding]::ASCII.GetString($b)
+            # 抹掉构建根源：InformationalVersion 里的 40 位提交哈希。
+            # 原来写死了 `1\.0\.0\+`，而当前版本是 0.2.x —— 这条替换其实从没生效过。
+            # 改成不限定版本号，只认 "+<40 位十六进制>"。
+            $s2 = [regex]::Replace($s, '\+\d*[0-9a-f]{40}', '+COMMIT')
+            $sha = [System.Security.Cryptography.SHA256]::Create()
+            $h = $sha.ComputeHash([System.Text.Encoding]::ASCII.GetBytes($s2))
+            return ($h | ForEach-Object { $_.ToString("x2") }) -join ""
+          }
+
+          $a = Get-Normalized $repoDll
+          $b = Get-Normalized $builtDll.FullName
+          Write-Host "仓库原件  : $($a.Substring(0,24))  $((Get-Item $repoDll).Length) B"
+          Write-Host "CI 构建的 : $($b.Substring(0,24))  $($builtDll.Length) B"
+          Write-Host "（已抹掉 DLL 内嵌的提交哈希，只比对引用程序集造成的差异）"
+
+          if ($a -eq $b) {
+            Write-Host "::notice::一致 —— 游戏真程序集与 NuGet 引用程序集产出相同的二进制"
+          } else {
+            Write-Warning "不一致：两种引用程序集产出的 DLL 有实质差异。"
+            Write-Warning "这意味着 CI 构建的 DLL 不能直接当作本机构建的结果使用。"
+          }
+
+      - name: 单包多版本打包（复用 Docs/package.py 的硬检查）
+        shell: pwsh
+        run: |
+          # package.py 会先核对：LoadFolders 声明、两个版本目录四件套齐全、
+          # 1.6 的 DLL 是 0.3.1、1.7 的 DLL 与 About 的 modVersion 一致。
+          # 任何一项不过都会直接中止，避免把半成品传上工坊。
+          python Docs/package.py
+          $zip = Get-ChildItem dist/RimForex-*.zip | Select-Object -First 1
+          if (-not $zip) { Write-Error "package.py 没有产出 zip"; exit 1 }
+          Copy-Item $zip.FullName "RimForex-${{ github.ref_name }}.zip" -Force
+          Write-Host "已打包（解压后即为 Mods\RimForex\ 的完整内容，含 1.6 与 1.7 两套）"
+          Get-Item "RimForex-${{ github.ref_name }}.zip" | Format-List Name, Length
+
+      - name: 发布 Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: RimForex-*.zip
+          generate_release_notes: true
+          body: |
+            下载下面的 zip，解压到 RimWorld 的 `Mods\` 目录即可
+            （解压后应得到 `Mods\RimForex\About\About.xml`）。
+
+            同一个包同时支持 1.6 与 1.7：`1.6/` 是 0.3.1 的固化版，
+            `1.7/` 是当前版本，由 `LoadFolders.xml` 自动选择。
+
+            本包不含 `Source\` 与 `Docs\`（游戏不读它们）。
+            需要源码或开发文档请看仓库首页。
