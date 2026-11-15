@@ -73,12 +73,56 @@ namespace RimForex
             SaveUiRatios();
         }
 
+        private void EnsureChartPosition()
+        {
+            if (account == null || account.positions == null
+                || account.positions.Count == 0)
+            {
+                uiChartPosition = null;
+                return;
+            }
+            if (uiChartPosition != null
+                && account.positions.Contains(uiChartPosition)
+                && uiChartPosition.currencyFactionLoadID == selectedFactionId)
+            {
+                return;
+            }
+
+            FxPosition pick = null;
+            for (int i = account.positions.Count - 1; i >= 0; i--)
+            {
+                var p = account.positions[i];
+                if (p != null && p.currencyFactionLoadID == selectedFactionId)
+                {
+                    pick = p;
+                    break;
+                }
+            }
+            if (pick == null)
+            {
+                for (int i = account.positions.Count - 1; i >= 0; i--)
+                {
+                    if (account.positions[i] != null)
+                    {
+                        pick = account.positions[i];
+                        break;
+                    }
+                }
+            }
+            if (pick != null)
+            {
+                uiChartPosition = pick;
+                selectedFactionId = pick.currencyFactionLoadID;
+            }
+        }
+
         private void DrawNewUiContents(Rect inRect, FxGameComponent fx,
             List<FxCurrency> currencies)
         {
             if (windowRect.width < 1100f) windowRect.width = 1100f;
             if (windowRect.height < 680f) windowRect.height = 680f;
             EnsureUiLayout();
+            EnsureChartPosition();
             FxTheme.Fill(inRect, FxTheme.WindowBg);
             FxTheme.Border(inRect, FxTheme.Line);
 
@@ -91,7 +135,7 @@ namespace RimForex
             bool inDebt = account != null && account.balance < 0f;
             bool frozenAccount = account != null
                 && account.frozenUntilTick > GenTicks.TicksGame;
-            float accountH = UiAccountH + 14f + (inDebt ? 18f : 0f)
+            float accountH = UiAccountH + (inDebt ? 18f : 0f)
                 + (frozenAccount ? 18f : 0f);
             Rect accountRect = new Rect(content.x, content.y, content.width, accountH);
             DrawNewAccountStrip(accountRect, fx);
@@ -386,26 +430,7 @@ namespace RimForex
                     GameFont.Medium, c, TextAnchor.UpperLeft);
             }
 
-            string carry = CarryStatusText(fx, account);
-            float loanInterest = 0f;
-            for (int i = 0; i < account.loans.Count; i++)
-            {
-                var loan = account.loans[i];
-                if (loan != null)
-                {
-                    loanInterest += loan.principal
-                        * FxGameComponent.LenderDailyRate(loan.lender);
-                }
-            }
-            if (loanInterest >= 0.5f)
-            {
-                carry += "　·　" + "RimForex_CarryLoanDaily".Translate(
-                    loanInterest.ToString("F0"));
-            }
-            FxTheme.Tiny(new Rect(r.x + pad, r.y + 54f,
-                r.width - pad * 2f, 14f), carry, FxTheme.Muted);
-
-            float warnY = r.y + 72f;
+            float warnY = r.y + 58f;
             if (account.balance < 0f)
             {
                 FxTheme.Tiny(new Rect(r.x + pad, warnY, r.width - pad * 2f, 16f),
@@ -474,8 +499,8 @@ namespace RimForex
 
         private void DrawNewMarket(Rect r, List<FxCurrency> currencies)
         {
-            FxTheme.Fill(r, new Color32(28, 38, 50, 255));
-            FxTheme.Border(r, new Color32(62, 78, 96, 255));
+            FxTheme.Fill(r, new Color32(10, 14, 19, 255));
+            FxTheme.Border(r, FxTheme.Line);
             FxWidgets.SectionHeader(r, "RimForex_UiMarket".Translate());
 
             float headY = r.y + 34f;
@@ -677,6 +702,8 @@ namespace RimForex
 
             Rect plot = new Rect(r.x + 10f, r.y + 36f,
                 r.width - 76f, r.height - 68f);
+            FxTheme.Fill(plot, new Color32(10, 14, 19, 255));
+            FxTheme.Border(plot, FxTheme.LineHi);
             if (plot.height < 80f) return;
             if (selectedFactionId < 0)
             {
@@ -1119,6 +1146,26 @@ namespace RimForex
                     "RimForex_UiFeeLine".Translate(actualMargin.ToString("F0"),
                         fee.ToString("F2")), FxTheme.Muted);
                 y += 17f;
+                float carryPerDay = fx.DailyCarryFor(account);
+                float loanInterestPerDay = 0f;
+                for (int li = 0; li < account.loans.Count; li++)
+                {
+                    var loan = account.loans[li];
+                    if (loan != null)
+                    {
+                        loanInterestPerDay += loan.principal
+                            * FxGameComponent.LenderDailyRate(loan.lender);
+                    }
+                }
+                FxTheme.Tiny(new Rect(x, y, w, 16f),
+                    "RimForex_OrderCarryLine".Translate(
+                        carryPerDay.ToString("F0")), FxTheme.Muted);
+                y += 16f;
+                FxTheme.Tiny(new Rect(x, y, w, 16f),
+                    "RimForex_OrderLoanLine".Translate(
+                        loanInterestPerDay.ToString("F0")), FxTheme.Muted);
+                y += 16f;
+
                 FxTheme.Tiny(new Rect(x, y, w, 16f),
                     "RimForex_LineTotal".Translate(total.ToString("F0"),
                         account.balance.ToString("F0")),
