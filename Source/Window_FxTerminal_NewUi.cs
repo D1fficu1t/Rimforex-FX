@@ -399,7 +399,7 @@ namespace RimForex
             if (account == null) return;
 
             float pad = 18f;
-            const float btnW = 58f;
+            const float btnW = 66f;
             const float btnGap = 6f;
             float buttonsW = btnW * 2f + btnGap + 12f;
             float colW = (r.width - pad * 2f - buttonsW) / 6f;
