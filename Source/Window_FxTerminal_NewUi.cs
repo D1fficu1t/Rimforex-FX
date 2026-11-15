@@ -1133,7 +1133,11 @@ namespace RimForex
                     "RimForex_UiFeeLine".Translate(actualMargin.ToString("F0"),
                         fee.ToString("F2")), FxTheme.Muted);
                 y += 17f;
-                float carryPerDay = fx.DailyCarryFor(account);
+                // 费用明细是“这一单”的成本，必须把本单开仓后的隔夜利息算进去；
+                // 已持仓的利息继续累加，玩家看到的是成交后的每日总成本。
+                float orderCarry = Mathf.Abs(units) * ask
+                    * FxGameComponent.DefaultCarryRate;
+                float carryPerDay = fx.DailyCarryFor(account) + orderCarry;
                 float loanInterestPerDay = 0f;
                 for (int li = 0; li < account.loans.Count; li++)
                 {
