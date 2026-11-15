@@ -18,7 +18,6 @@ namespace RimForex
         /// <summary>下单区：逐行成本明细。</summary>
         public bool showCostBreakdown = true;
         /// <summary>底部时间条：游戏速度说明。</summary>
-        public bool showTimeSpeedHint = true;
 
         // ================= 悬浮盈亏窗（HUD） =================
 
@@ -122,7 +121,6 @@ namespace RimForex
         /// <summary>设置页是否显示测试按钮（默认关，作者 2026-10-26 要求折叠）。</summary>
         public bool showTestOptions = false;
         /// <summary>0.3.3 开发开关：使用新版终端界面。迁移完成后默认开启并删除旧界面。</summary>
-        public bool useNewTerminalUi = false;
         // 新终端三根分隔条的比例
         public float uiLeftRatio = 0.24f;
         public float uiRightRatio = 0.22f;
@@ -179,10 +177,8 @@ namespace RimForex
             Scribe_Values.Look(ref gainMoodScale, "gainMoodScale", 1f);
             Scribe_Values.Look(ref marginCallMoodScale, "marginCallMoodScale", 1f);
             Scribe_Values.Look(ref showCostBreakdown, "showCostBreakdown", true);
-            Scribe_Values.Look(ref showTimeSpeedHint, "showTimeSpeedHint", true);
             Scribe_Values.Look(ref enableWorldEvents, "enableWorldEvents", true);
             Scribe_Values.Look(ref showTestOptions, "showTestOptions", false);
-            Scribe_Values.Look(ref useNewTerminalUi, "useNewTerminalUi", false);
             Scribe_Values.Look(ref uiLeftRatio, "uiLeftRatio", 0.24f);
             Scribe_Values.Look(ref uiRightRatio, "uiRightRatio", 0.22f);
             Scribe_Values.Look(ref uiBottomRatio, "uiBottomRatio", 0.20f);
@@ -277,10 +273,8 @@ namespace RimForex
             gainMoodScale = 1f;
             marginCallMoodScale = 1f;
             showCostBreakdown = true;
-            showTimeSpeedHint = true;
 
             showFloatingPnl = true;
-            useNewTerminalUi = false;
             uiLeftRatio = 0.24f;
             uiRightRatio = 0.22f;
             uiBottomRatio = 0.20f;
@@ -590,8 +584,6 @@ namespace RimForex
             if (Settings.showTestOptions)
             {
             l.Gap(12f);
-            l.CheckboxLabeled("RimForex_Set_UseNewUi".Translate(),
-                ref Settings.useNewTerminalUi, "RimForex_Set_UseNewUiTip".Translate());
             Text.Font = GameFont.Medium;
             l.Label("RimForex_SettingsNameTest".Translate());
             Text.Font = GameFont.Small;
@@ -669,8 +661,6 @@ namespace RimForex
 
             l.CheckboxLabeled("RimForex_Set_CostBreakdown".Translate(), ref Settings.showCostBreakdown,
                 "RimForex_Set_CostBreakdownTip".Translate());
-            l.CheckboxLabeled("RimForex_Set_TimeSpeed".Translate(), ref Settings.showTimeSpeedHint,
-                "RimForex_Set_TimeSpeedTip".Translate());
 
             // 悬浮盈亏窗（2026-10-20）：关掉终端时也能看到浮动盈亏
             l.CheckboxLabeled("RimForex_Set_FloatingPnl".Translate(), ref Settings.showFloatingPnl,

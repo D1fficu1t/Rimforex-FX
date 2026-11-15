@@ -4274,17 +4274,6 @@ namespace RimForex
                 MessageTypeDefOf.NeutralEvent, false);
         }
 
-        /// <summary>
-        /// 距离可以平仓还差多少 tick（0 = 现在就能平）。
-        /// 用于按钮上的实时倒计时，避免玩家以为按钮坏了。
-        /// </summary>
-        public int TicksUntilClosable(FxPosition pos)
-        {
-            if (pos == null) return 0;
-            int d = pos.closableAtTick - GenTicks.TicksGame;
-            return d < 0 ? 0 : d;
-        }
-
         /// <summary>上一次每日结算发生的绝对 tick。用于保证"每游戏日最多一次"。</summary>
         public int lastSettlementAbs = int.MinValue;
 

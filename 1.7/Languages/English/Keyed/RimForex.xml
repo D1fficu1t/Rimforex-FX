@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
-  <RimForex_Title>FX Trading Terminal</RimForex_Title>
   <RimForex_OpenTerminal>Open FX terminal</RimForex_OpenTerminal>
   <RimForex_OpenTerminalDesc>Connect to the interstellar FX exchange and trade faction currencies on margin.</RimForex_OpenTerminalDesc>
   <RimForex_NoPower>No power.</RimForex_NoPower>
@@ -14,34 +13,13 @@
   <RimForex_FreeMargin>Free margin</RimForex_FreeMargin>
   <RimForex_UsedMargin>Margin in use</RimForex_UsedMargin>
   <RimForex_FloatingPnl>Floating P/L</RimForex_FloatingPnl>
-  <RimForex_Deposit>Deposit silver</RimForex_Deposit>
-  <RimForex_Withdraw>Withdraw</RimForex_Withdraw>
-  <RimForex_StatusLine>Last settlement {0} silver / {1} position(s)</RimForex_StatusLine>
-  <RimForex_OpenSettings>Mod settings</RimForex_OpenSettings>
-  <RimForex_OpenSettingsTip>Open RimForex settings (display toggles, pacing sliders, mood multipliers, test buttons)</RimForex_OpenSettingsTip>
 
   <RimForex_TipMark>(?)</RimForex_TipMark>
   <RimForex_TipEquity>Free margin plus margin in use plus floating profit/loss. This is what you would walk away with if you closed everything now.</RimForex_TipEquity>
   <RimForex_TipFloat>Unrealised profit or loss on open positions, marked to the live rate. It becomes real silver the moment you close.</RimForex_TipFloat>
-  <RimForex_TipClose>Click to close this position at the current rate. A closing fee applies.</RimForex_TipClose>
 
-  <RimForex_ColPair>Pair</RimForex_ColPair>
-  <RimForex_ColFaction>Issuer</RimForex_ColFaction>
-  <RimForex_ColRate>Rate</RimForex_ColRate>
-  <RimForex_ColChange>Day %</RimForex_ColChange>
-  <RimForex_ColVol>Vol</RimForex_ColVol>
-  <RimForex_ColPosition>P/L</RimForex_ColPosition>
-  <RimForex_TipPosCell>{0} units open\nfloating P/L {1} silver</RimForex_TipPosCell>
 
-  <RimForex_ChartTitle>{0}</RimForex_ChartTitle>
-  <RimForex_PnlTag>P/L</RimForex_PnlTag>
-  <RimForex_CostTag>cost</RimForex_CostTag>
   <RimForex_PosRowTip>{0} units\nentry {1}   mark {2}   {3}x\n\nTotal floating P/L {4}\n  market P/L  {5}\n  entry cost  -{6}</RimForex_PosRowTip>
-  <RimForex_PosLineTip>Filled at {0}
-Closing now would get {1}
-Floating P/L {2} silver</RimForex_PosLineTip>
-  <RimForex_ChartBreakeven>break-even {0}</RimForex_ChartBreakeven>
-  <RimForex_ChartBreakevenTip>Break-even line for your {0} position, in mid price.\n\nYou filled at {1}, but since you pay the spread on both sides, mid must reach {2} before you are flat.</RimForex_ChartBreakevenTip>
   <RimForex_ChartNoData>Not enough history yet.</RimForex_ChartNoData>
   <RimForex_SpanHour>H</RimForex_SpanHour>
   <RimForex_SpanUnitHour>1 game hour</RimForex_SpanUnitHour>
@@ -49,21 +27,13 @@ Floating P/L {2} silver</RimForex_PosLineTip>
   <RimForex_SpanUnitMinute>{0} game minutes</RimForex_SpanUnitMinute>
   <RimForex_HoverUp>Up candle</RimForex_HoverUp>
   <RimForex_HoverDown>Down candle</RimForex_HoverDown>
-  <RimForex_HoverBody>open {0}    close {3}\nhigh {1}    low {2}</RimForex_HoverBody>
   <RimForex_HoverRange>range {0}    change {1}</RimForex_HoverRange>
   <RimForex_HoverForming>This candle is still forming and has not closed.\nEach candle covers {0}.</RimForex_HoverForming>
   <RimForex_ClearCandles>Clear</RimForex_ClearCandles>
   <RimForex_ClearCandlesTip>Wipes candle history for every currency (minute/hour/day) and restarts accumulation from the current price.\nUse it to compare chart shape before and after changing the market model. Rates, positions, balance and trade history are untouched.</RimForex_ClearCandlesTip>
   <RimForex_MsgCandlesCleared>Cleared candles for {0} currencies; re-accumulating from the current price.</RimForex_MsgCandlesCleared>
   <RimForex_ChartReset>Reset view</RimForex_ChartReset>
-  <RimForex_ChartNavTip>Mouse wheel: zoom in/out. Hover a candle: see its open, high, low and close.</RimForex_ChartNavTip>
-  <RimForex_ChartView>{0} candles shown   |   {1} each</RimForex_ChartView>
-  <RimForex_TimeHint>Game speed can be changed here - the chart follows it.</RimForex_TimeHint>
   <RimForex_All>All</RimForex_All>
-  <RimForex_DoDeposit>Deposit</RimForex_DoDeposit>
-  <RimForex_DoWithdraw>Withdraw</RimForex_DoWithdraw>
-  <RimForex_TipDeposit>Type how much silver to move from the map into your margin account. {0} silver is currently reachable.</RimForex_TipDeposit>
-  <RimForex_TipWithdraw>Type how much silver to take back out. It is dropped next to the terminal. Balance: {0}.</RimForex_TipWithdraw>
   <RimForex_Close>Close</RimForex_Close>
 
   <RimForex_MarginCallTitle>MARGIN WARNING</RimForex_MarginCallTitle>
@@ -75,8 +45,6 @@ Floating P/L {2} silver</RimForex_PosLineTip>
   <RimForex_MarginLater>Not now</RimForex_MarginLater>
   <RimForex_MsgMarginAdded>Added {1} silver of margin to {0}. Health is now {2}%.</RimForex_MsgMarginAdded>
 
-  <RimForex_HistoryBtn>History</RimForex_HistoryBtn>
-  <RimForex_HistoryBtnTip>Show recent closed trades: profit/loss, margin and fees.</RimForex_HistoryBtnTip>
   <RimForex_HistoryTitle>Trade History</RimForex_HistoryTitle>
   <RimForex_HistorySummary>{0} closed  |  {1} win / {2} loss  |  realised {3} silver  |  fees {4} silver  |  spread {5} silver</RimForex_HistorySummary>
   <RimForex_HistoryEmpty>No closed trades yet.</RimForex_HistoryEmpty>
@@ -88,23 +56,13 @@ Floating P/L {2} silver</RimForex_PosLineTip>
   <RimForex_HColFee>Fee</RimForex_HColFee>
   <RimForex_HColSpread>Spread</RimForex_HColSpread>
 
-  <RimForex_OrderFor>New order - {0}</RimForex_OrderFor>
   <RimForex_MarginInput>Margin</RimForex_MarginInput>
   <RimForex_Leverage>Leverage</RimForex_Leverage>
-  <RimForex_TipLevSafe>{0}x. Drag the slider to pick a step (1/2/3/5/8/10/15/20/30/50/75/100); the spread cost stays within a safe share of margin.</RimForex_TipLevSafe>
-  <RimForex_LevCap>Max {0}x</RimForex_LevCap>
-  <RimForex_TipLevUnsafe>Unavailable: the spread alone would consume {0}% of your margin, past the stop-out level. Safe limit for this pair is about {1}x.</RimForex_TipLevUnsafe>
   <RimForex_LevUnsafeNote>At this leverage the spread alone exceeds the stop-out level, so the position would be liquidated the moment it unlocks. Use {0}x or less.</RimForex_LevUnsafeNote>
   <RimForex_LevRiskyNote>HIGH RISK: stop-out {0}% &lt; daily move {1}%\n({2}x). Likely liquidated within hours.</RimForex_LevRiskyNote>
-  <RimForex_LineBidAsk>Buy {0} / Sell {1}   spread {2}%</RimForex_LineBidAsk>
-  <RimForex_LineSpreadCost>Spread cost on this size: {0} silver</RimForex_LineSpreadCost>
   <RimForex_LineUnits>Units: {0}</RimForex_LineUnits>
   <RimForex_LineNotional>Notional position: {0} silver  at  {1}x</RimForex_LineNotional>
-  <RimForex_LineMarginActual>Margin taken: {0} silver</RimForex_LineMarginActual>
-  <RimForex_LineFee>Fee: {0}% of notional = {1} silver</RimForex_LineFee>
   <RimForex_LineTotal>TOTAL COST (margin + fee): {0} silver   (free {1})</RimForex_LineTotal>
-  <RimForex_LineMaxMargin>Free margin available: {0} silver</RimForex_LineMaxMargin>
-  <RimForex_LineCompact>{0} units   |   notional {1}</RimForex_LineCompact>
   <RimForex_LineCompactTip>Spread cost {0} silver, margin taken {1} silver, fee {2} silver.</RimForex_LineCompactTip>
 
   <RimForex_TestNormalGap>Test: normal gap</RimForex_TestNormalGap>
@@ -149,8 +107,6 @@ Floating P/L {2} silver</RimForex_PosLineTip>
   <RimForex_SettingsHints>Interface hints</RimForex_SettingsHints>
   <RimForex_SettingsHintsDesc>These toggles only show or hide on-screen explanatory text. They do not change any numbers or game rules.</RimForex_SettingsHintsDesc>
   <RimForex_ChartStopOutOff>Stop-out {0} ({1}% off-chart)</RimForex_ChartStopOutOff>
-  <RimForex_ChartStopOut>Stop-out {0}</RimForex_ChartStopOut>
-  <RimForex_ChartStopOutTip>Stop-out line for your {0} position, in mid price.\n\nYou filled at {1}; if price reaches {2}, equity falls to 30% of the margin and the position is liquidated.\nStop-out distance is about {3}% (accounting for any added margin).</RimForex_ChartStopOutTip>
   <RimForex_Set_CostBreakdown>Order cost breakdown</RimForex_Set_CostBreakdown>
   <RimForex_Set_CostBreakdownTip>When off, the per-line cost details collapse into one compact line with a tooltip.</RimForex_Set_CostBreakdownTip>
   <RimForex_HudFloat>floating P/L</RimForex_HudFloat>
@@ -162,8 +118,6 @@ Floating P/L {2} silver</RimForex_PosLineTip>
   <RimForex_MsgNoTerminal>No powered FX trading terminal on this map.</RimForex_MsgNoTerminal>
   <RimForex_Set_FloatingPnl>Show floating P/L window</RimForex_Set_FloatingPnl>
   <RimForex_Set_FloatingPnlTip>Shows the floating P/L of your open positions in a screen corner while the terminal is closed. Drag it with the left mouse button; the position is remembered.</RimForex_Set_FloatingPnlTip>
-  <RimForex_Set_TimeSpeed>Game speed hint</RimForex_Set_TimeSpeed>
-  <RimForex_Set_TimeSpeedTip>Shows the note next to the embedded time controls at the bottom of the terminal.</RimForex_Set_TimeSpeedTip>
   <RimForex_Set_MoodHeader>Close-trade mood strength</RimForex_Set_MoodHeader>
   <RimForex_Set_LossMoodScale>Loss mood multiplier {0}</RimForex_Set_LossMoodScale>
   <RimForex_Set_LossMoodScaleHint>Base values: small -5 / medium -7 / big -10 / huge -15. Stacks multiply, so a triple huge loss is -45. Set to 0 to disable loss moods.</RimForex_Set_LossMoodScaleHint>
@@ -186,15 +140,12 @@ A blow-up (margin gone and balance pushed negative) is a heavier tier at base -2
   <RimForex_MsgNoMap>No map is currently open, so that test cannot run.</RimForex_MsgNoMap>
   <RimForex_Set_Reset>Reset to defaults</RimForex_Set_Reset>
   <RimForex_AllIn>ALL IN</RimForex_AllIn>
-  <RimForex_AllInTip>Uses every silver of free margin at the selected leverage. The margin actually taken may be slightly less, because units are whole numbers.</RimForex_AllInTip>
   <RimForex_Zero>Minimum</RimForex_Zero>
-  <RimForex_ZeroTip>Reset to the smallest margin that can still open 1 unit.</RimForex_ZeroTip>
   <RimForex_NotEnoughMargin>Not enough free margin (margin plus fee exceeds your balance).</RimForex_NotEnoughMargin>
   <RimForex_GoLong>Go long</RimForex_GoLong>
   <RimForex_GoShort>Go short</RimForex_GoShort>
   <RimForex_Long>long</RimForex_Long>
   <RimForex_Short>short</RimForex_Short>
-  <RimForex_Positions>Positions</RimForex_Positions>
 
   <RimForex_MsgOpened>Opened {1} {2} units of {0} at {3}. Fee {4} silver.</RimForex_MsgOpened>
   <RimForex_MsgClosed>Closed {0} position. P/L {1} silver, fee {2} silver.</RimForex_MsgClosed>
@@ -202,7 +153,6 @@ A blow-up (margin gone and balance pushed negative) is a heavier tier at base -2
   <RimForex_MsgGap>Price gap: {0} moved {1}% in a single quote</RimForex_MsgGap>
   <RimForex_MsgReportCopied>Copied {0} trades to the clipboard.</RimForex_MsgReportCopied>
   <RimForex_MsgReportCopyFailed>Copy failed: {0}</RimForex_MsgReportCopyFailed>
-  <RimForex_TipTooSoon>A new position has to survive one quote before it can be closed. Ready in {0}s.</RimForex_TipTooSoon>
   <RimForex_MsgDeposited>Deposited {0} silver as margin.</RimForex_MsgDeposited>
   <RimForex_MsgWithdrew>Withdrew {0} silver.</RimForex_MsgWithdrew>
   <RimForex_MsgNoSilver>No reachable silver on this map.</RimForex_MsgNoSilver>
@@ -280,8 +230,6 @@ This is a blow-up: the debt must be covered. Deposit silver at the terminal to b
   <RimForex_LetterLoanInterest>Loan interest −{0} silver</RimForex_LetterLoanInterest>
   <RimForex_LoanDefaultLabel>{0}: loan default</RimForex_LoanDefaultLabel>
   <!-- ================= 0.3.0 guide ================= -->
-  <RimForex_GuideButton>Beginner's guide</RimForex_GuideButton>
-  <RimForex_GuideButtonTip>Reopen any time. Covers choosing a direction, why positions get liquidated, and how to read candles.</RimForex_GuideButtonTip>
   <RimForex_GuideTitle>Beginner's guide</RimForex_GuideTitle>
   <RimForex_GuideIntro>Welcome to the Interstellar FX Terminal. This platform is for geniuses, people who want to get rich, and people with nerve. If you are one of them, welcome. If you are not, do not worry. Everyone starts as a beginner.\n\nTo improve your experience, we simplified the trading process. Because the factions on this planet are at very different tech levels, we do not require currency issuers to have a modern central bank. A tribal council, a medieval guild, an industrial central bank: whoever is in charge sets the rate. Shell strings, silver coins, credits: we provide free professional conversion into a single XAG quote. The platform buys the goods at a discount, then lists them for investors.\n\nThis platform has been voted the galaxy's best trading experience for 87 consecutive quarters (data collected by us).\n\nTrading takes three steps: pick the pair you want, predict the direction, press the button.</RimForex_GuideIntro>
   <RimForex_GuideLongTitle>1. When to buy (going long)</RimForex_GuideLongTitle>
@@ -445,7 +393,6 @@ We wish you a pleasant week.</RimForex_Ev7Attack>
 Let him reach the map edge, or put him down here. Either way, Collections will write back.</RimForex_Ev7Flee>
   <RimForex_Set_ShowTest>Show test options</RimForex_Set_ShowTest>
   <RimForex_Set_ShowTestTip>Debug buttons. Not needed for normal play.</RimForex_Set_ShowTestTip>
-  <RimForex_CarryRateInline>Overnight interest {0}%/day</RimForex_CarryRateInline>
   <RimForex_Set_EventCdSingle>Per-currency cooldown: {0} days</RimForex_Set_EventCdSingle>
   <RimForex_Set_E3RaidChance>Chance a prodigy draws a raid: {0}%</RimForex_Set_E3RaidChance>
   <RimForex_Set_E1RaidChance>Chance a buildup turns into a raid: {0}%</RimForex_Set_E1RaidChance>
@@ -454,7 +401,6 @@ Let him reach the map edge, or put him down here. Either way, Collections will w
   <RimForex_Ev6Foot>You can keep shorting their currency, or show some mercy, close the position and let this financial crisis end.\n\nIf you do neither, the raids will continue.</RimForex_Ev6Foot>
   <RimForex_TpShort>TP</RimForex_TpShort>
   <RimForex_SlShort>SL</RimForex_SlShort>
-  <RimForex_TpSlTip>Optional. Enter a price; judged on the directional price and closed at market when hit. Empty or 0 means off.</RimForex_TpSlTip>
   <RimForex_AllInWarn>All-in warning: after this order the margin balance will be dangerously low. Overnight interest can push it negative and the platform may liquidate you.</RimForex_AllInWarn>
   <RimForex_MsgTpHit>{0} hit take-profit and was closed. P/L {1} silver.</RimForex_MsgTpHit>
   <RimForex_MsgSlHit>{0} hit stop-loss and was closed. P/L {1} silver.</RimForex_MsgSlHit>
@@ -465,7 +411,6 @@ Let him reach the map edge, or put him down here. Either way, Collections will w
   <RimForex_TpSlClear>Clear</RimForex_TpSlClear>
   <RimForex_TpSlClose>Close</RimForex_TpSlClose>
   <RimForex_TpSlInvalid>Wrong side of the price: a long take-profit must be above the current price and its stop below, and vice versa for shorts.</RimForex_TpSlInvalid>
-  <RimForex_TpSlEditTip>Click this row to set take-profit / stop-loss.</RimForex_TpSlEditTip>
   <RimForex_HudKLineTip>Open or close the mini candlestick chart for this currency.</RimForex_HudKLineTip>
   <RimForex_SpanMinuteShort>M</RimForex_SpanMinuteShort>
   <RimForex_LineOnEntry>Entry on</RimForex_LineOnEntry>
@@ -475,10 +420,7 @@ Let him reach the map edge, or put him down here. Either way, Collections will w
   <RimForex_LineOnSo>Stop on</RimForex_LineOnSo>
   <RimForex_LineOffSo>Stop off</RimForex_LineOffSo>
   <RimForex_SpanDay>D</RimForex_SpanDay>
-  <RimForex_SplitterTip>Drag to resize the market table and the chart.</RimForex_SplitterTip>
-  <RimForex_HSplitterTip>Drag to resize the order panel; the table and chart resize with it.</RimForex_HSplitterTip>
   <RimForex_MsgTpSlReversed>Take-profit / stop-loss are on the wrong side: for a long, TP must be above the current price and SL below; for a short, the reverse. Please adjust before placing the order.</RimForex_MsgTpSlReversed>
-  <RimForex_CarryToday>Carry {0} silver/day</RimForex_CarryToday>
   <RimForex_MarginTo>Top up to</RimForex_MarginTo>
   <RimForex_MarginPreset>{0}% ({1})</RimForex_MarginPreset>
   <RimForex_MarginPresetShort>Not enough silver. Short by {0}.</RimForex_MarginPresetShort>
@@ -486,7 +428,6 @@ Let him reach the map edge, or put him down here. Either way, Collections will w
   <RimForex_ViewBoth>Both</RimForex_ViewBoth>
   <RimForex_ViewTable>Table</RimForex_ViewTable>
   <RimForex_ViewChart>Chart</RimForex_ViewChart>
-  <RimForex_TopBarViewTip>Switch between table and chart layouts.</RimForex_TopBarViewTip>
   <RimForex_Set_E3Cd>Prodigy cooldown: {0} days</RimForex_Set_E3Cd>
   <RimForex_Set_E4Cd>War news cooldown: {0} days</RimForex_Set_E4Cd>
   <RimForex_MiniResetTip>Reset to 40 candles. Use the mouse wheel to zoom.</RimForex_MiniResetTip>
@@ -515,20 +456,12 @@ Let him reach the map edge, or put him down here. Either way, Collections will w
   <RimForex_Ev11BreakLabel>{0} broke the peg</RimForex_Ev11BreakLabel>
   <RimForex_Ev11Break>{0}'s currency defense has failed. The peg was broken and the rate was repriced in one move.\n\n{0}'s {1} has suspended trading to steady the market.</RimForex_Ev11Break>
   <RimForex_MsgTradeHalted>{0} is suspended; trading is unavailable.</RimForex_MsgTradeHalted>
-  <RimForex_ChartHalted>(suspended)</RimForex_ChartHalted>
-  <RimForex_ChartPegged>(pegged)</RimForex_ChartPegged>
   <RimForex_TestHalt>Test: trading halt</RimForex_TestHalt>
   <RimForex_TestHaltTip>Halt a random currency for 6 hours; it gaps when trading resumes.</RimForex_TestHaltTip>
   <RimForex_MsgTestHalt>Halt fired.</RimForex_MsgTestHalt>
   <RimForex_TestPeg>Test: peg defense</RimForex_TestPeg>
   <RimForex_TestPegTip>Peg a random currency for 6 hours; on expiry it either holds or breaks.</RimForex_TestPegTip>
   <RimForex_MsgTestPeg>Peg fired.</RimForex_MsgTestPeg>
-  <RimForex_MsgPegged>{0} is pegged; movement inside the band is minimal.</RimForex_MsgPegged>
-  <RimForex_MarketSettleTip>{0}\n\nSettlement: {1}. The exchange buys the goods at a discount and converts them into an XAG quote.</RimForex_MarketSettleTip>
-  <RimForex_SettleTribal>shell strings and livestock</RimForex_SettleTribal>
-  <RimForex_SettleMedieval>silver coins and cloth</RimForex_SettleMedieval>
-  <RimForex_SettleIndustrial>promissory notes and credits</RimForex_SettleIndustrial>
-  <RimForex_SettleSpacer>on-chain credits</RimForex_SettleSpacer>
   <RimForex_Set_MerchantCd>Mystery merchant cooldown: {0} days</RimForex_Set_MerchantCd>
   <RimForex_MerchantTitle>Mystery merchant</RimForex_MerchantTitle>
   <RimForex_MerchantOffer>The stranger lowers his voice: there is inside information on {0}'s currency ({1}).\n\nPay me {2} silver and I will tell you whether it rises or falls over the next five days.\n\nWhether it is true is your problem.</RimForex_MerchantOffer>
@@ -563,9 +496,6 @@ Let him reach the map edge, or put him down here. Either way, Collections will w
   <RimForex_Ev11PegUp>{0}'s currency has risen {2}% over the past five days.\n\n{0}'s {1} has decided to hold the rate down inside a very narrow band.\n\nThere is little to gain inside the band, and overnight interest still applies.</RimForex_Ev11PegUp>
   <RimForex_Ev10ReopenUp>{0}'s currency has reopened with a miraculous surge.</RimForex_Ev10ReopenUp>
   <RimForex_Ev10ReopenDown>{0}'s currency has reopened and kept falling, harder than before the halt.</RimForex_Ev10ReopenDown>
-  <RimForex_ColChange5d>5d</RimForex_ColChange5d>
-  <RimForex_ColChangeQtr>Qtr</RimForex_ColChangeQtr>
-  <RimForex_ColChangeTip>Click to switch: daily / 5-day / quarter change.</RimForex_ColChangeTip>
   <RimForex_TestPegBreak>Test: peg break</RimForex_TestPegBreak>
   <RimForex_TestPegBreakTip>Peg a random currency for 6 hours; it is guaranteed to break on expiry (tests break gap → halt → reopen).</RimForex_TestPegBreakTip>
   <RimForex_MsgTestPegBreak>Guaranteed peg break scheduled.</RimForex_MsgTestPegBreak>
@@ -623,8 +553,6 @@ Let him reach the map edge, or put him down here. Either way, Collections will w
   <RimForex_FeeLoanDefault>Loan default ({0})</RimForex_FeeLoanDefault>
   <RimForex_DebtCollectorTalk>Talk</RimForex_DebtCollectorTalk>
   <RimForex_Ev7Think>Let me think</RimForex_Ev7Think>
-  <RimForex_Set_UseNewUi>Use the new terminal UI (work in progress)</RimForex_Set_UseNewUi>
-  <RimForex_Set_UseNewUiTip>The 0.3.3 rebuild, still being ported. Turn off to use the old interface.</RimForex_Set_UseNewUiTip>
   <RimForex_UiSettings>Settings</RimForex_UiSettings>
   <RimForex_UiResetLayout>Reset layout</RimForex_UiResetLayout>
   <RimForex_UiGuide>Guide</RimForex_UiGuide>

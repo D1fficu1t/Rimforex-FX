@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
-  <RimForex_Title>外汇交易终端</RimForex_Title>
   <RimForex_OpenTerminal>打开外汇终端</RimForex_OpenTerminal>
   <RimForex_OpenTerminalDesc>接入星际外汇平台，以保证金杠杆交易各派系货币。</RimForex_OpenTerminalDesc>
   <RimForex_NoPower>没有电力。</RimForex_NoPower>
@@ -14,42 +13,18 @@
   <RimForex_FreeMargin>可用保证金</RimForex_FreeMargin>
   <RimForex_UsedMargin>占用保证金</RimForex_UsedMargin>
   <RimForex_FloatingPnl>浮动盈亏</RimForex_FloatingPnl>
-  <RimForex_Deposit>存入白银</RimForex_Deposit>
-  <RimForex_Withdraw>提取</RimForex_Withdraw>
-  <RimForex_StatusLine>上次结算 {0} 白银 / {1} 个持仓</RimForex_StatusLine>
-  <RimForex_OpenSettings>模组设置</RimForex_OpenSettings>
-  <RimForex_OpenSettingsTip>打开 RimForex 的模组设置（显示开关、节奏滑块、心情倍率、测试按钮）</RimForex_OpenSettingsTip>
 
   <RimForex_TipMark>(?)</RimForex_TipMark>
   <RimForex_TipEquity>可用保证金 + 占用保证金 + 浮动盈亏。等于现在全部平仓能拿回的白银。</RimForex_TipEquity>
   <RimForex_TipFloat>未实现的盈亏，按最新汇率实时估值。平仓的那一刻就变成真金白银。</RimForex_TipFloat>
-  <RimForex_TipClose>点击按当前汇率平仓，会收取平仓手续费。</RimForex_TipClose>
 
-  <RimForex_ColPair>货币对</RimForex_ColPair>
-  <RimForex_ColFaction>发行方</RimForex_ColFaction>
-  <RimForex_ColRate>汇率</RimForex_ColRate>
-  <RimForex_ColChange>日涨跌%</RimForex_ColChange>
-  <RimForex_ColVol>波动</RimForex_ColVol>
-  <RimForex_ColPosition>盈亏</RimForex_ColPosition>
-  <RimForex_TipPosCell>持仓 {0} 单位\n浮动盈亏 {1} 白银</RimForex_TipPosCell>
 
-  <RimForex_ChartTitle>{0}</RimForex_ChartTitle>
-  <RimForex_PnlTag>盈亏</RimForex_PnlTag>
-  <RimForex_CostTag>成本</RimForex_CostTag>
   <RimForex_PosRowTip>{0} 单位
 开仓 {1}   现价 {2}   {3}x
 
 浮动盈亏合计 {4}
   纯行情盈亏 {5}
   入场成本   -{6}</RimForex_PosRowTip>
-  <RimForex_PosLineTip>开仓成交价 {0}
-按当前方向平仓可拿到 {1}
-浮动盈亏 {2} 白银</RimForex_PosLineTip>
-  <RimForex_ChartBreakeven>回本 {0}</RimForex_ChartBreakeven>
-  <RimForex_ChartBreakevenTip>{0}持仓的盈亏平衡线（按中间价）。
-
-成交价 {1}，但因为开仓吃点差、平仓再吃一次，
-中间价必须走到 {2} 才回本。</RimForex_ChartBreakevenTip>
   <RimForex_ChartNoData>历史数据还不够。</RimForex_ChartNoData>
   <RimForex_SpanHour>时K</RimForex_SpanHour>
   <RimForex_SpanUnitHour>1 游戏小时</RimForex_SpanUnitHour>
@@ -57,8 +32,6 @@
   <RimForex_SpanUnitMinute>{0} 游戏分钟</RimForex_SpanUnitMinute>
   <RimForex_HoverUp>收阳</RimForex_HoverUp>
   <RimForex_HoverDown>收阴</RimForex_HoverDown>
-  <RimForex_HoverBody>开 {0}    收 {3}
-高 {1}    低 {2}</RimForex_HoverBody>
   <RimForex_HoverRange>振幅 {0}    涨跌 {1}</RimForex_HoverRange>
   <RimForex_HoverForming>这是正在形成中的一根，尚未收盘。
 每根覆盖 {0}。</RimForex_HoverForming>
@@ -67,14 +40,7 @@
 用于对比行情模型改动前后的形态 —— 汇率、持仓、余额与交易历史都不受影响。</RimForex_ClearCandlesTip>
   <RimForex_MsgCandlesCleared>已清空 {0} 个货币的 K 线，将从当前价重新积累。</RimForex_MsgCandlesCleared>
   <RimForex_ChartReset>重置视图</RimForex_ChartReset>
-  <RimForex_ChartNavTip>滚轮：放大 / 缩小。鼠标悬停在某根K线上：显示该根的开高低收。</RimForex_ChartNavTip>
-  <RimForex_ChartView>显示 {0} 根   |   每根 {1}</RimForex_ChartView>
-  <RimForex_TimeHint>可在此直接调整游戏速度，K 线会跟着变。</RimForex_TimeHint>
   <RimForex_All>全部</RimForex_All>
-  <RimForex_DoDeposit>存入</RimForex_DoDeposit>
-  <RimForex_DoWithdraw>提取</RimForex_DoWithdraw>
-  <RimForex_TipDeposit>填写要从地图转入保证金账户的白银数量。当前地图上可取用 {0} 白银。</RimForex_TipDeposit>
-  <RimForex_TipWithdraw>填写要取回的白银数量，会掉落在终端旁边。当前余额 {0}。</RimForex_TipWithdraw>
   <RimForex_Close>平仓</RimForex_Close>
 
   <RimForex_MarginCallTitle>保证金不足警告</RimForex_MarginCallTitle>
@@ -86,8 +52,6 @@
   <RimForex_MarginLater>暂不处理</RimForex_MarginLater>
   <RimForex_MsgMarginAdded>已为 {0} 追加保证金 {1} 白银，健康度回升至 {2}%。</RimForex_MsgMarginAdded>
 
-  <RimForex_HistoryBtn>交易历史</RimForex_HistoryBtn>
-  <RimForex_HistoryBtnTip>查看最近已平仓的交易：盈亏、保证金、手续费。</RimForex_HistoryBtnTip>
   <RimForex_HistoryTitle>交易历史</RimForex_HistoryTitle>
   <RimForex_HistorySummary>已平仓 {0} 笔  |  盈 {1} / 亏 {2}  |  已实现 {3} 白银  |  手续费 {4} 白银  |  点差 {5} 白银</RimForex_HistorySummary>
   <RimForex_HistoryEmpty>还没有已平仓的交易。</RimForex_HistoryEmpty>
@@ -99,23 +63,13 @@
   <RimForex_HColFee>手续费</RimForex_HColFee>
   <RimForex_HColSpread>点差</RimForex_HColSpread>
 
-  <RimForex_OrderFor>新建订单 — {0}</RimForex_OrderFor>
   <RimForex_MarginInput>保证金</RimForex_MarginInput>
   <RimForex_Leverage>杠杆</RimForex_Leverage>
-  <RimForex_TipLevSafe>当前 {0}x。拖动滑块选档（1/2/3/5/8/10/15/20/30/50/75/100）；点差占保证金的比例在安全范围内。</RimForex_TipLevSafe>
-  <RimForex_LevCap>上限 {0}x</RimForex_LevCap>
-  <RimForex_TipLevUnsafe>不可用：点差占保证金的冲击会达到 {0}%，超过强平线。该品种的安全杠杆上限约 {1}x。</RimForex_TipLevUnsafe>
   <RimForex_LevUnsafeNote>此杠杆下点差冲击超出强平线，解锁瞬间会被强制平仓。建议改用 {0}x 以内。</RimForex_LevUnsafeNote>
   <RimForex_LevRiskyNote>高风险：强平距离 {0}% &lt; 日波动 {1}%（{2}倍）\n仓位大概率数小时内被强平。</RimForex_LevRiskyNote>
-  <RimForex_LineBidAsk>买入 {0} / 卖出 {1}   点差 {2}%</RimForex_LineBidAsk>
-  <RimForex_LineSpreadCost>此仓位承担的点差成本：{0} 白银</RimForex_LineSpreadCost>
   <RimForex_LineUnits>实际数量：{0} 单位</RimForex_LineUnits>
   <RimForex_LineNotional>名义仓位：{0} 白银（{1}x 杠杆）</RimForex_LineNotional>
-  <RimForex_LineMarginActual>实际占用保证金：{0} 白银</RimForex_LineMarginActual>
-  <RimForex_LineFee>手续费：名义仓位的 {0}% = {1} 白银</RimForex_LineFee>
   <RimForex_LineTotal>总计花费（保证金 + 手续费）：{0} 白银   （可用 {1}）</RimForex_LineTotal>
-  <RimForex_LineMaxMargin>可用保证金：{0} 白银</RimForex_LineMaxMargin>
-  <RimForex_LineCompact>{0} 单位   |   名义仓位 {1}</RimForex_LineCompact>
   <RimForex_LineCompactTip>点差成本 {0} 白银，实际占用保证金 {1} 白银，手续费 {2} 白银。</RimForex_LineCompactTip>
 
   <RimForex_TestNormalGap>测试：常规跳空</RimForex_TestNormalGap>
@@ -160,8 +114,6 @@
   <RimForex_SettingsHints>界面提示</RimForex_SettingsHints>
   <RimForex_SettingsHintsDesc>这些开关只控制屏幕上那些说明文字的显示与隐藏，不影响任何数值或规则。</RimForex_SettingsHintsDesc>
   <RimForex_ChartStopOutOff>爆仓 {0}（在框外 {1}%）</RimForex_ChartStopOutOff>
-  <RimForex_ChartStopOut>爆仓 {0}</RimForex_ChartStopOut>
-  <RimForex_ChartStopOutTip>{0}持仓的强制平仓线（按中间价）。\n\n开仓价 {1}，跌/涨到 {2} 时净值会掉到保证金的 30% 而被强平。\n强平距离约 {3}%（含追加保证金后的口径）。</RimForex_ChartStopOutTip>
   <RimForex_Set_CostBreakdown>下单成本明细</RimForex_Set_CostBreakdown>
   <RimForex_Set_CostBreakdownTip>关闭后，逐行的成本明细会压缩成一行，鼠标悬停可查看详情。</RimForex_Set_CostBreakdownTip>
   <RimForex_HudFloat>浮动盈亏</RimForex_HudFloat>
@@ -173,8 +125,6 @@
   <RimForex_MsgNoTerminal>当前地图上没有可用的 FX 交易终端（需要已建造并通电）。</RimForex_MsgNoTerminal>
   <RimForex_Set_FloatingPnl>显示悬浮盈亏窗</RimForex_Set_FloatingPnl>
   <RimForex_Set_FloatingPnlTip>关掉交易终端去干别的时，在屏幕角落显示当前持仓的浮动盈亏。窗口可以用鼠标左键拖动，位置会记住。</RimForex_Set_FloatingPnlTip>
-  <RimForex_Set_TimeSpeed>游戏速度提示</RimForex_Set_TimeSpeed>
-  <RimForex_Set_TimeSpeedTip>终端底部时间控制条旁边的那句说明。</RimForex_Set_TimeSpeedTip>
   <RimForex_Set_MoodHeader>平仓心情强度</RimForex_Set_MoodHeader>
   <RimForex_Set_LossMoodScale>亏损心情倍率 {0}</RimForex_Set_LossMoodScale>
   <RimForex_Set_LossMoodScaleHint>基准：小亏 -5 / 中亏 -7 / 大亏 -10 / 巨亏 -15。叠三层会翻倍，巨亏三层满为 -45。调到 0 即关闭亏损心情。</RimForex_Set_LossMoodScaleHint>
@@ -197,15 +147,12 @@
   <RimForex_MsgNoMap>当前没有打开的地图，无法执行该测试。</RimForex_MsgNoMap>
   <RimForex_Set_Reset>恢复默认</RimForex_Set_Reset>
   <RimForex_AllIn>梭哈</RimForex_AllIn>
-  <RimForex_AllInTip>在当前杠杆下用光全部可用保证金。实际占用可能略少，因为单位数必须是整数。</RimForex_AllInTip>
   <RimForex_Zero>最小值</RimForex_Zero>
-  <RimForex_ZeroTip>重置为"还能开 1 单位"的最小保证金。</RimForex_ZeroTip>
   <RimForex_NotEnoughMargin>可用保证金不足（保证金 + 手续费超过余额）。</RimForex_NotEnoughMargin>
   <RimForex_GoLong>做多</RimForex_GoLong>
   <RimForex_GoShort>做空</RimForex_GoShort>
   <RimForex_Long>多</RimForex_Long>
   <RimForex_Short>空</RimForex_Short>
-  <RimForex_Positions>当前持仓</RimForex_Positions>
 
   <RimForex_MsgOpened>已开仓：{1} {0} {2} 单位，成交价 {3}。手续费 {4} 白银。</RimForex_MsgOpened>
   <RimForex_MsgClosed>已平仓 {0}，盈亏 {1} 白银，手续费 {2} 白银。</RimForex_MsgClosed>
@@ -213,7 +160,6 @@
   <RimForex_MsgGap>行情跳空：{0} 一步变动 {1}%</RimForex_MsgGap>
   <RimForex_MsgReportCopied>已复制 {0} 笔交易报告到剪贴板。</RimForex_MsgReportCopied>
   <RimForex_MsgReportCopyFailed>复制失败：{0}</RimForex_MsgReportCopyFailed>
-  <RimForex_TipTooSoon>新持仓需要跨过一次报价才能平仓。还需 {0} 秒。</RimForex_TipTooSoon>
   <RimForex_MsgDeposited>已存入 {0} 白银作为保证金。</RimForex_MsgDeposited>
   <RimForex_MsgWithdrew>已提取 {0} 白银。</RimForex_MsgWithdrew>
   <RimForex_MsgNoSilver>本地图上没有可存入的白银。</RimForex_MsgNoSilver>
@@ -291,8 +237,6 @@
   <RimForex_LetterLoanInterest>贷款利息 −{0} 银</RimForex_LetterLoanInterest>
   <RimForex_LoanDefaultLabel>{0}：贷款违约</RimForex_LoanDefaultLabel>
   <!-- ================= 0.3.0 新手教程 ================= -->
-  <RimForex_GuideButton>新手教程</RimForex_GuideButton>
-  <RimForex_GuideButtonTip>随时可以重新打开。讲怎么判断方向、为什么会爆仓、K 线怎么看。</RimForex_GuideButtonTip>
   <RimForex_GuideTitle>新手教程</RimForex_GuideTitle>
   <RimForex_GuideIntro>欢迎使用星际外汇终端。本平台适合人群：天才、想发财的人、有魄力的人。如果你是其中一个——欢迎你。如果你不是——别灰心，谁不是从小白开始的呢？\n\n关于本平台的业务，为了提升客户们的体验，我们简化了交易流程。由于本星球的各阵营科技发展参差不齐，我们不要求各货币发布方有现代央行。部落的议事会、中世纪的行会、工业派的央行，谁说了算谁定汇率。如贝壳串、银币、信用点，我们提供免费专业的中转服务，将这些折算成统一的 XAG 报价。平台先按折扣收购实物，再挂牌卖给投资者。\n\n本平台已连续 87 个季度蝉联银河最佳交易体验平台（数据由本平台自行统计）。\n\n交易只有三步：选你要买什么货币对、预判涨跌、按下去。</RimForex_GuideIntro>
   <RimForex_GuideLongTitle>一、什么时候买涨（做多）</RimForex_GuideLongTitle>
@@ -460,7 +404,6 @@
 让他跑出地图，或者在这里把他放倒。两种结局，清算部都会给你回信。</RimForex_Ev7Flee>
   <RimForex_Set_ShowTest>显示测试选项</RimForex_Set_ShowTest>
   <RimForex_Set_ShowTestTip>调试用按钮，正常游玩不需要开。</RimForex_Set_ShowTestTip>
-  <RimForex_CarryRateInline>隔夜利息 {0}%/日</RimForex_CarryRateInline>
   <RimForex_Set_EventCdSingle>单货币冷却：{0} 日</RimForex_Set_EventCdSingle>
   <RimForex_Set_E3RaidChance>外汇奇才招来袭击的概率：{0}%</RimForex_Set_E3RaidChance>
   <RimForex_Set_E1RaidChance>军备采购异常触发袭击的概率：{0}%</RimForex_Set_E1RaidChance>
@@ -469,7 +412,6 @@
   <RimForex_Ev6Foot>你可以继续做空他们的货币，或者大发慈悲平仓，让这场金融危机停下来。\n\n如果不那样做，袭击会持续发生。</RimForex_Ev6Foot>
   <RimForex_TpShort>止盈</RimForex_TpShort>
   <RimForex_SlShort>止损</RimForex_SlShort>
-  <RimForex_TpSlTip>可选。填价格，按方向价判定，触发时按市价平仓。留空或 0 表示不设。</RimForex_TpSlTip>
   <RimForex_AllInWarn>梭哈警告：下单后保证金余额严重不足，隔夜利息就可能把余额推成负数，随后被平台强制清算。</RimForex_AllInWarn>
   <RimForex_MsgTpHit>{0} 触及止盈，已平仓，盈亏 {1} 白银。</RimForex_MsgTpHit>
   <RimForex_MsgSlHit>{0} 触及止损，已平仓，盈亏 {1} 白银。</RimForex_MsgSlHit>
@@ -480,7 +422,6 @@
   <RimForex_TpSlClear>清除</RimForex_TpSlClear>
   <RimForex_TpSlClose>关闭</RimForex_TpSlClose>
   <RimForex_TpSlInvalid>价格方向不对：做多的止盈要在现价之上、止损之下，做空反过来。</RimForex_TpSlInvalid>
-  <RimForex_TpSlEditTip>点击这一行可以设置止盈 / 止损。</RimForex_TpSlEditTip>
   <RimForex_HudKLineTip>打开/关闭这个货币的小 K 线窗口。</RimForex_HudKLineTip>
   <RimForex_SpanMinuteShort>分K</RimForex_SpanMinuteShort>
   <RimForex_LineOnEntry>开仓✓</RimForex_LineOnEntry>
@@ -490,10 +431,7 @@
   <RimForex_LineOnSo>爆仓✓</RimForex_LineOnSo>
   <RimForex_LineOffSo>爆仓✗</RimForex_LineOffSo>
   <RimForex_SpanDay>日K</RimForex_SpanDay>
-  <RimForex_SplitterTip>拖动这里可以调整货币表和 K 线的宽度。</RimForex_SplitterTip>
-  <RimForex_HSplitterTip>拖动这里可以压缩/放大下单区，K 线与货币表同步变高变矮。</RimForex_HSplitterTip>
   <RimForex_MsgTpSlReversed>止盈 / 止损填反了方向：做多的止盈要高于现价、止损要低于现价，做空反过来。请调整后再下单。</RimForex_MsgTpSlReversed>
-  <RimForex_CarryToday>持仓利息 {0} 白银/日</RimForex_CarryToday>
   <RimForex_MarginTo>补到</RimForex_MarginTo>
   <RimForex_MarginPreset>{0}% ({1})</RimForex_MarginPreset>
   <RimForex_MarginPresetShort>余额不足，还差 {0} 白银。</RimForex_MarginPresetShort>
@@ -501,7 +439,6 @@
   <RimForex_ViewBoth>表 + 图</RimForex_ViewBoth>
   <RimForex_ViewTable>只看表</RimForex_ViewTable>
   <RimForex_ViewChart>只看图</RimForex_ViewChart>
-  <RimForex_TopBarViewTip>切换货币表与 K 线的显示方式。</RimForex_TopBarViewTip>
   <RimForex_Set_E3Cd>外汇奇才冷却：{0} 日</RimForex_Set_E3Cd>
   <RimForex_Set_E4Cd>战争新闻冷却：{0} 日</RimForex_Set_E4Cd>
   <RimForex_MiniResetTip>把蜡烛数量恢复为 40 根。滚轮可以缩放。</RimForex_MiniResetTip>
@@ -530,20 +467,12 @@
   <RimForex_Ev11BreakLabel>{0} 汇率失守</RimForex_Ev11BreakLabel>
   <RimForex_Ev11Break>{0} 的汇率保卫战失败，钉住区间被击穿，汇价一次性重估。\n\n{0} 的{1}随即宣布暂停外汇交易，以稳定市场。</RimForex_Ev11Break>
   <RimForex_MsgTradeHalted>{0} 停牌中，无法交易。</RimForex_MsgTradeHalted>
-  <RimForex_ChartHalted>（停牌）</RimForex_ChartHalted>
-  <RimForex_ChartPegged>（钉住）</RimForex_ChartPegged>
   <RimForex_TestHalt>测试：停牌</RimForex_TestHalt>
   <RimForex_TestHaltTip>让一个随机货币停牌 6 小时，复牌时跳空。</RimForex_TestHaltTip>
   <RimForex_MsgTestHalt>已触发停牌。</RimForex_MsgTestHalt>
   <RimForex_TestPeg>测试：汇率保卫战</RimForex_TestPeg>
   <RimForex_TestPegTip>钉住一个随机货币 6 小时，到期掷骰决定守住还是破位。</RimForex_TestPegTip>
   <RimForex_MsgTestPeg>已触发钉住。</RimForex_MsgTestPeg>
-  <RimForex_MsgPegged>{0} 正在钉住汇率，区间内波动极小。</RimForex_MsgPegged>
-  <RimForex_MarketSettleTip>{0}\n\n结算方式：{1}。交易所按折扣收购实物，再折算成 XAG 报价。</RimForex_MarketSettleTip>
-  <RimForex_SettleTribal>贝壳串与牲畜</RimForex_SettleTribal>
-  <RimForex_SettleMedieval>银币与布匹</RimForex_SettleMedieval>
-  <RimForex_SettleIndustrial>本票与信用点</RimForex_SettleIndustrial>
-  <RimForex_SettleSpacer>链上信用点</RimForex_SettleSpacer>
   <RimForex_Set_MerchantCd>神秘商人冷却：{0} 日</RimForex_Set_MerchantCd>
   <RimForex_MerchantTitle>神秘商人</RimForex_MerchantTitle>
   <RimForex_MerchantOffer>来人压低声音：{0} 的货币（{1}）有些内幕。\n\n付我 {2} 白银，我就告诉你它接下来五天是涨还是跌。\n\n准不准，你自己判断。</RimForex_MerchantOffer>
@@ -578,9 +507,6 @@
   <RimForex_Ev11PegUp>{0} 的货币最近 5 天上涨了 {2}%。\n\n{0} 的{1}决定压住汇率，把汇价限制在一个很窄的区间内。\n\n区间里几乎无利可图，还要照付隔夜利息。</RimForex_Ev11PegUp>
   <RimForex_Ev10ReopenUp>{0} 的货币复牌。开盘即出现奇迹般的大涨。</RimForex_Ev10ReopenUp>
   <RimForex_Ev10ReopenDown>{0} 的货币复牌。开盘就继续下跌，跌势比停牌前更凶。</RimForex_Ev10ReopenDown>
-  <RimForex_ColChange5d>5日</RimForex_ColChange5d>
-  <RimForex_ColChangeQtr>象</RimForex_ColChangeQtr>
-  <RimForex_ColChangeTip>点击切换：日涨跌 / 5 日涨跌 / 象（15 日）涨跌。</RimForex_ColChangeTip>
   <RimForex_TestPegBreak>测试：保卫战破位</RimForex_TestPegBreak>
   <RimForex_TestPegBreakTip>钉住一个随机货币 6 小时，到期必定破位（用于测试破位跳空 → 停牌 → 复牌）。</RimForex_TestPegBreakTip>
   <RimForex_MsgTestPegBreak>已安排必定破位的保卫战。</RimForex_MsgTestPegBreak>
@@ -638,8 +564,6 @@
   <RimForex_FeeLoanDefault>贷款违约（{0}）</RimForex_FeeLoanDefault>
   <RimForex_DebtCollectorTalk>谈谈</RimForex_DebtCollectorTalk>
   <RimForex_Ev7Think>让我想想</RimForex_Ev7Think>
-  <RimForex_Set_UseNewUi>使用新版终端界面（开发中）</RimForex_Set_UseNewUi>
-  <RimForex_Set_UseNewUiTip>0.3.3 重构中的界面，功能仍在迁移。关闭后回到旧界面。</RimForex_Set_UseNewUiTip>
   <RimForex_UiSettings>设置</RimForex_UiSettings>
   <RimForex_UiResetLayout>重置布局</RimForex_UiResetLayout>
   <RimForex_UiGuide>教程</RimForex_UiGuide>

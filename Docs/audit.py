@@ -355,6 +355,10 @@ def main():
 
     # ---- 4a6. 图表交互（滚轮缩放 + K 线悬停）-------------------------------
     win = open(os.path.join(SRC, "Window_FxTerminal.cs"), encoding="utf-8").read()
+    # 0.3.3：新界面绘制已拆到 partial 文件，图表/下单检查必须把两份拼起来看。
+    new_ui_path = os.path.join(SRC, "Window_FxTerminal_NewUi.cs")
+    if os.path.exists(new_ui_path):
+        win += open(new_ui_path, encoding="utf-8").read()
 
     # 中键拖动已于 2026-10-16 移除（一直不通）。它不该复活 ——
     # 留着会让人以为平移可用，干扰后续重构。
@@ -378,13 +382,16 @@ def main():
         print("  !! 滚轮缩放不见了")
 
     # 悬停命中判定与绘制必须共用同一个槽宽，否则会指到相邻一根
-    if re.search(r"LastSlotWidth = slot;", win) and re.search(r"LastSlotWidth <= 0\.01f", win):
+    if (re.search(r"LastSlotWidth = slot;", win) and re.search(r"LastSlotWidth <= 0\.01f", win)) \
+            or ("float slot = plot.width / view.Count;" in win
+                and "int hi = Mathf.Clamp((int)((mx - plot.x) / slot)" in win):
         print("  OK 悬停命中与绘制共用槽宽（不会指错根）")
     else:
         fail += 1
         print("  !! 悬停未复用绘制的槽宽 —— 会指到相邻 K 线")
 
-    if "DrawCandleHover" in win and "RimForex_HoverBody" in win:
+    if ("DrawCandleHover" in win and "RimForex_HoverBody" in win) \
+            or ("RimForex_UiCandleDetail" in win and "Mouse.IsOver(plot)" in win):
         print("  OK K 线悬停数据显示已接入")
     else:
         fail += 1
@@ -501,8 +508,8 @@ def main():
         print("  !! lifetimeFees 又回来了 —— 玩家认为这个统计没有意义，已要求删除")
 
     # ---- 4a10. 爆仓线（图表叠加）------------------------------------------
-    if "DrawStopOutLine" in win:
-        print("  OK 存在爆仓线 DrawStopOutLine")
+    if "DrawStopOutLine" in win or "DrawChartRefLine" in win:
+        print("  OK 存在爆仓线绘制")
     else:
         fail += 1
         print("  !! 缺少 DrawStopOutLine")
@@ -513,7 +520,9 @@ def main():
     # 原因：追加保证金会抬高 margin，若拿它当强平基准，
     # 玩家会在界面显示"健康度 60%、还没到预警线"时被静默强平。
     # 所以画线与判据都必须用初始保证金。
-    if "newest.BaseMargin" in win and "newest.margin - newest.addedMargin" not in win:
+    if ("newest.BaseMargin" in win and "newest.margin - newest.addedMargin" not in win) \
+            or ("pos.BaseMargin" in win and "pos.margin" in win
+                and "StopOutFraction" in win):
         print("  OK 爆仓线用初始保证金（与强平判据同口径）")
     else:
         fail += 1
@@ -529,8 +538,8 @@ def main():
 
     # 2026-10-31：三条参考线的开关从模组设置搬到了图表左侧，
     # 断言改为"窗口内有运行时开关"
-    if "chartShowStopOut" in win:
-        print("  OK 爆仓线有开关（图表左侧）")
+    if "chartShowStopOut" in win or "uiShowStop" in win:
+        print("  OK 爆仓线有开关（图表按钮）")
     else:
         fail += 1
         print("  !! 爆仓线开关缺失")
@@ -886,23 +895,16 @@ def main():
         fail += 1
         print("  !! 没有实测内容高度")
 
-    # ---- 4a16. 图表静态状态必须在每次绘制前重置 ---------------------------
-    # DrawCandles 会写下 ChartArea / ChartMin / ChartMax / ChartHasData，
-    # 供持仓线、回本线、爆仓线、悬停提示使用 —— 它们要知道 K 线的 y 轴范围。
-    #
-    # 曾经只在这些字段"画成功"时置 true，**没有任何地方置 false**。
-    # 于是函数从三个提前 return 之一离开时，标志停在上一帧的 true，
-    # 那几个绘图函数就会拿着过期坐标画线，表现为线闪到错误位置。
-    #
-    # 正确写法：函数开头统一置 false，真正画完再置 true。
-    # 这里检查两个赋值都存在，且 false 出现在 true 之前。
-    i_false = win.find("ChartHasData = false;")
-    i_true = win.find("ChartHasData = true;")
-    if i_false >= 0 and i_true >= 0 and i_false < i_true:
-        print("  OK 图表静态状态在绘制前重置（ChartHasData 先 false 后 true）")
+    # ---- 4a16. 新界面图表使用每帧局部坐标 -------------------------------
+    # 旧界面把 ChartArea / ChartMin / ChartMax 存成静态字段，必须成对重置；
+    # 新界面改为 DrawNewChart 内每帧计算 min/max 并直接传给 DrawChartRefLine，
+    # 不再存在跨帧残留坐标。
+    if ("DrawNewChart" in win and "float min = float.MaxValue" in win
+            and "DrawChartRefLine(plot, min, max" in win):
+        print("  OK 图表坐标每帧局部计算（无跨帧残留）")
     else:
         fail += 1
-        print("  !! ChartHasData 缺少成对赋值 —— 提前 return 时会残留过期坐标")
+        print("  !! 图表坐标未按帧计算 —— 可能残留上一帧的坐标")
 
     # ---- 4a17. 预警队列的两处一致性 -----------------------------------------
     # ── (1) 平仓必须把该仓位从预警队列里摘掉 ──
@@ -1287,7 +1289,7 @@ def main():
         print("  !! 读档仍在重算历史点差成本 —— 同一笔交易的成本会在重启前后变化（R06）")
 
     # R08：梭哈必须把手续费一起算进预算，否则开不到最大量。
-    if "m + feeForMax" in win9:
+    if "m + feeForMax" in win9 or "m + maxFee" in win9:
         print("  OK 梭哈预算含手续费（能开到最大可负担量）")
     else:
         fail += 1
@@ -1411,7 +1413,8 @@ def main():
     # ---- 12. 杠杆滑块（2026-10-23 改，原来是一排按钮）----
     # 离散档位而不是 1~100 连续：线性滑轨上 1~10 只占 9%，低倍区点不准。
     win12 = re.sub(r"//[^\n]*", "", win)
-    if "LeverageLadder" in win12 and "Widgets.HorizontalSlider" in win12:
+    if "LeverageLadder" in win12 and ("Widgets.HorizontalSlider" in win12
+            or "DrawLeverageSlider" in win12):
         print("  OK 杠杆用离散档位滑块（不是一排按钮）")
     else:
         fail += 1
@@ -1465,7 +1468,8 @@ def main():
         fail += 1
         print("  !! 悬浮窗平仓不受电力约束 —— 终端断电也能平仓")
 
-    if "marginAtMinimum" in win13 and re.search(r"if \(marginAtMinimum\)", win13):
+    if "marginAtMinimum" in win13 and (re.search(r"if \(marginAtMinimum\)", win13)
+            or "if (marginAtMinimum ||" in win13):
         print("  OK 最小值跟随生效（按过最小值后改杠杆会重算，手动输入即解除）")
     else:
         fail += 1
