@@ -1138,6 +1138,9 @@ namespace RimForex
                 float orderCarry = Mathf.Abs(units) * ask
                     * FxGameComponent.DefaultCarryRate;
                 float carryPerDay = fx.DailyCarryFor(account) + orderCarry;
+                float custodyPerDay = Mathf.Max(0f,
+                    account.balance - FxGameComponent.CustodyFree)
+                    * FxGameComponent.CustodyRate;
                 float loanInterestPerDay = 0f;
                 for (int li = 0; li < account.loans.Count; li++)
                 {
@@ -1151,6 +1154,10 @@ namespace RimForex
                 FxTheme.Tiny(new Rect(x, y, w, 16f),
                     "RimForex_OrderCarryLine".Translate(
                         carryPerDay.ToString("F2")), FxTheme.Muted);
+                y += 16f;
+                FxTheme.Tiny(new Rect(x, y, w, 16f),
+                    "RimForex_OrderCustodyLine".Translate(
+                        custodyPerDay.ToString("F2")), FxTheme.Muted);
                 y += 16f;
                 FxTheme.Tiny(new Rect(x, y, w, 16f),
                     "RimForex_OrderLoanLine".Translate(

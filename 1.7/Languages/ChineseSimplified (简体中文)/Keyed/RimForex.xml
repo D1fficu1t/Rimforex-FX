@@ -723,6 +723,7 @@
   <RimForex_MsgTestResolved>已把进行中的停牌/钉住推进到结算点。</RimForex_MsgTestResolved>
   <RimForex_MsgTestResolveNone>当前没有进行中的停牌或钉住。</RimForex_MsgTestResolveNone>
   <RimForex_TestResolveStatesTip>不会直接清空状态，而是让复牌跳空或保卫战结果在下一秒按正常流程发生。</RimForex_TestResolveStatesTip>
-  <RimForex_OrderCarryLine>隔夜利息 {0}/日</RimForex_OrderCarryLine>
+  <RimForex_OrderCarryLine>持仓利息 {0}/日</RimForex_OrderCarryLine>
   <RimForex_OrderLoanLine>贷款利息 {0}/日</RimForex_OrderLoanLine>
+  <RimForex_OrderCustodyLine>托管费 {0}/日</RimForex_OrderCustodyLine>
 </LanguageData>
