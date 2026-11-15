@@ -158,7 +158,8 @@ namespace RimForex
                     {
                         DrawLine(area, min, max, mid0,
                             new Color(FxTheme.Warning.r, FxTheme.Warning.g,
-                                FxTheme.Warning.b, 0.75f));
+                                FxTheme.Warning.b, 0.75f),
+                            false, 1f, true);
                     }
                     if (showBreakeven)
                     {
@@ -178,7 +179,8 @@ namespace RimForex
                         float soMid = markStop / denom;
                         DrawLine(area, min, max, soMid,
                             new Color(FxTheme.Short.r, FxTheme.Short.g,
-                                FxTheme.Short.b, 0.9f), true);
+                                FxTheme.Short.b, 0.9f),
+                            true, 1f, true);
 
                         if (soMid < min || soMid > max)
                         {
@@ -329,7 +331,8 @@ namespace RimForex
         }
 
         private static void DrawLine(Rect area, float min, float max, float price,
-            Color col, bool clampToEdge = false, float thickness = 1f)
+            Color col, bool clampToEdge = false, float thickness = 1f,
+            bool dashed = false)
         {
             float y;
             if (price < min)
@@ -346,8 +349,19 @@ namespace RimForex
             {
                 y = PriceToY(price, min, max, area);
             }
-            FxTheme.Fill(new Rect(area.x, y - (thickness - 1f) * 0.5f,
-                area.width, thickness), col);
+            if (dashed)
+            {
+                for (float x = area.x; x < area.xMax; x += 6f)
+                {
+                    FxTheme.Fill(new Rect(x, y, Mathf.Min(3f, area.xMax - x),
+                        thickness), col);
+                }
+            }
+            else
+            {
+                FxTheme.Fill(new Rect(area.x, y - (thickness - 1f) * 0.5f,
+                    area.width, thickness), col);
+            }
         }
 
         private static float PriceToY(float price, float min, float max, Rect area)

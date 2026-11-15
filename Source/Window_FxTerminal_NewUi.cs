@@ -24,6 +24,7 @@ namespace RimForex
         private int uiDragSplit;
         private int uiBottomTab;
         private float uiBottomScroll;
+        private FxPosition uiChartPosition;
         private int uiChangeMode;          // 0 日 / 1 五日 / 2 象
         private bool uiAllIn;
         private float uiMarketScroll;
@@ -87,13 +88,23 @@ namespace RimForex
             Rect content = new Rect(inRect.x + 1f, title.yMax,
                 inRect.width - 2f, inRect.height - UiTitleH - 1f);
 
-            Rect accountRect = new Rect(content.x, content.y, content.width, UiAccountH);
+            bool inDebt = account != null && account.balance < 0f;
+            bool frozenAccount = account != null
+                && account.frozenUntilTick > GenTicks.TicksGame;
+            float accountH = UiAccountH + (inDebt ? 18f : 0f)
+                + (frozenAccount ? 18f : 0f);
+            Rect accountRect = new Rect(content.x, content.y, content.width, accountH);
             DrawNewAccountStrip(accountRect, fx);
 
-            float maxBottom = content.height - UiAccountH - 260f;
-            float bottomH = Mathf.Clamp(content.height * uiBottomRatio, 120f, Mathf.Max(120f, maxBottom));
-            Rect bottomRect = new Rect(content.x, content.yMax - bottomH,
+            const float timeH = 32f;
+            float bottomLimit = content.yMax - timeH;
+            float maxBottom = content.height - accountH - 260f;
+            float bottomH = Mathf.Clamp(content.height * uiBottomRatio, 120f,
+                Mathf.Max(120f, maxBottom));
+            Rect bottomRect = new Rect(content.x, bottomLimit - bottomH,
                 content.width, bottomH);
+            Rect timeRect = new Rect(content.x, content.yMax - timeH,
+                content.width, timeH);
 
             float mainY = accountRect.yMax + 8f;
             float mainH = bottomRect.y - 8f - mainY;
@@ -111,6 +122,7 @@ namespace RimForex
                 else DrawNewChart(bigRect, fx);
                 DrawNewOrder(orderRect, fx);
                 DrawNewBottom(bottomRect, fx);
+                DrawNewTimeBar(timeRect);
                 FxTooltip.Draw();
                 return;
             }
@@ -129,6 +141,7 @@ namespace RimForex
             DrawNewChart(centerRect, fx);
             DrawNewOrder(rightRect, fx);
             DrawNewBottom(bottomRect, fx);
+            DrawNewTimeBar(timeRect);
 
             // ── 两根竖向分隔条 ──
             Rect leftHit = new Rect(leftRect.xMax, mainRect.y, 8f, mainRect.height);
@@ -357,12 +370,37 @@ namespace RimForex
             for (int i = 0; i < labels.Length; i++)
             {
                 float x = r.x + pad + i * colW;
-                FxTheme.Tiny(new Rect(x, r.y + 9f, colW - 8f, 16f), labels[i], FxTheme.Muted);
+                string label = labels[i];
+                if (i == 0 || i == 3)
+                {
+                    label += " " + "RimForex_TipMark".Translate();
+                }
+                Rect labelRect = new Rect(x, r.y + 9f, colW - 8f, 16f);
+                FxTheme.Tiny(labelRect, label, FxTheme.Muted);
+                if (i == 0) FxTooltip.Tip(labelRect, "RimForex_TipEquity".Translate());
+                else if (i == 3) FxTooltip.Tip(labelRect, "RimForex_TipFloat".Translate());
                 Color c = (i == 3 || i == 4) ? FxTheme.PnlColor(values[i])
                     : FxTheme.TextColor;
                 FxTheme.Label(new Rect(x, r.y + 27f, colW - 8f, 26f),
                     i == 5 ? values[i].ToString("0") : values[i].ToString("F0"),
                     GameFont.Medium, c, TextAnchor.UpperLeft);
+            }
+
+            if (account.balance < 0f)
+            {
+                FxTheme.Tiny(new Rect(r.x + pad, r.yMax - 18f, r.width - pad * 2f, 16f),
+                    "RimForex_DebtWarning".Translate(
+                        (-account.balance).ToString("F0")), FxTheme.Short);
+            }
+            if (account.frozenUntilTick > GenTicks.TicksGame)
+            {
+                int frozenDays = (account.frozenUntilTick - GenTicks.TicksGame)
+                    / FxGameComponent.TicksPerDay + 1;
+                FxTheme.Tiny(new Rect(r.x + pad,
+                        r.yMax - (account.balance < 0f ? 34f : 18f),
+                        r.width - pad * 2f, 16f),
+                    "RimForex_FrozenWarning".Translate(frozenDays.ToString()),
+                    FxTheme.Accent);
             }
             float bx = r.xMax - pad - btnW;
             if (FxWidgets.Button(new Rect(bx, r.y + 14f, btnW, 28f),
@@ -376,6 +414,18 @@ namespace RimForex
                 OpenCashTransfer(false);
             }
             FxTheme.HLine(r.x, r.xMax, r.yMax - 1f, FxTheme.Line);
+        }
+
+        private void DrawNewTimeBar(Rect r)
+        {
+            FxTheme.HLine(r.x, r.xMax, r.y, FxTheme.Line);
+            Rect buttons = new Rect(r.x + 4f,
+                r.y + (r.height - TimeControls.TimeButSize.y) * 0.5f,
+                TimeControls.TimeButSize.x * 4f, TimeControls.TimeButSize.y);
+            TimeControls.DoTimeControlsGUI(buttons);
+            FxTheme.Tiny(new Rect(buttons.xMax + 10f, r.y + 7f,
+                    r.width - buttons.width - 20f, 16f),
+                "RimForex_TimeHint".Translate(), FxTheme.Muted);
         }
 
         private void OpenCashTransfer(bool deposit)
@@ -406,7 +456,8 @@ namespace RimForex
 
         private void DrawNewMarket(Rect r, List<FxCurrency> currencies)
         {
-            FxWidgets.Panel(r);
+            FxTheme.Fill(r, new Color32(20, 27, 36, 255));
+            FxTheme.Border(r, FxTheme.LineHi);
             FxWidgets.SectionHeader(r, "RimForex_UiMarket".Translate());
 
             float headY = r.y + 34f;
@@ -582,6 +633,20 @@ namespace RimForex
                     "RimForex_ChartReset".Translate(), true, font: GameFont.Tiny))
             {
                 chartCandles = 60;
+                ResetUiLayout();
+            }
+
+            FxCurrency chartCur = fx.market.Get(selectedFactionId);
+            if (chartCur != null && tgX > r.x + 172f)
+            {
+                string chartTitle = Truncate(chartCur.PairLabel, 16);
+                if (fx.CurrencyHalted(chartCur))
+                    chartTitle += "  " + "RimForex_UiStatusHalt".Translate();
+                else if (chartCur.pegUntilTick > GenTicks.TicksGame)
+                    chartTitle += "  " + "RimForex_UiStatusPeg".Translate();
+                FxTheme.Tiny(new Rect(r.x + 170f, tabY + 5f,
+                        tgX - r.x - 174f, 16f),
+                    chartTitle, FxTheme.Muted);
             }
 
             Rect plot = new Rect(r.x + 10f, r.y + 36f,
@@ -652,16 +717,20 @@ namespace RimForex
             }
 
             // 当前货币最新一笔持仓的三条参考线
-            FxPosition pos = null;
-            if (account != null && account.positions != null)
+            FxPosition pos = uiChartPosition;
+            if (pos == null || pos.currencyFactionLoadID != selectedFactionId)
             {
-                for (int i = account.positions.Count - 1; i >= 0; i--)
+                pos = null;
+                if (account != null && account.positions != null)
                 {
-                    var p = account.positions[i];
-                    if (p != null && p.currencyFactionLoadID == selectedFactionId)
+                    for (int i = account.positions.Count - 1; i >= 0; i--)
                     {
-                        pos = p;
-                        break;
+                        var p = account.positions[i];
+                        if (p != null && p.currencyFactionLoadID == selectedFactionId)
+                        {
+                            pos = p;
+                            break;
+                        }
                     }
                 }
             }
@@ -682,7 +751,8 @@ namespace RimForex
                         DrawChartRefLine(plot, min, max, mid0,
                             new Color(FxTheme.Warning.r, FxTheme.Warning.g,
                                 FxTheme.Warning.b, 0.7f),
-                            "RimForex_UiEntryLine".Translate());
+                            "RimForex_UiEntryLine".Translate(),
+                            false, true);
                     }
                     if (uiShowBe)
                     {
@@ -691,7 +761,8 @@ namespace RimForex
                         DrawChartRefLine(plot, min, max, beMid,
                             new Color(FxTheme.Accent.r, FxTheme.Accent.g,
                                 FxTheme.Accent.b, 0.85f),
-                            "RimForex_UiBeLine".Translate());
+                            "RimForex_UiBeLine".Translate(),
+                            false, false);
                     }
                     if (uiShowStop && units > 0.0001f)
                     {
@@ -705,7 +776,8 @@ namespace RimForex
                         DrawChartRefLine(plot, min, max, soMid,
                             new Color(FxTheme.Short.r, FxTheme.Short.g,
                                 FxTheme.Short.b, 0.9f),
-                            "RimForex_UiStopLine".Translate(), true);
+                            "RimForex_UiStopLine".Translate(),
+                            true, true);
 
                         if (soMid < min || soMid > max)
                         {
@@ -796,7 +868,8 @@ namespace RimForex
         }
 
         private static void DrawChartRefLine(Rect plot, float min, float max,
-            float price, Color col, string label, bool clampToEdge = false)
+            float price, Color col, string label, bool clampToEdge = false,
+            bool dashed = false)
         {
             bool inRange = price >= min && price <= max;
             if (!inRange)
@@ -806,7 +879,17 @@ namespace RimForex
             }
             float y = plot.y + (max - price) / Mathf.Max(0.0001f, max - min)
                 * plot.height;
-            FxTheme.HLine(plot.x, plot.xMax, y, col);
+            if (dashed)
+            {
+                for (float x = plot.x; x < plot.xMax; x += 6f)
+                {
+                    FxTheme.Fill(new Rect(x, y, Mathf.Min(3f, plot.xMax - x), 1f), col);
+                }
+            }
+            else
+            {
+                FxTheme.HLine(plot.x, plot.xMax, y, col);
+            }
             if (inRange && !string.IsNullOrEmpty(label))
             {
                 FxTheme.Tiny(new Rect(plot.x + 4f, y - 13f, 80f, 12f),
@@ -1237,6 +1320,10 @@ namespace RimForex
             Rect list = new Rect(content.x, content.y, content.width - 10f, content.height);
             Rect tipLocal = default(Rect);
             string tipText = null;
+            if (uiChartPosition != null && !account.positions.Contains(uiChartPosition))
+            {
+                uiChartPosition = null;
+            }
             GUI.BeginGroup(list);
             for (int i = 0; i < account.positions.Count; i++)
             {
@@ -1248,8 +1335,22 @@ namespace RimForex
                 Rect row = new Rect(0f, yy, list.width, rowH);
                 if (i % 2 == 1) FxTheme.Fill(row, new Color32(18, 23, 30, 255));
 
+                if (FxWidgets.Toggle(new Rect(4f, yy + 7f, 14f, 14f),
+                        uiChartPosition == p))
+                {
+                    uiChartPosition = uiChartPosition == p ? null : p;
+                    if (uiChartPosition != null)
+                    {
+                        selectedFactionId = p.currencyFactionLoadID;
+                    }
+                }
+                if (uiChartPosition == p)
+                {
+                    FxTheme.Fill(new Rect(0f, yy, 3f, rowH), FxTheme.Accent);
+                }
+
                 string dir = p.isLong ? "RimForex_Long".Translate() : "RimForex_Short".Translate();
-                FxTheme.Small(new Rect(8f, yy + 6f, 120f, 18f),
+                FxTheme.Small(new Rect(26f, yy + 6f, 110f, 18f),
                     Truncate(p.currencyName + "  " + dir, 20),
                     p.isLong ? FxTheme.Long : FxTheme.Short);
 
@@ -1259,11 +1360,19 @@ namespace RimForex
                     p.Pnl.ToString("+0;-0;0"), FxTheme.PnlColor(p.Pnl),
                     TextAnchor.MiddleRight);
 
-                Rect edit = new Rect(8f, yy, list.width - 80f, rowH);
+                Rect edit = new Rect(26f, yy, list.width - 98f, rowH);
                 if (Mouse.IsOver(edit))
                 {
                     tipLocal = edit;
-                    tipText = "RimForex_UiPositionEditTip".Translate();
+                    tipText = "RimForex_PosRowTip".Translate(
+                        p.units,
+                        p.entryRate.ToString("F2"),
+                        p.markRate.ToString("F2"),
+                        p.leverage.ToString("F0"),
+                        p.Pnl.ToString("+0;-0;0"),
+                        p.MarketPnl.ToString("+0;-0;0"),
+                        p.SpreadCost.ToString("F0"))
+                        + "\n\n" + "RimForex_UiPositionEditTip".Translate();
                 }
                 if (Widgets.ButtonInvisible(edit))
                 {
