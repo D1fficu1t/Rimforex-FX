@@ -903,6 +903,21 @@ namespace RimForex
             Hint(l, "RimForex_TestPegTip".Translate());
 
             l.Gap(6f);
+            if (l.ButtonText("RimForex_TestResolveStates".Translate()))
+            {
+                FxGameComponent fx = Find.World != null
+                    ? Find.World.GetComponent<FxGameComponent>() : null;
+                if (fx != null)
+                {
+                    Messages.Message(fx.DebugResolveMarketStates()
+                            ? "RimForex_MsgTestResolved".Translate()
+                            : "RimForex_MsgTestResolveNone".Translate(),
+                        MessageTypeDefOf.TaskCompletion, false);
+                }
+            }
+            Hint(l, "RimForex_TestResolveStatesTip".Translate());
+
+            l.Gap(6f);
             if (l.ButtonText("RimForex_TestMerchant".Translate()))
             {
                 FxGameComponent fx = Find.World != null

@@ -719,4 +719,8 @@
   <RimForex_UiChangeQtr>象</RimForex_UiChangeQtr>
   <RimForex_LogMerchantIntel>情报：{0}</RimForex_LogMerchantIntel>
   <RimForex_LogMerchantDetail>未来五天倾向：{0}；支付 {1} 白银</RimForex_LogMerchantDetail>
+  <RimForex_TestResolveStates>测试：解除所有停牌 / 钉住汇率</RimForex_TestResolveStates>
+  <RimForex_MsgTestResolved>已把进行中的停牌/钉住推进到结算点。</RimForex_MsgTestResolved>
+  <RimForex_MsgTestResolveNone>当前没有进行中的停牌或钉住。</RimForex_MsgTestResolveNone>
+  <RimForex_TestResolveStatesTip>不会直接清空状态，而是让复牌跳空或保卫战结果在下一秒按正常流程发生。</RimForex_TestResolveStatesTip>
 </LanguageData>

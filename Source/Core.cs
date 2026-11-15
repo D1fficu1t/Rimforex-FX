@@ -3537,12 +3537,19 @@ namespace RimForex
         public const float HaltReopenSigmasMin = 25f;
         public const float HaltReopenSigmasMax = 46f;
         /// <summary>触发停牌所需的单日偏离（日 σ 倍数）。</summary>
-        public const float HaltTriggerSigmas = 2.6f;
+        public const float HaltTriggerSigmas = 3.2f;
+        /// <summary>停牌还需要至少这个绝对单日跌幅，避免低波动货币天天停牌。</summary>
+        public const float HaltMinDailyMove = 0.01f;
 
         // ── 汇率保卫战（2026-11-08）──
         // 0.15% 的硬区间配 100 倍杠杆，玩家可以在上下沿无风险来回套利。
         // 压到 0.03%，再叠上点差和手续费，贴边往返不再划算。
         public const float PegHalfWidthDefault = 0.0003f;
+        /// <summary>保卫战触发的 5 日累计 σ 阈值。</summary>
+        public const float PegCrashSigmas = 4.0f;
+        public const float PegSurgeSigmas = 6.0f;
+        /// <summary>5 日累计至少 3%，低于这个幅度的日常波动不算保卫战。</summary>
+        public const float PegMin5dMove = 0.03f;
         public const float PegBreakChance = 0.18f;
         public const float PegBreakSigmasMin = 55f;
         public const float PegBreakSigmasMax = 85f;
@@ -5612,7 +5619,9 @@ namespace RimForex
                 {
                     float sigmaDay = SigmaDayOf(c);
                     float dayRet = Mathf.Log(c.rate / c.previousRate);
-                    if (sigmaDay > 0f && Mathf.Abs(dayRet) > HaltTriggerSigmas * sigmaDay)
+                    if (sigmaDay > 0f
+                        && Mathf.Abs(dayRet) > HaltTriggerSigmas * sigmaDay
+                        && Mathf.Abs(dayRet) >= HaltMinDailyMove)
                     {
                         c.haltUntilTick = now + Rand.Range(HaltMinDays, HaltMaxDays + 1) * TicksPerDay;
                         c.lastHaltTick = now;
@@ -5635,8 +5644,10 @@ namespace RimForex
 
                 if (SigmaDayOf(c) <= 0f) continue;
                 float ret5 = Return5d(c);
-                bool crash = ret5 <= -2.5f * SigmaDayOf(c);
-                bool surge = ret5 >= 4.5f * SigmaDayOf(c);
+                bool crash = ret5 <= -PegCrashSigmas * SigmaDayOf(c)
+                    && ret5 <= -PegMin5dMove;
+                bool surge = ret5 >= PegSurgeSigmas * SigmaDayOf(c)
+                    && ret5 >= PegMin5dMove;
                 if (!crash && !surge) continue;
 
                 Faction tf = FactionByID(c.factionLoadID);
@@ -5658,6 +5669,32 @@ namespace RimForex
                     LetterDefOf.NeutralEvent);
                 RecordEvent("RimForex_LogPeg".Translate(tf.Name));
             }
+        }
+
+        /// <summary>
+        /// 测试按钮：把所有进行中的停牌/钉住推到“下一秒”，让它们按正常流程结算。
+        /// 不是直接清空状态，复牌跳空、保卫战守住/破位仍会正常发生。
+        /// </summary>
+        public bool DebugResolveMarketStates()
+        {
+            int now = GenTicks.TicksGame;
+            bool any = false;
+            if (market == null) return false;
+            foreach (var c in market.AllCurrencies)
+            {
+                if (c == null) continue;
+                if (c.haltUntilTick > now)
+                {
+                    c.haltUntilTick = now + 1;
+                    any = true;
+                }
+                if (c.pegUntilTick > now)
+                {
+                    c.pegUntilTick = now + 1;
+                    any = true;
+                }
+            }
+            return any;
         }
 
         /// <summary>测试按钮：立刻对一个随机货币触发停牌（6 小时，方便观察复牌跳空）。</summary>
