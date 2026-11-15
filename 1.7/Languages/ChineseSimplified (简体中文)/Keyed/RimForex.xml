@@ -106,7 +106,7 @@
   <RimForex_LevCap>上限 {0}x</RimForex_LevCap>
   <RimForex_TipLevUnsafe>不可用：点差占保证金的冲击会达到 {0}%，超过强平线。该品种的安全杠杆上限约 {1}x。</RimForex_TipLevUnsafe>
   <RimForex_LevUnsafeNote>此杠杆下点差冲击超出强平线，解锁瞬间会被强制平仓。建议改用 {0}x 以内。</RimForex_LevUnsafeNote>
-  <RimForex_LevRiskyNote>高风险：强平距离 {0}% &lt; 日波动 {1}%（{2} 倍），仓位大概率数小时内被强平。</RimForex_LevRiskyNote>
+  <RimForex_LevRiskyNote>高风险：强平距离 {0}% &lt; 日波动 {1}%（{2}倍）\n仓位大概率数小时内被强平。</RimForex_LevRiskyNote>
   <RimForex_LineBidAsk>买入 {0} / 卖出 {1}   点差 {2}%</RimForex_LineBidAsk>
   <RimForex_LineSpreadCost>此仓位承担的点差成本：{0} 白银</RimForex_LineSpreadCost>
   <RimForex_LineUnits>实际数量：{0} 单位</RimForex_LineUnits>
@@ -717,4 +717,6 @@
   <RimForex_LogCrash>{0} 暴跌</RimForex_LogCrash>
   <RimForex_UiNoEvents>还没有事件记录。</RimForex_UiNoEvents>
   <RimForex_UiChangeQtr>象</RimForex_UiChangeQtr>
+  <RimForex_LogMerchantIntel>情报：{0}</RimForex_LogMerchantIntel>
+  <RimForex_LogMerchantDetail>未来五天倾向：{0}；支付 {1} 白银</RimForex_LogMerchantDetail>
 </LanguageData>

@@ -137,8 +137,13 @@ namespace RimForex
                 ? Find.World.GetComponent<FxGameComponent>() : null;
             if (worldFx != null)
             {
-                worldFx.RecordEvent("RimForex_MsgMerchantBought".Translate(
-                    price.ToString("F0")));
+                string dir = predictedUp
+                    ? "RimForex_MerchantRise".Translate()
+                    : "RimForex_MerchantFall".Translate();
+                worldFx.RecordEvent(
+                    "RimForex_LogMerchantIntel".Translate(currency.PairLabel),
+                    "RimForex_LogMerchantDetail".Translate(
+                        dir, price.ToString("F0")));
             }
         }
     }
