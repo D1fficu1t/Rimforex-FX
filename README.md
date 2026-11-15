@@ -226,7 +226,7 @@ git clone https://github.com/D1fficu1t/Rimforex-FX.git RimForex
 - [`Docs/设计存档.md`](Docs/设计存档.md) —— 产品层面的设计推导与历史决策（原路线图的技术细节）
 - [`CHANGELOG.md`](CHANGELOG.md) —— 版本记录
 - `Docs/` 下有离线门禁脚本，改代码或改数值前建议先读开发笔记的 §4
-- 发布以工坊手工上传整个 `RimForex/` 文件夹为准，不生成 GitHub Release 或发布 zip
+- 发布以工坊手工上传整个 `RimForex/` 文件夹为准
 
 ---
 
