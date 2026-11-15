@@ -455,7 +455,7 @@ Let him reach the map edge, or put him down here. Either way, Collections will w
   <RimForex_TpShort>TP</RimForex_TpShort>
   <RimForex_SlShort>SL</RimForex_SlShort>
   <RimForex_TpSlTip>Optional. Enter a price; judged on the directional price and closed at market when hit. Empty or 0 means off.</RimForex_TpSlTip>
-  <RimForex_AllInWarn>All-in warning: this margin eats almost all of your equity. Tomorrow's overnight interest will push the balance negative, and the platform will liquidate you.</RimForex_AllInWarn>
+  <RimForex_AllInWarn>All-in warning: after this order the margin balance will be dangerously low. Overnight interest can push it negative and the platform may liquidate you.</RimForex_AllInWarn>
   <RimForex_MsgTpHit>{0} hit take-profit and was closed. P/L {1} silver.</RimForex_MsgTpHit>
   <RimForex_MsgSlHit>{0} hit stop-loss and was closed. P/L {1} silver.</RimForex_MsgSlHit>
   <RimForex_TpSlTitle>Take-profit / Stop-loss</RimForex_TpSlTitle>
@@ -678,7 +678,7 @@ Let him reach the map edge, or put him down here. Either way, Collections will w
   <RimForex_Ev8Cut>a rate cut</RimForex_Ev8Cut>
   <RimForex_UiChangeDay>1d</RimForex_UiChangeDay>
   <RimForex_UiChange5d>5d</RimForex_UiChange5d>
-  <RimForex_UiChangeCycleTip>Click to cycle change mode: 1d / 5d / σ</RimForex_UiChangeCycleTip>
+  <RimForex_UiChangeCycleTip>Click to cycle change mode: 1d / 5d / quarter</RimForex_UiChangeCycleTip>
   <RimForex_UiToggleEntry>Entry</RimForex_UiToggleEntry>
   <RimForex_UiToggleBe>B/E</RimForex_UiToggleBe>
   <RimForex_UiToggleStop>Stop</RimForex_UiToggleStop>

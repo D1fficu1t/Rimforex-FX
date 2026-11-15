@@ -133,6 +133,13 @@ namespace RimForex
             if (onClosed != null) onClosed();
             Messages.Message("RimForex_MsgMerchantBought".Translate(price.ToString("F0")),
                 MessageTypeDefOf.NeutralEvent, false);
+            FxGameComponent worldFx = Find.World != null
+                ? Find.World.GetComponent<FxGameComponent>() : null;
+            if (worldFx != null)
+            {
+                worldFx.RecordEvent("RimForex_MsgMerchantBought".Translate(
+                    price.ToString("F0")));
+            }
         }
     }
 }

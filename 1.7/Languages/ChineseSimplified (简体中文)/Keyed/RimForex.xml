@@ -470,7 +470,7 @@
   <RimForex_TpShort>止盈</RimForex_TpShort>
   <RimForex_SlShort>止损</RimForex_SlShort>
   <RimForex_TpSlTip>可选。填价格，按方向价判定，触发时按市价平仓。留空或 0 表示不设。</RimForex_TpSlTip>
-  <RimForex_AllInWarn>梭哈警告：保证金吃掉几乎全部净值，明天的隔夜利息就会把余额推成负数，随后被平台强制清算。</RimForex_AllInWarn>
+  <RimForex_AllInWarn>梭哈警告：下单后保证金余额严重不足，隔夜利息就可能把余额推成负数，随后被平台强制清算。</RimForex_AllInWarn>
   <RimForex_MsgTpHit>{0} 触及止盈，已平仓，盈亏 {1} 白银。</RimForex_MsgTpHit>
   <RimForex_MsgSlHit>{0} 触及止损，已平仓，盈亏 {1} 白银。</RimForex_MsgSlHit>
   <RimForex_TpSlTitle>止盈 / 止损</RimForex_TpSlTitle>
@@ -693,7 +693,7 @@
   <RimForex_Ev8Cut>降息</RimForex_Ev8Cut>
   <RimForex_UiChangeDay>日</RimForex_UiChangeDay>
   <RimForex_UiChange5d>五日</RimForex_UiChange5d>
-  <RimForex_UiChangeCycleTip>点击切换涨跌口径：日 / 五日 / σ</RimForex_UiChangeCycleTip>
+  <RimForex_UiChangeCycleTip>点击切换涨跌口径：日 / 五日 / 象</RimForex_UiChangeCycleTip>
   <RimForex_UiToggleEntry>开仓</RimForex_UiToggleEntry>
   <RimForex_UiToggleBe>回本</RimForex_UiToggleBe>
   <RimForex_UiToggleStop>强平</RimForex_UiToggleStop>

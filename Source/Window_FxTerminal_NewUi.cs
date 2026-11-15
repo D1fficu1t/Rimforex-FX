@@ -275,12 +275,13 @@ namespace RimForex
                 ? "RimForex_ViewTable".Translate()
                 : chartViewMode == 2 ? "RimForex_ViewChart".Translate()
                 : "RimForex_ViewBoth".Translate();
-            Rect view = new Rect(right - 104f, by, 98f, bh);
-            if (FxWidgets.Button(view, "RimForex_TopBarView".Translate() + " " + viewName))
+            Rect view = new Rect(right - 98f, by, 98f, bh);
+            if (FxWidgets.Button(view, "RimForex_TopBarView".Translate() + " " + viewName,
+                    true, accent: true))
             {
                 chartViewMode = (chartViewMode + 1) % 3;
             }
-            right -= 110f;
+            right -= 104f;
 
             Rect loans = new Rect(right - 44f, by, 44f, bh);
             DrawLoanButton(loans, fx);
@@ -1012,20 +1013,20 @@ namespace RimForex
                 y += 22f;
             }
 
-            // ── 风险提示 ──
+            // ── 风险提示（可同时出现多条）──
             float by = r.yMax - 40f;
-            string note = null;
-            Color noteColor = FxTheme.Warning;
+            var notes = new System.Collections.Generic.List<string>();
+            var noteColors = new System.Collections.Generic.List<Color>();
 
             if (units > 0 && (uiAllIn || account.balance - total < 5f))
             {
-                note = "RimForex_AllInWarn".Translate();
-                noteColor = FxTheme.Warning;
+                notes.Add("RimForex_AllInWarn".Translate());
+                noteColors.Add(FxTheme.Warning);
             }
-            else if (!FxGameComponent.LeverageSafeFor(sel, orderLeverage))
+            if (!FxGameComponent.LeverageSafeFor(sel, orderLeverage))
             {
-                note = "RimForex_LevUnsafeNote".Translate(maxSafe.ToString("0"));
-                noteColor = FxTheme.Short;
+                notes.Add("RimForex_LevUnsafeNote".Translate(maxSafe.ToString("0")));
+                noteColors.Add(FxTheme.Short);
             }
             else
             {
@@ -1034,37 +1035,49 @@ namespace RimForex
                 float dailyVol = FxMarket.DailyVol * sel.volatility;
                 if (stopDist < dailyVol)
                 {
-                    note = "RimForex_LevRiskyNote".Translate(
+                    notes.Add("RimForex_LevRiskyNote".Translate(
                         (stopDist * 100f).ToString("0.00"),
                         (dailyVol * 100f).ToString("0.00"),
-                        (stopDist / Mathf.Max(0.0001f, dailyVol)).ToString("0.00"));
-                    noteColor = FxTheme.Warning;
+                        (stopDist / Mathf.Max(0.0001f, dailyVol)).ToString("0.00")));
+                    noteColors.Add(FxTheme.Warning);
                 }
             }
-
             if (halted)
             {
-                note = "RimForex_MsgTradeHalted".Translate(sel.PairLabel);
-                noteColor = FxTheme.Warning;
+                notes.Add("RimForex_MsgTradeHalted".Translate(sel.PairLabel));
+                noteColors.Add(FxTheme.Warning);
             }
             else if (!enough)
             {
-                note = "RimForex_NotEnoughMargin".Translate();
-                noteColor = FxTheme.Short;
+                notes.Add("RimForex_NotEnoughMargin".Translate());
+                noteColors.Add(FxTheme.Short);
             }
 
-            if (note != null)
+            if (notes.Count > 0)
             {
                 GameFont oldFont = Text.Font;
                 bool oldWrap = Text.WordWrap;
                 Text.Font = GameFont.Tiny;
                 Text.WordWrap = true;
-                float noteH = Text.CalcHeight(note, w + 8f);
+                float totalH = 0f;
+                var heights = new System.Collections.Generic.List<float>();
+                for (int i = 0; i < notes.Count; i++)
+                {
+                    float hh = Text.CalcHeight(notes[i], w + 8f);
+                    heights.Add(hh);
+                    totalH += hh + 2f;
+                }
                 Text.Font = oldFont;
                 Text.WordWrap = oldWrap;
-                float noteY = Mathf.Min(y, by - noteH - 6f);
-                FxTheme.Label(new Rect(x - 2f, noteY, w + 8f, noteH), note,
-                    GameFont.Tiny, noteColor, TextAnchor.UpperLeft, true);
+
+                float noteY = Mathf.Min(y, by - totalH - 4f);
+                for (int i = 0; i < notes.Count; i++)
+                {
+                    FxTheme.Label(new Rect(x - 2f, noteY, w + 8f, heights[i]),
+                        notes[i], GameFont.Tiny, noteColors[i],
+                        TextAnchor.UpperLeft, true);
+                    noteY += heights[i] + 2f;
+                }
             }
 
             bool canOpen = units > 0 && enough && !halted;

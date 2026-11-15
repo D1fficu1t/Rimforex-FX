@@ -296,6 +296,12 @@ namespace RimForex
             Scribe_Values.Look(ref pegUntilTick, "pegUntilTick", 0);
             Scribe_Values.Look(ref pegCenter, "pegCenter", 0f);
             Scribe_Values.Look(ref pegHalfWidth, "pegHalfWidth", 0f);
+            if (Scribe.mode == LoadSaveMode.PostLoadInit
+                && pegUntilTick > GenTicks.TicksGame
+                && pegHalfWidth > FxGameComponent.PegHalfWidthDefault)
+            {
+                pegHalfWidth = FxGameComponent.PegHalfWidthDefault;
+            }
             Scribe_Values.Look(ref logRate5dAgo, "logRate5dAgo", 0f);
             Scribe_Values.Look(ref logRate5dTick, "logRate5dTick", 0);
             Scribe_Values.Look(ref logRateQtrAgo, "logRateQtrAgo", 0f);
@@ -3534,7 +3540,9 @@ namespace RimForex
         public const float HaltTriggerSigmas = 2.6f;
 
         // ── 汇率保卫战（2026-11-08）──
-        public const float PegHalfWidthDefault = 0.0015f;
+        // 0.15% 的硬区间配 100 倍杠杆，玩家可以在上下沿无风险来回套利。
+        // 压到 0.03%，再叠上点差和手续费，贴边往返不再划算。
+        public const float PegHalfWidthDefault = 0.0003f;
         public const float PegBreakChance = 0.18f;
         public const float PegBreakSigmasMin = 55f;
         public const float PegBreakSigmasMax = 85f;
@@ -7574,6 +7582,7 @@ namespace RimForex
             Messages.Message(
                 "RimForex_MsgDebtOfferRejected".Translate(name),
                 MessageTypeDefOf.NeutralEvent, false);
+            RecordEvent("RimForex_MsgDebtOfferRejected".Translate(name));
             Log.Message("[RimForex] offer: rejected " + name);
         }
 
@@ -7586,6 +7595,7 @@ namespace RimForex
             Messages.Message(
                 "RimForex_MsgDebtOfferExpired".Translate(),
                 MessageTypeDefOf.NeutralEvent, false);
+            RecordEvent("RimForex_MsgDebtOfferExpired".Translate());
             Log.Message("[RimForex] offer: expired " + name);
         }
 
