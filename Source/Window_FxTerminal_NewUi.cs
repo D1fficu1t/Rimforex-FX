@@ -269,7 +269,7 @@ namespace RimForex
             {
                 int dateAbs = GenDate.TickGameToAbs(GenTicks.TicksGame);
                 string date = GenDate.DateFullStringAt(dateAbs, Vector2.zero);
-                FxTheme.Tiny(new Rect(bar.xMax - 760f, bar.y + 16f, 300f, 18f),
+                FxTheme.Tiny(new Rect(bar.xMax - 820f, bar.y + 16f, 280f, 18f),
                     date, FxTheme.Muted, TextAnchor.MiddleRight);
             }
 
@@ -285,7 +285,7 @@ namespace RimForex
             }
             right -= 34f;
 
-            Rect settings = new Rect(right - 44f, by, 44f, bh);
+            Rect settings = new Rect(right - 54f, by, 54f, bh);
             if (FxWidgets.Button(settings, "RimForex_UiSettings".Translate()))
             {
                 if (RimForexMod.Instance != null)
@@ -293,15 +293,15 @@ namespace RimForex
                     Find.WindowStack.Add(new Dialog_ModSettings(RimForexMod.Instance));
                 }
             }
-            right -= 50f;
+            right -= 60f;
 
-            Rect reset = new Rect(right - 68f, by, 68f, bh);
+            Rect reset = new Rect(right - 80f, by, 80f, bh);
             if (FxWidgets.Button(reset, "RimForex_UiResetLayout".Translate()))
             {
                 ResetUiLayout();
                 ResetWindowToDefault();
             }
-            right -= 74f;
+            right -= 86f;
 
             Rect guide = new Rect(right - 44f, by, 44f, bh);
             if (FxWidgets.Button(guide, "RimForex_UiGuide".Translate()))

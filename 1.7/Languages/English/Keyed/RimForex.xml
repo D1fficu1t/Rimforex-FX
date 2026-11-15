@@ -41,7 +41,7 @@
 Closing now would get {1}
 Floating P/L {2} silver</RimForex_PosLineTip>
   <RimForex_ChartBreakeven>break-even {0}</RimForex_ChartBreakeven>
-  <RimForex_ChartBreakevenTip>Break-even line for your {0} position, in mid price.\n\nYou filled at {1}, but since you pay the spread on both sides,\nmid must reach {2} before you are flat.</RimForex_ChartBreakevenTip>
+  <RimForex_ChartBreakevenTip>Break-even line for your {0} position, in mid price.\n\nYou filled at {1}, but since you pay the spread on both sides, mid must reach {2} before you are flat.</RimForex_ChartBreakevenTip>
   <RimForex_ChartNoData>Not enough history yet.</RimForex_ChartNoData>
   <RimForex_SpanHour>H</RimForex_SpanHour>
   <RimForex_SpanUnitHour>1 game hour</RimForex_SpanUnitHour>
@@ -66,7 +66,7 @@ Floating P/L {2} silver</RimForex_PosLineTip>
   <RimForex_TipWithdraw>Type how much silver to take back out. It is dropped next to the terminal. Balance: {0}.</RimForex_TipWithdraw>
   <RimForex_Close>Close</RimForex_Close>
 
-  <RimForex_MarginCallTitle>MARGIN CALL WARNING</RimForex_MarginCallTitle>
+  <RimForex_MarginCallTitle>MARGIN WARNING</RimForex_MarginCallTitle>
   <RimForex_MarginCallBody>Your {0} position is close to liquidation. Margin health is down to {1}% and the position is {2} silver in the red.\n\nAdd margin to keep it alive, or step away and let the platform close it when the margin runs out.</RimForex_MarginCallBody>
   <RimForex_MarginCallDetail>Margin {0} silver   |   Free margin {1} silver   |   Now {2}   |   {3}x leverage</RimForex_MarginCallDetail>
   <RimForex_MarginAdd>Add margin</RimForex_MarginAdd>
@@ -148,9 +148,9 @@ Floating P/L {2} silver</RimForex_PosLineTip>
   <RimForex_Set_ClearDesc>After changing market parameters the chart still mixes in candles made by the old settings, so you cannot see what the new model looks like. Clear them and let it re-accumulate.</RimForex_Set_ClearDesc>
   <RimForex_SettingsHints>Interface hints</RimForex_SettingsHints>
   <RimForex_SettingsHintsDesc>These toggles only show or hide on-screen explanatory text. They do not change any numbers or game rules.</RimForex_SettingsHintsDesc>
-  <RimForex_ChartStopOutOff>stop-out {0} ({1}% off-chart)</RimForex_ChartStopOutOff>
-  <RimForex_ChartStopOut>stop-out {0}</RimForex_ChartStopOut>
-  <RimForex_ChartStopOutTip>Force-close line for your {0} position, in mid price.\n\nYou filled at {1}; if price reaches {2} equity falls to 30% of the margin and the position is liquidated.\nStop-out distance is about {3}% (accounting for any added margin).</RimForex_ChartStopOutTip>
+  <RimForex_ChartStopOutOff>Stop-out {0} ({1}% off-chart)</RimForex_ChartStopOutOff>
+  <RimForex_ChartStopOut>Stop-out {0}</RimForex_ChartStopOut>
+  <RimForex_ChartStopOutTip>Stop-out line for your {0} position, in mid price.\n\nYou filled at {1}; if price reaches {2}, equity falls to 30% of the margin and the position is liquidated.\nStop-out distance is about {3}% (accounting for any added margin).</RimForex_ChartStopOutTip>
   <RimForex_Set_CostBreakdown>Order cost breakdown</RimForex_Set_CostBreakdown>
   <RimForex_Set_CostBreakdownTip>When off, the per-line cost details collapse into one compact line with a tooltip.</RimForex_Set_CostBreakdownTip>
   <RimForex_HudFloat>floating P/L</RimForex_HudFloat>
@@ -170,7 +170,7 @@ Floating P/L {2} silver</RimForex_PosLineTip>
   <RimForex_Set_GainMoodScale>Gain mood multiplier {0}</RimForex_Set_GainMoodScale>
   <RimForex_Set_GainMoodScaleHint>Base values: small +3 / medium +5 / big +8 / huge +12. Set to 0 to disable gain moods.</RimForex_Set_GainMoodScaleHint>
   <RimForex_Set_MarginCallMoodScale>Margin-call mood multiplier {0}</RimForex_Set_MarginCallMoodScale>
-  <RimForex_Set_MarginCallMoodScaleHint>Base -20, up to -60 when stacked three times. Margin calls are their own tier and ignore the two multipliers above.
+  <RimForex_Set_MarginCallMoodScaleHint>Base -20, up to -60 when stacked three times. Liquidations are their own tier and ignore the two multipliers above.
 A blow-up (margin gone and balance pushed negative) is a heavier tier at base -28. It never stacks, and this multiplier controls it too.</RimForex_Set_MarginCallMoodScaleHint>
   <RimForex_SettingsVersion>Rimforex {0}  ·  include this line in bug reports</RimForex_SettingsVersion>
   <RimForex_SettingsTest>Testing</RimForex_SettingsTest>
@@ -222,7 +222,7 @@ Free margin is now {2} silver.</RimForex_LetterLossText>
   <RimForex_LetterStamp>
 
 (settled at day {0}, hour {1})</RimForex_LetterStamp>
-  <RimForex_LetterMarginCall>MARGIN CALL</RimForex_LetterMarginCall>
+  <RimForex_LetterMarginCall>LIQUIDATION</RimForex_LetterMarginCall>
 <RimForex_LetterMarginCallText>A position hit the stop-out line and was force-closed. After the {1} silver closing fee, {0} silver was returned to the account.
 
 Free margin is now {2} silver.</RimForex_LetterMarginCallText>
@@ -281,23 +281,23 @@ This is a blow-up: the debt must be covered. Deposit silver at the terminal to b
   <RimForex_LoanDefaultLabel>{0}: loan default</RimForex_LoanDefaultLabel>
   <!-- ================= 0.3.0 guide ================= -->
   <RimForex_GuideButton>Beginner's guide</RimForex_GuideButton>
-  <RimForex_GuideButtonTip>Reopen any time. Covers picking a direction, why positions get liquidated, and reading candles.</RimForex_GuideButtonTip>
+  <RimForex_GuideButtonTip>Reopen any time. Covers choosing a direction, why positions get liquidated, and how to read candles.</RimForex_GuideButtonTip>
   <RimForex_GuideTitle>Beginner's guide</RimForex_GuideTitle>
-  <RimForex_GuideIntro>Welcome to the interstellar FX terminal.\n\nThe exchange does not require a modern central bank on the other side. A tribal council, a medieval guild, an industrial central bank - whoever calls the shots sets the rate.\n\nShell strings, silver, credits: all are converted into a single XAG quote by buying the goods at a discount and listing them for investors.\n\nWelcome to the Interstellar FX Terminal.\n\nVoted best trading experience in the galaxy for 87 consecutive quarters (data collected by us).\n\nTrading takes three steps: pick a currency, add leverage, press the button.</RimForex_GuideIntro>
+  <RimForex_GuideIntro>Welcome to the Interstellar FX Terminal. This platform is for geniuses, people who want to get rich, and people with nerve. If you are one of them, welcome. If you are not, do not worry. Everyone starts as a beginner.\n\nTo improve your experience, we simplified the trading process. Because the factions on this planet are at very different tech levels, we do not require currency issuers to have a modern central bank. A tribal council, a medieval guild, an industrial central bank: whoever is in charge sets the rate. Shell strings, silver coins, credits: we provide free professional conversion into a single XAG quote. The platform buys the goods at a discount, then lists them for investors.\n\nThis platform has been voted the galaxy's best trading experience for 87 consecutive quarters (data collected by us).\n\nTrading takes three steps: pick the pair you want, predict the direction, press the button.</RimForex_GuideIntro>
   <RimForex_GuideLongTitle>1. When to buy (going long)</RimForex_GuideLongTitle>
-  <RimForex_GuideLong>Going long means buying. Bet it rises and you keep the difference; bet wrong and you lose your margin.\n\nWhen should you buy? Our official answers:\n· There is news it will rise. Buy.\n· No news, but it has fallen for a long time. Buy. That is called bottom-fishing.\n· It is already surging. Buy. That is called momentum.\n\nIf you want to buy, you will always find a reason. That is why our users love us.</RimForex_GuideLong>
+  <RimForex_GuideLong>Going long means buying and betting it rises. If it rises, you keep the difference. If it falls, you lose margin.\n\nWhen should you buy? Our official answer:\n· There is news that it will rise. Buy.\n· No news, but it has been falling for a long time. Buy. That is called bottom-fishing.\n· It is already surging. Buy. That is called chasing the rally.\n\nIf you want to buy, you will always find a reason. That is why our users love us.</RimForex_GuideLong>
   <RimForex_GuideShortTitle>2. When to sell (going short)</RimForex_GuideShortTitle>
-  <RimForex_GuideShort>The other way round: sell first, buy back after it falls, keep the difference.\n\n· News says it will fall. Sell.\n· They just lost a war or their economy collapsed. Sell.\n· It has fallen for a long time. Sell, the trend continues.\n\nOne note: a short's price floor is zero, but losses have no ceiling. Leverage magnifies both sides; do not hear “it can only fall 100%” as “you can only make 100%”. We reserve the right to collect.</RimForex_GuideShort>
-  <RimForex_GuideLiquidationTitle>3. Margin calls and blow-ups</RimForex_GuideLiquidationTitle>
-  <RimForex_GuideLiquidation>Leverage magnifies gains and losses. They come as a package.\n\n· At 45% margin left, we thoughtfully pop up a free window to warn you.\n· At 30%, we close the position for you. That is a margin call.\n· If a gap is brutal enough that losses exceed your margin, the balance goes negative. That is a blow-up.\n\nAfter a blow-up you cannot open positions or withdraw. Deposit silver to clear it.\nOur collections department is available 24 hours and has no feelings.\n\nOne more thing: go all-in and a single day of overnight interest can push your balance negative - and the next open is a forced liquidation.</RimForex_GuideLiquidation>
+  <RimForex_GuideShort>The reverse: sell first, buy it back after it falls, and keep the difference.\n\n· There is news that it will fall. Short.\n· The issuer just lost a war or its economy collapsed. Short.\n· It has been falling for a long time. Short, because the trend continues (actual market may differ).\n\nA short's price floor is zero, and like a long its losses have no ceiling. Leverage magnifies both sides, and how much depends on your nerve. The platform reserves all rights to collect.</RimForex_GuideShort>
+  <RimForex_GuideLiquidationTitle>3. Liquidation and negative balance</RimForex_GuideLiquidationTitle>
+  <RimForex_GuideLiquidation>Leverage magnifies gains and losses. The two are tied together.\n\n· When margin falls to 45%, then 40%, then 35%, the platform will helpfully pop up three free windows to warn you.\n· At 30%, your position is forcibly closed. That is a liquidation.\n· If a gap is brutal enough that losses exceed your margin, the balance can go negative. That is a blow-up.\n\nAfter a blow-up you cannot open positions. Deposit silver to clear it and trade again. Our collections department is online 24 hours, offering warm and reasonable financial advice.\n\nBecause we received too many complaints, we decided to address this separately: when you go all-in, a single day of overnight interest can push the balance negative, and the next open is a forced liquidation.</RimForex_GuideLiquidation>
   <RimForex_GuideCandleTitle>4. Reading candles</RimForex_GuideCandleTitle>
-  <RimForex_GuideCandle>Each candle records four prices over a period: open, high, low, close.\n\n· Body: the distance from open to close. Green up, red down.\n· Wicks: the thin lines above and below, the high and low reached.\n\nLong wicks mean price pushed up and got pushed back. Someone is fighting. Who wins is unclear.\n\nCandles report the past. They do not promise the future. Platforms that promise the future are a different kind of platform.</RimForex_GuideCandle>
+  <RimForex_GuideCandle>A candle records four prices over a period: open, high, low, close.\n\n· Body: the distance from open to close. Green up, red down.\n· Wicks: the thin lines above and below, the high and low reached during the period.\n\nLong wicks mean price pushed up and was pushed back. Someone is fighting a trading war; who wins is hard to say.</RimForex_GuideCandle>
   <RimForex_GuideProfitTitle>5. How beginners make money</RimForex_GuideProfitTitle>
-  <RimForex_GuideProfit>Leverage up! Go all in! Bet on the rise!\n\nPost 100 silver as margin at 100x and your notional is 10,000 silver. A 1% move earns you 100 silver, double your money. 3% and you have tripled it.\n\nOur backend data shows the phrase our users say most is "one more trade and I'm even".\n\n(Veterans tell you to use low leverage and go slow. That is the veteran way. You are a beginner. You have plenty of time to lose.)</RimForex_GuideProfit>
+  <RimForex_GuideProfit>Add leverage! Go all in! Bet it rises or falls!\n\nPost 100 silver as margin at 100x and the notional is 10,000 silver. A 1% move earns 100 silver, doubling your money. 3% triples it.\n\nOur backend data shows the phrase users say most: "one more trade and I'll be even."\n\n(Veterans say use low leverage and take it slow. That is the veteran way. You are a beginner; you have plenty of time to learn.)</RimForex_GuideProfit>
   <RimForex_GuideLoanTitle>6. Borrowing</RimForex_GuideLoanTitle>
-  <RimForex_GuideLoan>With the terminal selected, the Official lending service gizmo offers four upstanding institutions working closely with us, each with its own rates and terms.\n\nBorrowed silver is debt, not income. If it is not cleared by the term, it is taken from your balance at once, which can push it negative.\n\nWe wish you a pleasant borrowing experience.</RimForex_GuideLoan>
+  <RimForex_GuideLoan>After opening the terminal, click "Loans" in the top right. It offers direct borrowing from four upstanding institutions working closely with this platform, each with different rates and terms.\n\nBorrowed silver is debt. You have to repay it. If it is not cleared by the due date, the debt is taken from your balance in one go; if the balance is not enough, it can go negative.\n\nFor beginners with zero capital, borrowing is the only way to make big money. The choice is yours. The platform merely wishes you a pleasant borrowing experience.</RimForex_GuideLoan>
   <RimForex_GuideGlossaryTitle>Glossary</RimForex_GuideGlossaryTitle>
-  <RimForex_GuideGlossary>Margin: the silver you post.\nNotional: margin times leverage.\nSpread: the gap between buy and sell, paid on open and close.\nFee: 0.02% per trade, minimum 2 silver.\nStop-out line: the price where a position is closed at 30% margin.\nMargin call: being forcibly closed.\nBlow-up: losses exceed margin, balance goes negative.\nLock-in: you must cross one quote before you can close.</RimForex_GuideGlossary>
+  <RimForex_GuideGlossary>Margin: the silver you post.\nNotional: margin times leverage.\nSpread: the difference between buy and sell, paid on open and close.\nFee: 0.02% per trade, minimum 2 silver.\nStop-out line: the price where a 30% margin loss forcibly closes the position.\nLiquidation: being forcibly closed.\nBlow-up: losing more than your margin, balance goes negative.\nLock-in: after opening, you must cross one quote before you can close.</RimForex_GuideGlossary>
 
   <!-- ================= 0.3.0 world events (preview2: E1 / E3) ================= -->
   <RimForex_Ev1LetterLabel>{0}: currency surge</RimForex_Ev1LetterLabel>
@@ -325,9 +325,9 @@ This is a blow-up: the debt must be covered. Deposit silver at the terminal to b
   <RimForex_MsgTestProdigy>Fired a currency prodigy event</RimForex_MsgTestProdigy>
   <RimForex_MsgTestSurgeFail>No usable faction currency</RimForex_MsgTestSurgeFail>
   <RimForex_MsgTestRipen>Ripened {0} pending event(s)</RimForex_MsgTestRipen>
-  <RimForex_GuideHonestButton>(A veteran's advice: don't listen to them)</RimForex_GuideHonestButton>
+  <RimForex_GuideHonestButton>(A veteran's advice)</RimForex_GuideHonestButton>
   <RimForex_GuideHonestTitle>A veteran's advice</RimForex_GuideHonestTitle>
-  <RimForex_GuideHonest>That last part was written by our marketing department. Here is the human version.\n\n1. Lower leverage survives longer. 1-5x rides out normal swings; 100x dies to one bad quote.\n2. Do not churn. Every round trip pays spread and fees. Churning is a donation.\n3. Watch the news. War and crash expectations beat staring at candles.\n4. Positions cost overnight interest, loans cost loan interest. The longer you hold, the more you pay.\n5. There is no sure-win strategy. Anyone who says there is, is trying to win your money.\n\n(Put this away before the platform notices you read it.)</RimForex_GuideHonest>
+  <RimForex_GuideHonest>The section above was written by the marketing department. They would strip you to the bone. But I want to give anyone reading this a few pieces of advice. Take it or leave it; if you jump into the fire yourself, I won't stop you.\n\n1. Lower leverage survives longer. 1-5x rides out normal swings; 100x dies to one small gap.\n2. Do not churn. Spread and fees are charged every time; trading back and forth is donating to the platform.\n3. Watch the news. Expectations from wars and crashes are far more useful than staring at candles.\n4. Positions pay overnight interest every day; loans pay loan interest. The longer you hold, the higher the cost.\n5. There is no sure-win strategy. Anyone who tells you there is wants your money.\n\n(Put this away when you are done. Don't let the platform know you read it.)</RimForex_GuideHonest>
   <RimForex_Ev1bRaidBlocked>{0}'s forces set out, then turned back.</RimForex_Ev1bRaidBlocked>
   <RimForex_TestRaid>Test: force a raid</RimForex_TestRaid>
   <RimForex_TestRaidTip>Skip the dice roll and launch a raid from a hostile faction right now. Use it to check that raids can actually fire.</RimForex_TestRaidTip>
@@ -483,9 +483,9 @@ Let him reach the map edge, or put him down here. Either way, Collections will w
   <RimForex_MarginPreset>{0}% ({1})</RimForex_MarginPreset>
   <RimForex_MarginPresetShort>Not enough silver. Short by {0}.</RimForex_MarginPresetShort>
   <RimForex_TopBarView>View</RimForex_TopBarView>
-  <RimForex_ViewBoth>table + chart</RimForex_ViewBoth>
-  <RimForex_ViewTable>table only</RimForex_ViewTable>
-  <RimForex_ViewChart>chart only</RimForex_ViewChart>
+  <RimForex_ViewBoth>Both</RimForex_ViewBoth>
+  <RimForex_ViewTable>Table</RimForex_ViewTable>
+  <RimForex_ViewChart>Chart</RimForex_ViewChart>
   <RimForex_TopBarViewTip>Switch between table and chart layouts.</RimForex_TopBarViewTip>
   <RimForex_Set_E3Cd>Prodigy cooldown: {0} days</RimForex_Set_E3Cd>
   <RimForex_Set_E4Cd>War news cooldown: {0} days</RimForex_Set_E4Cd>
@@ -565,7 +565,7 @@ Let him reach the map edge, or put him down here. Either way, Collections will w
   <RimForex_Ev10ReopenDown>{0}'s currency has reopened and kept falling, harder than before the halt.</RimForex_Ev10ReopenDown>
   <RimForex_ColChange5d>5d</RimForex_ColChange5d>
   <RimForex_ColChangeQtr>Qtr</RimForex_ColChangeQtr>
-  <RimForex_ColChangeTip>Click to switch: daily / 5-day / quadrum change.</RimForex_ColChangeTip>
+  <RimForex_ColChangeTip>Click to switch: daily / 5-day / quarter change.</RimForex_ColChangeTip>
   <RimForex_TestPegBreak>Test: peg break</RimForex_TestPegBreak>
   <RimForex_TestPegBreakTip>Peg a random currency for 6 hours; it is guaranteed to break on expiry (tests break gap → halt → reopen).</RimForex_TestPegBreakTip>
   <RimForex_MsgTestPegBreak>Guaranteed peg break scheduled.</RimForex_MsgTestPegBreak>
@@ -645,7 +645,7 @@ Let him reach the map edge, or put him down here. Either way, Collections will w
   <RimForex_UiBid>Bid</RimForex_UiBid>
   <RimForex_UiAsk>Ask</RimForex_UiAsk>
   <RimForex_UiSpread>Spread</RimForex_UiSpread>
-  <RimForex_UiFeeLine>Margin {0}　·　Fee {1}</RimForex_UiFeeLine>
+  <RimForex_UiFeeLine>Margin {0} · Fee {1}</RimForex_UiFeeLine>
   <RimForex_UiNoHistory>No trade history yet.</RimForex_UiNoHistory>
   <RimForex_UiDeposit>Deposit</RimForex_UiDeposit>
   <RimForex_UiWithdraw>Withdraw</RimForex_UiWithdraw>
@@ -659,12 +659,12 @@ Let him reach the map edge, or put him down here. Either way, Collections will w
   <RimForex_UiEntryLine>Entry</RimForex_UiEntryLine>
   <RimForex_FeeDeposit>Silver deposit</RimForex_FeeDeposit>
   <RimForex_FeeWithdraw>Silver withdrawal</RimForex_FeeWithdraw>
-  <RimForex_UiQuoteLine>Bid {0}　Ask {1}　Spread {2}%</RimForex_UiQuoteLine>
-  <RimForex_UiCompactLine>{0} units　·　Total {1} / Available {2}</RimForex_UiCompactLine>
+  <RimForex_UiQuoteLine>Bid {0}  Ask {1}  Spread {2}%</RimForex_UiQuoteLine>
+  <RimForex_UiCompactLine>{0} units · Total {1} / Available {2}</RimForex_UiCompactLine>
   <RimForex_UiBelowMin>Below minimum, using {0}</RimForex_UiBelowMin>
-  <RimForex_UiCandleDetail>Open {0}　High {1}　Low {2}　Close {3}</RimForex_UiCandleDetail>
-  <RimForex_UiPositionEditTip>Click the position to edit take-profit / stop-loss</RimForex_UiPositionEditTip>
-  <RimForex_UiLockedTip>Still locked; can close after the next quote</RimForex_UiLockedTip>
+  <RimForex_UiCandleDetail>Open {0}  High {1}  Low {2}  Close {3}</RimForex_UiCandleDetail>
+  <RimForex_UiPositionEditTip>Click a position to edit take-profit / stop-loss.</RimForex_UiPositionEditTip>
+  <RimForex_UiLockedTip>Still locked. You can close after the next quote.</RimForex_UiLockedTip>
   <RimForex_UiDepositAll>Deposit all</RimForex_UiDepositAll>
   <RimForex_UiWithdrawAll>Withdraw all</RimForex_UiWithdrawAll>
   <RimForex_UiDetails>Trade details</RimForex_UiDetails>
