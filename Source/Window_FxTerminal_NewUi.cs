@@ -98,22 +98,9 @@ namespace RimForex
                     break;
                 }
             }
-            if (pick == null)
-            {
-                for (int i = account.positions.Count - 1; i >= 0; i--)
-                {
-                    if (account.positions[i] != null)
-                    {
-                        pick = account.positions[i];
-                        break;
-                    }
-                }
-            }
-            if (pick != null)
-            {
-                uiChartPosition = pick;
-                selectedFactionId = pick.currencyFactionLoadID;
-            }
+            // 当前货币没有持仓时保留广播选的货币，只清空图表持仓线。
+            // 不能自动跳到别的有持仓货币，否则玩家无法浏览未持有的行情。
+            uiChartPosition = pick;
         }
 
         private void DrawNewUiContents(Rect inRect, FxGameComponent fx,
@@ -499,8 +486,8 @@ namespace RimForex
 
         private void DrawNewMarket(Rect r, List<FxCurrency> currencies)
         {
-            FxTheme.Fill(r, new Color32(10, 14, 19, 255));
-            FxTheme.Border(r, FxTheme.Line);
+            FxTheme.Fill(r, new Color32(18, 26, 36, 255));
+            FxTheme.Border(r, new Color32(58, 74, 92, 255));
             FxWidgets.SectionHeader(r, "RimForex_UiMarket".Translate());
 
             float headY = r.y + 34f;
@@ -702,8 +689,8 @@ namespace RimForex
 
             Rect plot = new Rect(r.x + 10f, r.y + 36f,
                 r.width - 76f, r.height - 68f);
-            FxTheme.Fill(plot, new Color32(18, 26, 36, 255));
-            FxTheme.Border(plot, new Color32(58, 74, 92, 255));
+            FxTheme.Fill(plot, new Color32(10, 14, 19, 255));
+            FxTheme.Border(plot, FxTheme.Line);
             if (plot.height < 80f) return;
             if (selectedFactionId < 0)
             {
@@ -1159,11 +1146,11 @@ namespace RimForex
                 }
                 FxTheme.Tiny(new Rect(x, y, w, 16f),
                     "RimForex_OrderCarryLine".Translate(
-                        carryPerDay.ToString("F0")), FxTheme.Muted);
+                        carryPerDay.ToString("F2")), FxTheme.Muted);
                 y += 16f;
                 FxTheme.Tiny(new Rect(x, y, w, 16f),
                     "RimForex_OrderLoanLine".Translate(
-                        loanInterestPerDay.ToString("F0")), FxTheme.Muted);
+                        loanInterestPerDay.ToString("F2")), FxTheme.Muted);
                 y += 16f;
 
                 FxTheme.Tiny(new Rect(x, y, w, 16f),
