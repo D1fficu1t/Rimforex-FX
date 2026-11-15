@@ -12,6 +12,8 @@ namespace RimForex
     public static class FxWidgets
     {
         private static GUIStyle fieldStyle;
+        private static readonly System.Collections.Generic.Dictionary<string, Rect> fieldRects
+            = new System.Collections.Generic.Dictionary<string, Rect>();
 
         private static GUIStyle FieldStyle
         {
@@ -39,7 +41,11 @@ namespace RimForex
         public static string TextField(Rect r, string text, int maxLength = 24,
             string controlName = null)
         {
-            if (!string.IsNullOrEmpty(controlName)) GUI.SetNextControlName(controlName);
+            if (!string.IsNullOrEmpty(controlName))
+            {
+                GUI.SetNextControlName(controlName);
+                fieldRects[controlName] = r;
+            }
             FxTheme.Fill(r, new Color32(12, 15, 20, 255));
             FxTheme.Border(r, FxTheme.LineHi);
             GameFont oldFont = Text.Font;
@@ -102,6 +108,21 @@ namespace RimForex
             FxTheme.Border(r, hover ? FxTheme.LineHi : new Color32(60, 74, 90, 255));
             FxTheme.Label(r, label, GameFont.Small, FxTheme.TextColor,
                 TextAnchor.MiddleCenter);
+        }
+
+        /// <summary>点击输入框外部时取消焦点，避免数字热键被输入框吞掉。</summary>
+        public static void DefocusIfClickedOutside()
+        {
+            Event e = Event.current;
+            if (e == null || e.type != EventType.MouseDown) return;
+            string focused = GUI.GetNameOfFocusedControl();
+            if (string.IsNullOrEmpty(focused)) return;
+            Rect r;
+            if (fieldRects.TryGetValue(focused, out r) && r.Contains(e.mousePosition))
+            {
+                return;
+            }
+            GUI.FocusControl(null);
         }
 
         public static bool Tab(Rect r, string label, bool active)

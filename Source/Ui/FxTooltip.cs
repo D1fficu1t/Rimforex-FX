@@ -19,11 +19,12 @@ namespace RimForex
             mouse = Event.current != null ? Event.current.mousePosition : Vector2.zero;
         }
 
-        public static void Draw()
+        public static void Draw(Rect? bounds = null)
         {
             if (string.IsNullOrEmpty(pending)) return;
 
-            float width = 330f;
+            float maxW = bounds.HasValue ? Mathf.Max(180f, bounds.Value.width - 8f) : 330f;
+            float width = Mathf.Min(330f, maxW);
             GameFont oldFont = Text.Font;
             bool oldWrap = Text.WordWrap;
             Text.Font = GameFont.Tiny;
@@ -32,8 +33,14 @@ namespace RimForex
             Text.Font = oldFont;
             Text.WordWrap = oldWrap;
 
-            float x = Mathf.Clamp(mouse.x + 16f, 4f, UI.screenWidth - width - 4f);
-            float y = Mathf.Clamp(mouse.y + 16f, 4f, UI.screenHeight - h - 4f);
+            float minX = bounds.HasValue ? bounds.Value.x + 4f : 4f;
+            float minY = bounds.HasValue ? bounds.Value.y + 4f : 4f;
+            float maxX = bounds.HasValue ? bounds.Value.xMax - width - 4f
+                : UI.screenWidth - width - 4f;
+            float maxY = bounds.HasValue ? bounds.Value.yMax - h - 4f
+                : UI.screenHeight - h - 4f;
+            float x = Mathf.Clamp(mouse.x + 16f, minX, Mathf.Max(minX, maxX));
+            float y = Mathf.Clamp(mouse.y + 16f, minY, Mathf.Max(minY, maxY));
             Rect box = new Rect(x, y, width, h);
 
             FxTheme.Fill(box, new Color32(16, 20, 27, 248));

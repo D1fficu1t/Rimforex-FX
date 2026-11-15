@@ -253,7 +253,7 @@ namespace RimForex
                 FxTheme.Tiny(new Rect(tip.x + 8f, tip.y + 37f, tip.width - 16f, 16f),
                     range, pct >= 0f ? FxTheme.Long : FxTheme.Short);
             }
-            FxTooltip.Draw();
+            FxTooltip.Draw(inRect);
         }
 
         private void DrawSideButtons(Rect strip)

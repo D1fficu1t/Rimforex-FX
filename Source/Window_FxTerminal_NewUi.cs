@@ -91,7 +91,7 @@ namespace RimForex
             bool inDebt = account != null && account.balance < 0f;
             bool frozenAccount = account != null
                 && account.frozenUntilTick > GenTicks.TicksGame;
-            float accountH = UiAccountH + (inDebt ? 18f : 0f)
+            float accountH = UiAccountH + 14f + (inDebt ? 18f : 0f)
                 + (frozenAccount ? 18f : 0f);
             Rect accountRect = new Rect(content.x, content.y, content.width, accountH);
             DrawNewAccountStrip(accountRect, fx);
@@ -123,7 +123,7 @@ namespace RimForex
                 DrawNewOrder(orderRect, fx);
                 DrawNewBottom(bottomRect, fx);
                 DrawNewTimeBar(timeRect);
-                FxTooltip.Draw();
+                FxTooltip.Draw(inRect);
                 return;
             }
 
@@ -162,7 +162,7 @@ namespace RimForex
             FxWidgets.SplitterH(bottomHit,
                 new Rect(bottomHit.x + 16f, bottomHit.center.y, bottomHit.width - 32f, 1f),
                 Mouse.IsOver(bottomHit) || uiDragSplit == 3);
-            FxTooltip.Draw();
+            FxTooltip.Draw(inRect);
         }
 
         private void HandleUiSplitterV(Rect hit, int id, ref float ratio,
@@ -386,18 +386,38 @@ namespace RimForex
                     GameFont.Medium, c, TextAnchor.UpperLeft);
             }
 
+            string carry = CarryStatusText(fx, account);
+            float loanInterest = 0f;
+            for (int i = 0; i < account.loans.Count; i++)
+            {
+                var loan = account.loans[i];
+                if (loan != null)
+                {
+                    loanInterest += loan.principal
+                        * FxGameComponent.LenderDailyRate(loan.lender);
+                }
+            }
+            if (loanInterest >= 0.5f)
+            {
+                carry += "　·　" + "RimForex_CarryLoanDaily".Translate(
+                    loanInterest.ToString("F0"));
+            }
+            FxTheme.Tiny(new Rect(r.x + pad, r.y + 54f,
+                r.width - pad * 2f, 14f), carry, FxTheme.Muted);
+
+            float warnY = r.y + 72f;
             if (account.balance < 0f)
             {
-                FxTheme.Tiny(new Rect(r.x + pad, r.yMax - 18f, r.width - pad * 2f, 16f),
+                FxTheme.Tiny(new Rect(r.x + pad, warnY, r.width - pad * 2f, 16f),
                     "RimForex_DebtWarning".Translate(
                         (-account.balance).ToString("F0")), FxTheme.Short);
+                warnY += 18f;
             }
             if (account.frozenUntilTick > GenTicks.TicksGame)
             {
                 int frozenDays = (account.frozenUntilTick - GenTicks.TicksGame)
                     / FxGameComponent.TicksPerDay + 1;
-                FxTheme.Tiny(new Rect(r.x + pad,
-                        r.yMax - (account.balance < 0f ? 34f : 18f),
+                FxTheme.Tiny(new Rect(r.x + pad, warnY,
                         r.width - pad * 2f, 16f),
                     "RimForex_FrozenWarning".Translate(frozenDays.ToString()),
                     FxTheme.Accent);
@@ -422,10 +442,8 @@ namespace RimForex
             Rect buttons = new Rect(r.x + 4f,
                 r.y + (r.height - TimeControls.TimeButSize.y) * 0.5f,
                 TimeControls.TimeButSize.x * 4f, TimeControls.TimeButSize.y);
+            FxWidgets.DefocusIfClickedOutside();
             TimeControls.DoTimeControlsGUI(buttons);
-            FxTheme.Tiny(new Rect(buttons.xMax + 10f, r.y + 7f,
-                    r.width - buttons.width - 20f, 16f),
-                "RimForex_TimeHint".Translate(), FxTheme.Muted);
         }
 
         private void OpenCashTransfer(bool deposit)
@@ -456,8 +474,8 @@ namespace RimForex
 
         private void DrawNewMarket(Rect r, List<FxCurrency> currencies)
         {
-            FxTheme.Fill(r, new Color32(20, 27, 36, 255));
-            FxTheme.Border(r, FxTheme.LineHi);
+            FxTheme.Fill(r, new Color32(28, 38, 50, 255));
+            FxTheme.Border(r, new Color32(62, 78, 96, 255));
             FxWidgets.SectionHeader(r, "RimForex_UiMarket".Translate());
 
             float headY = r.y + 34f;
@@ -639,14 +657,22 @@ namespace RimForex
             FxCurrency chartCur = fx.market.Get(selectedFactionId);
             if (chartCur != null && tgX > r.x + 172f)
             {
-                string chartTitle = Truncate(chartCur.PairLabel, 16);
-                if (fx.CurrencyHalted(chartCur))
-                    chartTitle += "  " + "RimForex_UiStatusHalt".Translate();
-                else if (chartCur.pegUntilTick > GenTicks.TicksGame)
-                    chartTitle += "  " + "RimForex_UiStatusPeg".Translate();
-                FxTheme.Tiny(new Rect(r.x + 170f, tabY + 5f,
-                        tgX - r.x - 174f, 16f),
-                    chartTitle, FxTheme.Muted);
+                string pair = Truncate(chartCur.PairLabel, 16);
+                float titleW = tgX - r.x - 174f;
+                FxTheme.Tiny(new Rect(r.x + 170f, tabY + 5f, titleW, 16f),
+                    pair, FxTheme.TextColor);
+                float used = Text.CalcSize(pair).x + 8f;
+                string status = fx.CurrencyHalted(chartCur)
+                    ? "RimForex_UiStatusHalt".Translate()
+                    : chartCur.pegUntilTick > GenTicks.TicksGame
+                        ? "RimForex_UiStatusPeg".Translate() : "";
+                if (status.Length > 0 && used < titleW)
+                {
+                    FxTheme.Tiny(new Rect(r.x + 170f + used, tabY + 5f,
+                            titleW - used, 16f), status,
+                        fx.CurrencyHalted(chartCur)
+                            ? FxTheme.Warning : FxTheme.Accent);
+                }
             }
 
             Rect plot = new Rect(r.x + 10f, r.y + 36f,
@@ -732,6 +758,10 @@ namespace RimForex
                             break;
                         }
                     }
+                }
+                if (pos != null && pos.currencyFactionLoadID == selectedFactionId)
+                {
+                    uiChartPosition = pos;
                 }
             }
 
@@ -1338,11 +1368,24 @@ namespace RimForex
                 if (FxWidgets.Toggle(new Rect(4f, yy + 7f, 14f, 14f),
                         uiChartPosition == p))
                 {
-                    uiChartPosition = uiChartPosition == p ? null : p;
-                    if (uiChartPosition != null)
+                    if (uiChartPosition != p)
                     {
-                        selectedFactionId = p.currencyFactionLoadID;
+                        uiChartPosition = p;
                     }
+                    else
+                    {
+                        for (int k = 0; k < account.positions.Count; k++)
+                        {
+                            var q = account.positions[k];
+                            if (q != null && q != p
+                                && q.currencyFactionLoadID == p.currencyFactionLoadID)
+                            {
+                                uiChartPosition = q;
+                                break;
+                            }
+                        }
+                    }
+                    selectedFactionId = p.currencyFactionLoadID;
                 }
                 if (uiChartPosition == p)
                 {

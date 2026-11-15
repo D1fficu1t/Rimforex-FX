@@ -74,6 +74,7 @@ namespace RimForex
                 Rect cell = new Rect(r.x + col * (w + Gap), top + row * (h + Gap), w, h);
                 DrawLender(cell, i);
             }
+            FxTooltip.Draw(inRect);
         }
 
         private void DrawLender(Rect cell, int idx)
@@ -206,7 +207,6 @@ namespace RimForex
 
             FxTooltip.Tip(borrowRect, "RimForex_LoanBorrowTip".Translate());
             FxTooltip.Tip(repayRect, "RimForex_LoanRepayTip".Translate());
-            FxTooltip.Draw();
         }
     }
 }

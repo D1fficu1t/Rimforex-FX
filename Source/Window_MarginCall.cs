@@ -161,7 +161,7 @@ namespace RimForex
             {
                 Dismiss();
             }
-            FxTooltip.Draw();
+            FxTooltip.Draw(inRect);
         }
 
         private void DoAddMargin(MarginWarning warn, int amount)

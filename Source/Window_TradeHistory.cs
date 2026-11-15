@@ -246,7 +246,7 @@ namespace RimForex
             float maxScroll = Mathf.Max(0f, viewH - rows.height);
             FxWidgets.ScrollBar(new Rect(rows.xMax + 6f, rows.y, 6f, rows.height),
                 maxScroll > 0.01f ? scroll / maxScroll : 0f, frac);
-            FxTooltip.Draw();
+            FxTooltip.Draw(inRect);
         }
 
         private void CopyReport(List<FxTradeRecord> all, int count)
