@@ -3608,14 +3608,14 @@ namespace RimForex
 
         // ── 托管费（闲置余额的存放成本）──
         /// <summary>免收额度：20,000 银以下不收。</summary>
-        public const float CustodyFree = 20000f;
+        public const float CustodyFree = 5000f;
         /// <summary>
-        /// 超出部分每日费率 3%。
+        /// 超出部分每日费率 5%。
         ///
-        /// 0.3% 实测形同虚设（作者 2026-10-25：5 万余额一天才扣 100 银），
-        /// 调到 3% 后，藏 5 万一天的成本约 900 银，才真正构成"要不要把钱放这儿"的权衡。
+        /// 2026-11-15：作者余额 2.6 万时一晚只扣 200 多，起不到催促提现的作用。
+        /// 免收额度降到 5000，超出部分按 5%/日，2.6 万约 1050/日。
         /// </summary>
-        public const float CustodyRate = 0.03f;
+        public const float CustodyRate = 0.05f;
 
         /// <summary>
         /// 待处理的"临近爆仓"预警。key = <b>持仓对象本身</b>（引用相等）。
