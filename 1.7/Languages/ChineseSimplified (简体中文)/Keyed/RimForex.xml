@@ -693,7 +693,6 @@
   <RimForex_Ev8Cut>降息</RimForex_Ev8Cut>
   <RimForex_UiChangeDay>日</RimForex_UiChangeDay>
   <RimForex_UiChange5d>五日</RimForex_UiChange5d>
-  <RimForex_UiChangeSigma>σ</RimForex_UiChangeSigma>
   <RimForex_UiChangeCycleTip>点击切换涨跌口径：日 / 五日 / σ</RimForex_UiChangeCycleTip>
   <RimForex_UiToggleEntry>开仓</RimForex_UiToggleEntry>
   <RimForex_UiToggleBe>回本</RimForex_UiToggleBe>
@@ -717,4 +716,5 @@
   <RimForex_LogSurge>{0} 暴涨</RimForex_LogSurge>
   <RimForex_LogCrash>{0} 暴跌</RimForex_LogCrash>
   <RimForex_UiNoEvents>还没有事件记录。</RimForex_UiNoEvents>
+  <RimForex_UiChangeQtr>象</RimForex_UiChangeQtr>
 </LanguageData>

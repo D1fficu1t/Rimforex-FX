@@ -678,7 +678,6 @@ Let him reach the map edge, or put him down here. Either way, Collections will w
   <RimForex_Ev8Cut>a rate cut</RimForex_Ev8Cut>
   <RimForex_UiChangeDay>1d</RimForex_UiChangeDay>
   <RimForex_UiChange5d>5d</RimForex_UiChange5d>
-  <RimForex_UiChangeSigma>σ</RimForex_UiChangeSigma>
   <RimForex_UiChangeCycleTip>Click to cycle change mode: 1d / 5d / σ</RimForex_UiChangeCycleTip>
   <RimForex_UiToggleEntry>Entry</RimForex_UiToggleEntry>
   <RimForex_UiToggleBe>B/E</RimForex_UiToggleBe>
@@ -702,4 +701,5 @@ Let him reach the map edge, or put him down here. Either way, Collections will w
   <RimForex_LogSurge>{0} surged</RimForex_LogSurge>
   <RimForex_LogCrash>{0} crashed</RimForex_LogCrash>
   <RimForex_UiNoEvents>No events logged yet.</RimForex_UiNoEvents>
+  <RimForex_UiChangeQtr>Qtr</RimForex_UiChangeQtr>
 </LanguageData>

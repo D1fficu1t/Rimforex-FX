@@ -881,12 +881,15 @@ namespace RimForex
         public string label = "";
         public string detail = "";
         public int tick;
+        /// <summary>是否在事件日志里展开详情。</summary>
+        public bool expanded;
 
         public void ExposeData()
         {
             Scribe_Values.Look(ref label, "label");
             Scribe_Values.Look(ref detail, "detail");
             Scribe_Values.Look(ref tick, "tick");
+            Scribe_Values.Look(ref expanded, "expanded", false);
         }
     }
 
@@ -4798,6 +4801,7 @@ namespace RimForex
                     {
                         Messages.Message("RimForex_EvNoTrader".Translate(faction.Name),
                             MessageTypeDefOf.NeutralEvent, false);
+                        RecordEvent("RimForex_EvNoTrader".Translate(faction.Name));
                     }
                     break;
                 }
@@ -4825,10 +4829,12 @@ namespace RimForex
                         // 而不是假装什么都没发生（否则测试时完全看不出区别）。
                         Messages.Message("RimForex_Ev1bRaidBlocked".Translate(faction.Name),
                             MessageTypeDefOf.NeutralEvent, false);
+                        RecordEvent("RimForex_Ev1bRaidBlocked".Translate(faction.Name));
                         break;
                     }
                     Messages.Message("RimForex_Ev1bQuiet".Translate(faction.Name),
                         MessageTypeDefOf.NeutralEvent, false);
+                    RecordEvent("RimForex_Ev1bQuiet".Translate(faction.Name));
                     break;
                 }
 
@@ -4860,6 +4866,7 @@ namespace RimForex
                     {
                         Messages.Message("RimForex_EvTributeNoShow".Translate(faction.Name),
                             MessageTypeDefOf.NeutralEvent, false);
+                        RecordEvent("RimForex_EvTributeNoShow".Translate(faction.Name));
                     }
                     break;
                 }
@@ -5357,6 +5364,7 @@ namespace RimForex
                 {
                     Messages.Message("RimForex_Ev2bThinned".Translate(removed),
                         MessageTypeDefOf.NeutralEvent, false);
+                    RecordEvent("RimForex_Ev2bThinned".Translate(removed));
                 }
             }
         }
@@ -6160,6 +6168,7 @@ namespace RimForex
                 DismissMerchant();
                 Messages.Message("RimForex_MsgMerchantLeft".Translate(),
                     MessageTypeDefOf.NeutralEvent, false);
+                RecordEvent("RimForex_MsgMerchantLeft".Translate());
                 return;
             }
             Pawn pawn = FindPawnById(merchantPawnId);

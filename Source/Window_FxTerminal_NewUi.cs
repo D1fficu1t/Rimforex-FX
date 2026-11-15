@@ -98,6 +98,21 @@ namespace RimForex
             float mainH = bottomRect.y - 8f - mainY;
             Rect mainRect = new Rect(content.x, mainY, content.width, Mathf.Max(180f, mainH));
 
+            if (chartViewMode == 1)
+            {
+                DrawNewMarket(mainRect, currencies);
+                DrawNewBottom(bottomRect, fx);
+                FxTooltip.Draw();
+                return;
+            }
+            if (chartViewMode == 2)
+            {
+                DrawNewChart(mainRect, fx);
+                DrawNewBottom(bottomRect, fx);
+                FxTooltip.Draw();
+                return;
+            }
+
             float leftW = Mathf.Clamp(mainRect.width * uiLeftRatio, 300f,
                 mainRect.width - 600f);
             float rightW = Mathf.Clamp(mainRect.width * uiRightRatio, 300f,
@@ -193,7 +208,17 @@ namespace RimForex
             FxTheme.Tiny(new Rect(bar.x + 190f, bar.y + 16f, 160f, 18f),
                 "RIMFOREX  0.3.3", FxTheme.Muted);
 
-            if (bar.width > 1000f)
+            string viewName = chartViewMode == 1
+                ? "RimForex_ViewTable".Translate()
+                : chartViewMode == 2 ? "RimForex_ViewChart".Translate()
+                : "RimForex_ViewBoth".Translate();
+            if (FxWidgets.Button(new Rect(bar.x + 350f, bar.y + 9f, 130f, 26f),
+                    "RimForex_TopBarView".Translate() + " " + viewName))
+            {
+                chartViewMode = (chartViewMode + 1) % 3;
+            }
+
+            if (bar.width > 1400f)
             {
                 int dateAbs = GenDate.TickGameToAbs(GenTicks.TicksGame);
                 string date = GenDate.DateFullStringAt(dateAbs, Vector2.zero);
@@ -391,10 +416,10 @@ namespace RimForex
             Rect changeHead = new Rect(x + w * 0.72f, headY, w * 0.16f, 16f);
             string modeName = uiChangeMode == 1
                 ? "RimForex_UiChange5d".Translate()
-                : uiChangeMode == 2 ? "RimForex_UiChangeSigma".Translate()
+                : uiChangeMode == 2 ? "RimForex_UiChangeQtr".Translate()
                 : "RimForex_UiChangeDay".Translate();
             FxTheme.Tiny(changeHead, "RimForex_UiColChange".Translate() + " · " + modeName,
-                FxTheme.Muted);
+                FxTheme.Muted, TextAnchor.MiddleRight);
             if (Widgets.ButtonInvisible(changeHead))
             {
                 uiChangeMode = (uiChangeMode + 1) % 3;
@@ -402,7 +427,8 @@ namespace RimForex
             FxTooltip.Tip(changeHead, "RimForex_UiChangeCycleTip".Translate());
 
             FxTheme.Tiny(new Rect(x + w * 0.88f, headY, w * 0.12f, 16f),
-                "RimForex_UiColVol".Translate(), FxTheme.Muted);
+                "RimForex_UiColVol".Translate(), FxTheme.Muted,
+                TextAnchor.MiddleRight);
             FxTheme.HLine(r.x, r.xMax, headY + 18f, FxTheme.Line);
 
             float rowH = 34f;
@@ -483,11 +509,7 @@ namespace RimForex
                 }
                 else if (uiChangeMode == 2)
                 {
-                    float day = c.previousRate > 0.01f
-                        ? c.rate / c.previousRate - 1f : 0f;
-                    float sigma = Mathf.Max(0.0001f,
-                        FxMarket.DailyVol * c.volatility);
-                    pct = day / sigma;
+                    pct = (Mathf.Exp(FxGameComponent.ReturnQtr(c)) - 1f) * 100f;
                 }
                 else
                 {
@@ -774,7 +796,8 @@ namespace RimForex
         private static void DrawChartRefLine(Rect plot, float min, float max,
             float price, Color col, string label, bool clampToEdge = false)
         {
-            if (price < min || price > max)
+            bool inRange = price >= min && price <= max;
+            if (!inRange)
             {
                 if (!clampToEdge) return;
                 price = price > max ? max : min;
@@ -782,7 +805,7 @@ namespace RimForex
             float y = plot.y + (max - price) / Mathf.Max(0.0001f, max - min)
                 * plot.height;
             FxTheme.HLine(plot.x, plot.xMax, y, col);
-            if (!string.IsNullOrEmpty(label))
+            if (inRange && !string.IsNullOrEmpty(label))
             {
                 FxTheme.Tiny(new Rect(plot.x + 4f, y - 13f, 80f, 12f),
                     label, col);
@@ -988,7 +1011,7 @@ namespace RimForex
             string note = null;
             Color noteColor = FxTheme.Warning;
 
-            if (account.Equity > 1f && orderMargin / account.Equity >= 0.95f)
+            if (units > 0 && account.balance - total < 5f)
             {
                 note = "RimForex_AllInWarn".Translate();
                 noteColor = FxTheme.Warning;
@@ -1026,8 +1049,16 @@ namespace RimForex
 
             if (note != null)
             {
-                FxTheme.Tiny(new Rect(x, Mathf.Min(y, by - 20f), w, 18f),
-                    note, noteColor);
+                GameFont oldFont = Text.Font;
+                bool oldWrap = Text.WordWrap;
+                Text.Font = GameFont.Tiny;
+                Text.WordWrap = true;
+                float noteH = Text.CalcHeight(note, w);
+                Text.Font = oldFont;
+                Text.WordWrap = oldWrap;
+                float noteY = Mathf.Min(y, by - noteH - 6f);
+                FxTheme.Label(new Rect(x, noteY, w, noteH), note,
+                    GameFont.Tiny, noteColor, TextAnchor.UpperLeft, true);
             }
 
             bool canOpen = units > 0 && enough && !halted;
@@ -1184,6 +1215,8 @@ namespace RimForex
             HandleUiScroll(content, ref uiBottomScroll, viewH);
 
             Rect list = new Rect(content.x, content.y, content.width - 10f, content.height);
+            Rect tipLocal = default(Rect);
+            string tipText = null;
             GUI.BeginGroup(list);
             for (int i = 0; i < account.positions.Count; i++)
             {
@@ -1207,7 +1240,11 @@ namespace RimForex
                     TextAnchor.MiddleRight);
 
                 Rect edit = new Rect(8f, yy, list.width - 80f, rowH);
-                FxTooltip.Tip(edit, "RimForex_UiPositionEditTip".Translate());
+                if (Mouse.IsOver(edit))
+                {
+                    tipLocal = edit;
+                    tipText = "RimForex_UiPositionEditTip".Translate();
+                }
                 if (Widgets.ButtonInvisible(edit))
                 {
                     Find.WindowStack.Add(new Window_FxTpSl(Fx, account, p));
@@ -1224,12 +1261,22 @@ namespace RimForex
                 }
                 if (!canClose)
                 {
-                    FxTooltip.Tip(new Rect(list.width - 68f, yy + 3f, 60f, 24f),
-                        "RimForex_UiLockedTip".Translate());
+                    Rect closeTip = new Rect(list.width - 68f, yy + 3f, 60f, 24f);
+                    if (Mouse.IsOver(closeTip))
+                    {
+                        tipLocal = closeTip;
+                        tipText = "RimForex_UiLockedTip".Translate();
+                    }
                 }
                 FxTheme.HLine(0f, list.width, yy + rowH - 1f, FxTheme.Line);
             }
             GUI.EndGroup();
+
+            if (tipText != null)
+            {
+                FxTooltip.Tip(new Rect(list.x + tipLocal.x, list.y + tipLocal.y,
+                    tipLocal.width, tipLocal.height), tipText);
+            }
 
             float frac = content.height / Mathf.Max(content.height, viewH);
             float maxScroll = Mathf.Max(0f, viewH - content.height);
@@ -1290,36 +1337,65 @@ namespace RimForex
                 return;
             }
 
-            float rowH = 34f;
-            float viewH = log.Count * rowH;
-            HandleUiScroll(content, ref uiBottomScroll, viewH);
+            float viewH = 0f;
+            for (int n = 0; n < log.Count; n++)
+            {
+                FxEventLogEntry entry = log[log.Count - 1 - n];
+                viewH += entry != null && entry.expanded && !string.IsNullOrEmpty(entry.detail)
+                    ? 54f : 34f;
+            }
 
+            HandleUiScroll(content, ref uiBottomScroll, viewH);
             Rect list = new Rect(content.x, content.y, content.width - 10f, content.height);
             GUI.BeginGroup(list);
+
+            float yy = -uiBottomScroll;
             for (int n = 0; n < log.Count; n++)
             {
                 FxEventLogEntry entry = log[log.Count - 1 - n];
                 if (entry == null) continue;
-                float yy = n * rowH - uiBottomScroll;
-                if (yy + rowH < 0f || yy > list.height) continue;
+                bool expanded = entry.expanded && !string.IsNullOrEmpty(entry.detail);
+                float rowH = expanded ? 54f : 34f;
+                if (yy + rowH < 0f)
+                {
+                    yy += rowH;
+                    continue;
+                }
+                if (yy > list.height) break;
 
+                Rect row = new Rect(0f, yy, list.width, rowH);
                 if (n % 2 == 1)
                 {
-                    FxTheme.Fill(new Rect(0f, yy, list.width, rowH),
-                        new Color32(18, 23, 30, 255));
+                    FxTheme.Fill(row, new Color32(18, 23, 30, 255));
                 }
-                FxTheme.Small(new Rect(8f, yy + 4f, list.width - 160f, 18f),
-                    entry.label, FxTheme.TextColor);
-                if (!string.IsNullOrEmpty(entry.detail))
+                if (expanded)
                 {
-                    FxTheme.Tiny(new Rect(8f, yy + 20f, list.width - 160f, 14f),
-                        entry.detail, FxTheme.Muted);
+                    FxTheme.Fill(row, new Color32(24, 31, 40, 255));
                 }
+
+                FxTheme.Tiny(new Rect(8f, yy + 8f, 14f, 14f),
+                    expanded ? "▾" : "▸", FxTheme.Muted);
+                FxTheme.Small(new Rect(26f, yy + 5f, list.width - 190f, 18f),
+                    entry.label, FxTheme.TextColor);
+
                 string when = GenDate.DateFullStringAt(
                     GenDate.TickGameToAbs(entry.tick), Vector2.zero);
-                FxTheme.Tiny(new Rect(list.width - 146f, yy + 8f, 138f, 16f),
+                FxTheme.Tiny(new Rect(list.width - 156f, yy + 8f, 148f, 16f),
                     when, FxTheme.Muted, TextAnchor.MiddleRight);
+
+                if (expanded)
+                {
+                    FxTheme.Label(new Rect(26f, yy + 25f, list.width - 36f, 24f),
+                        entry.detail, GameFont.Tiny, FxTheme.Muted,
+                        TextAnchor.UpperLeft, true);
+                }
+
+                if (Widgets.ButtonInvisible(row) && !string.IsNullOrEmpty(entry.detail))
+                {
+                    entry.expanded = !entry.expanded;
+                }
                 FxTheme.HLine(0f, list.width, yy + rowH - 1f, FxTheme.Line);
+                yy += rowH;
             }
             GUI.EndGroup();
 
